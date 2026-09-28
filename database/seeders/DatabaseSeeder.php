@@ -49,6 +49,11 @@ class DatabaseSeeder extends Seeder
              // Lot 7 — SST
             SstDemoSeeder::class,
 
+            // Lot 8 — Développement RH
+            FormationDemoSeeder::class,
+            PerformanceDemoSeeder::class,
+            RecrutementDemoSeeder::class,
+
         
         ]);
     }

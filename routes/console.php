@@ -25,3 +25,6 @@ Schedule::command('rh:calculer-paie-mensuelle')->monthlyOn(25, '22:00');
 // Lot 7 — SST
 Schedule::command('rh:verifier-echeances-sst')->dailyAt('07:00');
 Schedule::command('rh:marquer-habilitations-expirees')->dailyAt('04:00');
+
+// Lot 8 — Développement RH
+Schedule::command('rh:signaler-echeances-developpement')->weeklyOn(1, '08:00');

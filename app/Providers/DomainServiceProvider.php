@@ -75,6 +75,29 @@ use App\Domain\Sst\Policies\HabilitationPolicy;
 use App\Domain\Sst\Policies\RisquePolicy;
 use App\Domain\Sst\Policies\VisiteMedicalePolicy;
 
+use App\Domain\Formation\Models\BesoinFormation;
+use App\Domain\Formation\Models\Formation;
+use App\Domain\Formation\Models\ParticipantFormation;
+use App\Domain\Formation\Models\PlanFormation;
+use App\Domain\Formation\Models\SessionFormation;
+use App\Domain\Formation\Policies\BesoinFormationPolicy;
+use App\Domain\Formation\Policies\FormationPolicy;
+use App\Domain\Formation\Policies\ParticipantFormationPolicy;
+use App\Domain\Formation\Policies\PlanFormationPolicy;
+use App\Domain\Formation\Policies\SessionFormationPolicy;
+use App\Domain\Performance\Models\CampagneEvaluation;
+use App\Domain\Performance\Models\CritereEvaluation;
+use App\Domain\Performance\Models\EntretienEvaluation;
+use App\Domain\Performance\Models\ObjectifEvaluation;
+use App\Domain\Performance\Policies\CampagneEvaluationPolicy;
+use App\Domain\Performance\Policies\CritereEvaluationPolicy;
+use App\Domain\Performance\Policies\EntretienEvaluationPolicy;
+use App\Domain\Performance\Policies\ObjectifEvaluationPolicy;
+use App\Domain\Recrutement\Models\BesoinRecrutement;
+use App\Domain\Recrutement\Models\Candidat;
+use App\Domain\Recrutement\Policies\BesoinRecrutementPolicy;
+use App\Domain\Recrutement\Policies\CandidatPolicy;
+
 
 class DomainServiceProvider extends ServiceProvider
 {
@@ -145,6 +168,25 @@ Gate::policy(EvenementSecurite::class, EvenementSecuritePolicy::class);
 Gate::policy(Risque::class, RisquePolicy::class);
 Gate::policy(DotationEpi::class, DotationEpiPolicy::class);
 Gate::policy(Habilitation::class, HabilitationPolicy::class);
+
+
+// Formation
+Gate::policy(Formation::class, FormationPolicy::class);
+Gate::policy(BesoinFormation::class, BesoinFormationPolicy::class);
+Gate::policy(PlanFormation::class, PlanFormationPolicy::class);
+Gate::policy(SessionFormation::class, SessionFormationPolicy::class);
+Gate::policy(ParticipantFormation::class, ParticipantFormationPolicy::class);
+
+// Performance
+Gate::policy(CampagneEvaluation::class, CampagneEvaluationPolicy::class);
+Gate::policy(CritereEvaluation::class, CritereEvaluationPolicy::class);
+Gate::policy(ObjectifEvaluation::class, ObjectifEvaluationPolicy::class);
+Gate::policy(EntretienEvaluation::class, EntretienEvaluationPolicy::class);
+
+// Recrutement
+Gate::policy(BesoinRecrutement::class, BesoinRecrutementPolicy::class);
+Gate::policy(Candidat::class, CandidatPolicy::class);
+
 
     }
 
