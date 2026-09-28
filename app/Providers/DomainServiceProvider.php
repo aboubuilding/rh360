@@ -39,6 +39,42 @@ use App\Domain\Contrats\Policies\AlerteContratPolicy;
 use App\Domain\Contrats\Policies\ContratPolicy;
 use App\Domain\Contrats\Policies\EvenementEssaiPolicy;
 
+use App\Domain\Carriere\Models\InstantaneCarriere;
+use App\Domain\Carriere\Models\MouvementCarriere;
+use App\Domain\Carriere\Models\SituationCarriere;
+use App\Domain\Carriere\Policies\InstantaneCarrierePolicy;
+use App\Domain\Carriere\Policies\MouvementCarrierePolicy;
+use App\Domain\Carriere\Policies\SituationCarrierePolicy;
+
+use App\Domain\Conges\Models\Absence;
+use App\Domain\Conges\Models\DemandeConge;
+use App\Domain\Conges\Models\DossierMaternite;
+use App\Domain\Conges\Models\SoldeConge;
+use App\Domain\Conges\Models\TypeConge;
+use App\Domain\Conges\Policies\AbsencePolicy;
+use App\Domain\Conges\Policies\DemandeCongePolicy;
+use App\Domain\Conges\Policies\DossierMaternitePolicy;
+use App\Domain\Conges\Policies\SoldeCongePolicy;
+use App\Domain\Conges\Policies\TypeCongePolicy;
+
+use App\Domain\Paie\Models\BulletinPaie;
+use App\Domain\Paie\Models\PeriodePaie;
+use App\Domain\Paie\Models\RubriquePaie;
+use App\Domain\Paie\Policies\BulletinPaiePolicy;
+use App\Domain\Paie\Policies\PeriodePaiePolicy;
+use App\Domain\Paie\Policies\RubriquePaiePolicy;
+
+use App\Domain\Sst\Models\DotationEpi;
+use App\Domain\Sst\Models\EvenementSecurite;
+use App\Domain\Sst\Models\Habilitation;
+use App\Domain\Sst\Models\Risque;
+use App\Domain\Sst\Models\VisiteMedicale;
+use App\Domain\Sst\Policies\DotationEpiPolicy;
+use App\Domain\Sst\Policies\EvenementSecuritePolicy;
+use App\Domain\Sst\Policies\HabilitationPolicy;
+use App\Domain\Sst\Policies\RisquePolicy;
+use App\Domain\Sst\Policies\VisiteMedicalePolicy;
+
 
 class DomainServiceProvider extends ServiceProvider
 {
@@ -82,5 +118,35 @@ Gate::policy(DocumentSalarie::class, DocumentSalariePolicy::class);
 Gate::policy(Contrat::class, ContratPolicy::class);
 Gate::policy(EvenementEssai::class, EvenementEssaiPolicy::class);
 Gate::policy(AlerteContrat::class, AlerteContratPolicy::class);
+
+
+Gate::policy(MouvementCarriere::class, MouvementCarrierePolicy::class);
+Gate::policy(SituationCarriere::class, SituationCarrierePolicy::class);
+Gate::policy(InstantaneCarriere::class, InstantaneCarrierePolicy::class);
+
+// Policies Carrière
+Gate::policy(\App\Domain\Carriere\Models\MouvementCarriere::class, \App\Domain\Carriere\Policies\MouvementCarrierePolicy::class);
+Gate::policy(\App\Domain\Carriere\Models\SituationCarriere::class, \App\Domain\Carriere\Policies\SituationCarrierePolicy::class);
+Gate::policy(\App\Domain\Carriere\Models\InstantaneCarriere::class, \App\Domain\Carriere\Policies\InstantaneCarrierePolicy::class);
+
+
+Gate::policy(TypeConge::class, TypeCongePolicy::class);
+Gate::policy(SoldeConge::class, SoldeCongePolicy::class);
+Gate::policy(DemandeConge::class, DemandeCongePolicy::class);
+Gate::policy(Absence::class, AbsencePolicy::class);
+Gate::policy(DossierMaternite::class, DossierMaternitePolicy::class);
+
+Gate::policy(PeriodePaie::class, PeriodePaiePolicy::class);
+Gate::policy(BulletinPaie::class, BulletinPaiePolicy::class);
+Gate::policy(RubriquePaie::class, RubriquePaiePolicy::class);
+
+Gate::policy(VisiteMedicale::class, VisiteMedicalePolicy::class);
+Gate::policy(EvenementSecurite::class, EvenementSecuritePolicy::class);
+Gate::policy(Risque::class, RisquePolicy::class);
+Gate::policy(DotationEpi::class, DotationEpiPolicy::class);
+Gate::policy(Habilitation::class, HabilitationPolicy::class);
+
     }
+
+
 }

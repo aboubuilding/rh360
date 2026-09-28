@@ -1,0 +1,25 @@
+<div class="modal fade" id="modal-annuler" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" id="form-annuler">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Annuler la demande</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Action irréversible.
+                    </div>
+                    <x-field name="motif" label="Motif d'annulation" type="textarea" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban"></i> Confirmer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

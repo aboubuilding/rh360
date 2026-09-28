@@ -16,11 +16,38 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+           
+        // Lot 0 — Socle
             EntrepriseDemoSeeder::class,
-        PermissionRoleSeeder::class,
-        TypeStructureSeeder::class,
-         SalariesDemoSeeder::class, 
-        ReferentielClassificationSeeder::class,
+            PermissionRoleSeeder::class,
+
+            // Lot 1 — Organisation & Classification
+            TypeStructureSeeder::class,
+            ReferentielClassificationSeeder::class,
+
+        // Lot 2 — Personnel
+            SalariesDemoSeeder::class,
+
+            // Lot 3 — Contrats
+            ParametresContratsSeeder::class,
+            ReglesContratsSeeder::class,
+            ContratsDemoSeeder::class,
+
+             // Lot 4 — Carrière
+            CarriereDemoSeeder::class,
+
+              // Lot 5 — Congés & Absences
+            TypesCongesSeeder::class,
+            CongesDemoSeeder::class,
+
+             // Lot 6 — Paie
+            ReglesPaieSeeder::class,
+            RubriquesPaieSeeder::class,
+            ModelesPaieSeeder::class,
+            PeriodesPaieDemoSeeder::class,
+
+             // Lot 7 — SST
+            SstDemoSeeder::class,
 
         
         ]);
