@@ -66,7 +66,7 @@
     </div>
 </div>
 
-@include('paie.periodes._modal-saisir')
+@include('paie.periodes.partials._modal-saisir')
 @include('paie.periodes.partials._modal-valider')
 @endsection
 

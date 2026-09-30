@@ -223,9 +223,9 @@
     <div class="search-modal-content">
         <div class="search-modal-header">
             <i class="fas fa-search"></i>
-            <input type="text" class="search-modal-input" id="searchInput"
-                   placeholder="Rechercher un élève, enseignant, classe, facture..."
-                   aria-label="Champ de recherche"
+            <input type="search" class="search-modal-input" id="searchInput"
+                   placeholder="Nom ou matricule du salarié (2 caractères minimum)"
+                   aria-label="Rechercher un salarié par nom ou matricule"
                    autocomplete="off">
             <button class="search-modal-close" id="searchModalClose" aria-label="Fermer la recherche">
                 <i class="fas fa-times"></i>
@@ -257,10 +257,20 @@
         // Controller/route de recherche n'existe pas, l'appel échoue
         // proprement (voir handleError ci-dessous) plutôt que de
         // provoquer un crash au chargement.
-        const searchUrl = '{{ url('/recherche') }}';
+        // Recherche de salariés par nom ou matricule (CDC §4 1.1 : 2 caractères minimum).
+        const searchUrl = '{{ url('/recherche/salaries') }}';
 
-        // Format JSON attendu du futur endpoint : un tableau d'objets
+        // Adapte la réponse de RechercheRapideSalarie au format d'affichage
         // { title, subtitle, icon, category, url } — voir renderResults().
+        function versResultats(salaries) {
+            return (salaries || []).map(s => ({
+                title: s.nom_complet,
+                subtitle: [s.matricule, s.poste, s.structure].filter(Boolean).join(' · '),
+                icon: 'fa-user',
+                category: 'Salarié',
+                url: s.url,
+            }));
+        }
 
         let searchTimeout;
         let currentRequest = null;
@@ -334,7 +344,7 @@
                 currentRequest = null;
             }
 
-            if (!query || query.trim() === '') {
+            if (!query || query.trim().length < 2) {
                 showEmptyState();
                 return;
             }
@@ -345,10 +355,19 @@
                 data: { q: query },
                 dataType: 'json',
                 success: function (results) {
-                    renderResults(results);
+                    renderResults(versResultats(results));
                 },
                 error: function (xhr) {
                     if (xhr.statusText === 'abort') return; // requête volontairement annulée
+                    if (xhr.status === 403) {
+                        resultsContainer.innerHTML = `
+                            <div class="search-empty">
+                                <i class="fas fa-lock"></i>
+                                <p>Vous n'avez pas accès à la recherche des salariés.</p>
+                            </div>
+                        `;
+                        return;
+                    }
                     showUnavailable();
                 }
             });

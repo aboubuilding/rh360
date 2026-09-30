@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // La migration Laravel par défaut (create_users_table) crée déjà cette table.
+        if (Schema::hasTable('sessions')) {
+            return;
+        }
+
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

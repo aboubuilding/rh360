@@ -19,7 +19,7 @@ class StoreTypeCongeRequest extends FormRequest
 
     public function rules(): array
     {
-        $typeId = $this->route('type_conge')?->id;
+        $typeId = $this->route('type')?->id;
 
         return [
             'code' => [

@@ -1,120 +1,56 @@
 @extends('layouts.app')
 
-@section('title', 'Utilisateurs')
-@section('page_title', 'Utilisateurs')
-@section('page_icon', 'fa-users-cog')
+@section('title', 'Entreprise')
+@section('page_title', 'Fiche entreprise')
+@section('page_icon', 'fa-building')
 
 @section('breadcrumb')
     <li><a href="{{ route('dashboard') }}">Accueil</a></li>
     <li>Administration</li>
-    <li>Utilisateurs</li>
+    <li>Entreprise</li>
 @endsection
 
 @section('page_actions')
-    @can('permission', 'admin.utilisateurs.manage')
-        <a href="{{ route('admin.utilisateurs.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nouvel utilisateur
+    @can('permission', 'admin.entreprise.manage')
+        <a href="{{ route('admin.entreprise.edit') }}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Modifier
         </a>
     @endcan
 @endsection
 
 @section('contenu')
-<div class="card mb-3">
-    <div class="card-body">
-        <form method="GET" class="row g-2">
-            <div class="col-md-4">
-                <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Rechercher nom, identifiant, email...">
-            </div>
-            <div class="col-md-3">
-                <select name="role" class="form-select">
-                    <option value="">Tous les rôles</option>
-                    @foreach(\App\Domain\Administration\Models\Utilisateur::roles() as $code => $libelle)
-                        <option value="{{ $code }}" @selected(request('role') === $code)>{{ $libelle }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="etat" class="form-select">
-                    <option value="">Tous les états</option>
-                    <option value="1" @selected(request('etat') === '1')>Actif</option>
-                    <option value="0" @selected(request('etat') === '0')>Inactif</option>
-                    <option value="-1" @selected(request('etat') === '-1')>Supprimé</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-secondary w-100"><i class="fas fa-search"></i> Filtrer</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>Nom complet</th>
-                    <th>Identifiant</th>
-                    <th>Email</th>
-                    <th>Rôle</th>
-                    <th>État</th>
-                    <th>Dernière connexion</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($utilisateurs as $u)
-                    <tr>
-                        <td><strong>{{ $u->nom_complet }}</strong></td>
-                        <td>{{ $u->identifiant }}</td>
-                        <td>{{ $u->email ?? '—' }}</td>
-                        <td>
-                            <span class="badge bg-primary">{{ $u->libelleRole() }}</span>
-                        </td>
-                        <td>
-                            @if($u->etat === \App\Domain\Shared\Enums\Etat::ACTIF)
-                                <span class="badge bg-success">Actif</span>
-                            @elseif($u->etat === \App\Domain\Shared\Enums\Etat::INACTIF)
-                                <span class="badge bg-secondary">Inactif</span>
-                            @else
-                                <span class="badge bg-danger">Supprimé</span>
-                            @endif
-                        </td>
-                        <td>{{ $u->derniere_connexion?->format('d/m/Y H:i') ?? '—' }}</td>
-                        <td class="text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-action dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-actions dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ route('admin.utilisateurs.show', $u) }}"><i class="fas fa-eye"></i> Voir</a></li>
-                                    @can('permission', 'admin.utilisateurs.manage')
-                                        <li><a class="dropdown-item" href="{{ route('admin.utilisateurs.edit', $u) }}"><i class="fas fa-edit"></i> Modifier</a></li>
-                                        <li>
-                                            <form method="POST" action="{{ route('admin.utilisateurs.toggle-actif', $u) }}">
-                                                @csrf
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="fas fa-{{ $u->actif ? 'ban' : 'check' }}"></i>
-                                                    {{ $u->actif ? 'Désactiver' : 'Activer' }}
-                                                </button>
-                                            </form>
-                                        </li>
-                                    @endcan
-                                    @can('permission', 'admin.permissions.manage')
-                                        <li><a class="dropdown-item" href="{{ route('admin.permissions.exceptions', $u) }}"><i class="fas fa-key"></i> Exceptions</a></li>
-                                    @endcan
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Aucun utilisateur trouvé.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <div class="card-footer">
-        {{ $utilisateurs->links() }}
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                @if($entreprise->chemin_logo)
+                    <img src="{{ route('admin.entreprise.logo') }}" alt="Logo" class="img-fluid mb-3" style="max-height:120px;">
+                @else
+                    <div class="text-muted"><i class="fas fa-image fa-4x"></i><br>Pas de logo</div>
+                @endif
+                <h4>{{ $entreprise->nom }}</h4>
+                <p class="text-muted">{{ $entreprise->sigle }}</p>
+                <span class="badge bg-{{ $entreprise->estActif() ? 'success' : 'secondary' }}">
+                    {{ $entreprise->etat_libelle }}
+                </span>
+            </div>
+            <div class="col-md-8">
+                <table class="table table-sm">
+                    <tr><th>Forme juridique</th><td>{{ $entreprise->forme_juridique ?? '—' }}</td></tr>
+                    <tr><th>NIF</th><td>{{ $entreprise->nif ?? '—' }}</td></tr>
+                    <tr><th>N° employeur CNSS</th><td>{{ $entreprise->numero_employeur_cnss ?? '—' }}</td></tr>
+                    <tr><th>Secteur</th><td>{{ $entreprise->secteur ?? '—' }}</td></tr>
+                    <tr><th>Adresse</th><td>{{ $entreprise->adresse ?? '—' }}</td></tr>
+                    <tr><th>Ville / Pays</th><td>{{ $entreprise->ville }} / {{ $entreprise->pays }}</td></tr>
+                    <tr><th>Téléphone</th><td>{{ $entreprise->telephone ?? '—' }}</td></tr>
+                    <tr><th>Email</th><td>{{ $entreprise->email ?? '—' }}</td></tr>
+                    <tr><th>Devise</th><td>{{ $entreprise->devise }}</td></tr>
+                    <tr><th>Date de bascule</th><td>{{ $entreprise->date_bascule?->format('d/m/Y') ?? '—' }}</td></tr>
+                    <tr><th>Signataire</th><td>{{ $entreprise->nom_signataire ?? '—' }} — {{ $entreprise->fonction_signataire ?? '—' }}</td></tr>
+                    <tr><th>Lieu de signature</th><td>{{ $entreprise->lieu_signature ?? '—' }}</td></tr>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

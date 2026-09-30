@@ -18,7 +18,8 @@
             <span class="badge bg-secondary">{{ $roleCode }}</span>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('admin.permissions.matrice.update') }}">
+            <form method="POST" action="{{ route('admin.permissions.matrice.update') }}"
+                  aria-label="Permissions du rôle {{ $roleLibelle }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="role" value="{{ $roleCode }}">

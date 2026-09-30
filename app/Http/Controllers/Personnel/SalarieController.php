@@ -12,6 +12,7 @@ use App\Domain\Personnel\Requests\UpdateSalarieRequest;
 use App\Domain\Personnel\Services\CalculateurCompletude;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
 class SalarieController extends Controller
@@ -47,7 +48,8 @@ class SalarieController extends Controller
     {
         $this->authorize('create', Salarie::class);
 
-        $donnees = $request->validated();
+        // Les champs sensibles non autorisés sont ignorés, même s'ils sont envoyés (CDC §6)
+        $donnees = Arr::except($request->validated(), Salarie::champsSensiblesInterdits($request->user()));
 
         // Gestion de la photo
         if ($request->hasFile('photo')) {
@@ -96,7 +98,8 @@ class SalarieController extends Controller
     {
         $this->authorize('update', $salarie);
 
-        $donnees = $request->validated();
+        // Les champs sensibles non autorisés sont ignorés, même s'ils sont envoyés (CDC §6)
+        $donnees = Arr::except($request->validated(), Salarie::champsSensiblesInterdits($request->user()));
 
         if ($request->hasFile('photo')) {
             if ($salarie->chemin_photo) {

@@ -253,6 +253,21 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    // Icônes décoratives (Font Awesome, Tabler) masquées aux technologies d'assistance :
+    // sinon leur glyphe CSS s'ajoute au nom accessible des boutons et des liens
+    // («  Annuler » au lieu de « Annuler »). Couvre aussi les icônes ajoutées en JS.
+    (function () {
+        const SELECTEUR = 'i.fa, i.fas, i.far, i.fab, i.fa-solid, i.fa-regular, i.ti';
+        const masquer = function (racine) {
+            if (racine.matches && racine.matches(SELECTEUR)) racine.setAttribute('aria-hidden', 'true');
+            if (racine.querySelectorAll) racine.querySelectorAll(SELECTEUR).forEach(function (i) { i.setAttribute('aria-hidden', 'true'); });
+        };
+        masquer(document);
+        new MutationObserver(function (mutations) {
+            mutations.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) masquer(n); }); });
+        }).observe(document.body, { childList: true, subtree: true });
+    })();
+
     $(function () {
         $('#toast-container .toast-item').each(function () {
             const $t = $(this);

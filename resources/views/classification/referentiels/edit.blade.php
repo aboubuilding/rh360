@@ -13,16 +13,13 @@
 @section('contenu')
 <div class="card">
     <div class="card-body">
-        <form id="form-referentiel" method="POST"
-              action="{{ route('classification.referentiels.update', $referentiel) }}">
+        <form id="form-referentiel" method="POST" action="{{ route('classification.referentiels.update', $referentiel) }}">
             @csrf
             @method('PUT')
             @include('classification.referentiels._form', ['referentiel' => $referentiel])
 
             <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Enregistrer
-                </button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
                 <a href="{{ route('classification.referentiels.index') }}" class="btn btn-secondary">Annuler</a>
             </div>
         </form>
@@ -33,45 +30,35 @@
 @push('js')
 <script>
 $(function () {
-    'use strict';
-
-    const URL_UPDATE = "{{ route('classification.referentiels.update', $referentiel) }}";
-
     $('#form-referentiel').on('submit', function (e) {
         e.preventDefault();
         const $form = $(this);
         const $btn = $form.find('button[type="submit"]');
-        const texteBtn = $btn.html();
+        const texte = $btn.html();
 
         $form.find('.is-invalid').removeClass('is-invalid');
-        $form.find('.invalid-feedback').remove();
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>...');
 
         $.ajax({
-            url: URL_UPDATE,
+            url: $form.attr('action'),
             method: 'POST',
             data: $form.serialize(),
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         })
-        .done(function (response) {
-            window.showToast(response.message || 'Référentiel mis à jour.');
+        .done(function (r) {
+            window.showToast(r.message || 'Mis à jour.');
             setTimeout(() => { window.location.href = "{{ route('classification.referentiels.index') }}"; }, 600);
         })
         .fail(function (xhr) {
-            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+            if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 $.each(xhr.responseJSON.errors, function (champ, messages) {
                     const $el = $form.find('[name="' + champ + '"]');
                     $el.addClass('is-invalid');
                     $el.after('<div class="invalid-feedback">' + messages[0] + '</div>');
                 });
-                window.showToast('Veuillez corriger les erreurs.', 'error');
-            } else {
-                window.showToast('Erreur lors de l\'enregistrement.', 'error');
-            }
+            } else { window.showToast('Erreur.', 'error'); }
         })
-        .always(function () {
-            $btn.prop('disabled', false).html(texteBtn);
-        });
+        .always(function () { $btn.prop('disabled', false).html(texte); });
     });
 });
 </script>

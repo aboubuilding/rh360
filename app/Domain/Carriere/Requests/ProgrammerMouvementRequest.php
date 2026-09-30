@@ -14,7 +14,8 @@ class ProgrammerMouvementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date_effet' => ['required', 'date', 'after:today'],
+            // Date future : programmation ; date passée ou du jour : application immédiate (effet rétroactif)
+            'date_effet' => ['required', 'date'],
         ];
     }
 
@@ -23,7 +24,6 @@ class ProgrammerMouvementRequest extends FormRequest
         return [
             'date_effet.required' => 'La date d\'effet est obligatoire.',
             'date_effet.date' => 'La date d\'effet doit être une date valide.',
-            'date_effet.after' => 'La date d\'effet doit être postérieure à aujourd\'hui.',
         ];
     }
 

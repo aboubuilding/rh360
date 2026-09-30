@@ -23,6 +23,18 @@
     </div>
 
     <div class="col-md-6">
+        <x-field name="position_classification_id" label="Classification (catégorie – classe – échelon)" type="select"
+                 :value="$v('position_classification_id')"
+                 :options="['' => '—'] + $positions->mapWithKeys(fn ($p) => [
+                     $p->id => $p->code . ' — ' . collect([$p->categorie?->libelle, $p->classe?->libelle, $p->echelon?->libelle])->filter()->implode(' – '),
+                 ])->all()" />
+    </div>
+    <div class="col-md-6">
+        <x-field name="date_effet_echelon" label="Date d'effet de l'échelon" type="date"
+                 :value="$v('date_effet_echelon')" help="Date de référence pour le prochain avancement (défaut : prise de service)" />
+    </div>
+
+    <div class="col-md-6">
         <x-field name="lieu_affectation" label="Lieu d'affectation"
                  :value="$v('lieu_affectation')" />
     </div>

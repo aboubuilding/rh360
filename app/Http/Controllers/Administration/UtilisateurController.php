@@ -43,6 +43,14 @@ class UtilisateurController extends Controller
 
         $utilisateur = $action->executer($request->validated());
 
+        // Les formulaires (page et modale) soumettent en AJAX et attendent { message, redirect }
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Utilisateur créé avec succès.',
+                'redirect' => route('admin.utilisateurs.show', $utilisateur),
+            ], 201);
+        }
+
         return redirect()->route('admin.utilisateurs.show', $utilisateur)
             ->with('success', 'Utilisateur créé avec succès.');
     }
@@ -65,6 +73,13 @@ class UtilisateurController extends Controller
 
         $action->executer($utilisateur, $request->validated());
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Utilisateur mis à jour.',
+                'redirect' => route('admin.utilisateurs.show', $utilisateur),
+            ]);
+        }
+
         return redirect()->route('admin.utilisateurs.show', $utilisateur)
             ->with('success', 'Utilisateur mis à jour.');
     }
@@ -73,9 +88,9 @@ class UtilisateurController extends Controller
     {
         $this->authorize('update', $utilisateur);
 
-        $utilisateur->actif
-            ? $utilisateur->marquerInactif()
-            : $utilisateur->marquerActif();
+        // « actif » est le verrou de connexion géré par l'administrateur ;
+        // « etat » reste réservé à la suppression logique.
+        $utilisateur->update(['actif' => ! $utilisateur->actif]);
 
         return back()->with('success', 'Statut de l\'utilisateur modifié.');
     }

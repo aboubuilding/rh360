@@ -39,16 +39,25 @@
                         <td>{{ Str::limit($d->observations, 40) ?? '—' }}</td>
                         <td class="text-end">
                             <a href="{{ route('personnel.salaries.documents.voir', [$salarie, $d]) }}"
-                               target="_blank" class="btn btn-sm btn-action" title="Télécharger">
+                               target="_blank" class="btn btn-sm btn-action" title="Télécharger"
+                               aria-label="Ouvrir {{ $d->type_document }}">
                                 <i class="fas fa-download"></i>
                             </a>
                             @can('permission', 'salaries.manage')
-                                <button type="button" class="btn btn-sm btn-action js-renouveler-document"
-                                        data-id="{{ $d->id }}"
-                                        data-type="{{ $d->type_document }}"
-                                        title="Renouveler">
-                                    <i class="fas fa-sync"></i>
-                                </button>
+                                @if($d->actif)
+                                    <button type="button" class="btn btn-sm btn-action js-renouveler-document"
+                                            data-id="{{ $d->id }}"
+                                            data-type="{{ $d->type_document }}"
+                                            title="Renouveler" aria-label="Renouveler {{ $d->type_document }}">
+                                        <i class="fas fa-sync"></i>
+                                    </button>
+                                    {{-- Archivage avec motif obligatoire (CDC §4 2.5) --}}
+                                    <button type="button" class="btn btn-sm btn-action js-archiver-document"
+                                            data-url="{{ route('personnel.salaries.documents.archiver', [$salarie, $d]) }}"
+                                            title="Archiver" aria-label="Archiver {{ $d->type_document }}">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                @endif
                                 <form method="POST"
                                       action="{{ route('personnel.salaries.documents.destroy', [$salarie, $d]) }}"
                                       class="d-inline form-confirm-delete"
@@ -105,6 +114,34 @@ $(function () {
         $('#modal-document').data('mode', 'renouvellement');
         $form.find('[name="type_document"]').val(type);
         bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+    });
+
+    $(document).on('click', '.js-archiver-document', function () {
+        const url = $(this).data('url');
+        Swal.fire({
+            title: 'Archiver ce document ?',
+            input: 'text',
+            inputLabel: 'Motif de l\'archivage',
+            inputPlaceholder: 'Au moins 5 caractères',
+            showCancelButton: true,
+            confirmButtonText: 'Archiver',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#1B4965',
+            inputValidator: (valeur) => (!valeur || valeur.trim().length < 5)
+                ? 'Le motif doit contenir au moins 5 caractères.' : undefined,
+        }).then(function (r) {
+            if (!r.isConfirmed) return;
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: { motif: r.value, _token: $('meta[name="csrf-token"]').attr('content') },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            })
+            .done(function (rep) { window.showToastThenReload(rep.message || 'Document archivé.'); })
+            .fail(function (xhr) {
+                window.showToast(xhr.responseJSON?.errors?.motif?.[0] || 'Erreur lors de l\'archivage.', 'error');
+            });
+        });
     });
 
     $('#form-document').on('submit', function (e) {

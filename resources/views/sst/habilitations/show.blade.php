@@ -149,8 +149,8 @@
     </div>
 @endif
 
-@include('sst.habilitations.partials._modal-renouveler')
-@include('sst.habilitations.partials._modal-revoquer')
+@include('sst.habilitations._modal-renouveler')
+@include('sst.habilitations._modal-revoquer')
 @endsection
 
 @push('js')

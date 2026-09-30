@@ -27,8 +27,10 @@ class StructureController extends Controller
             ->withQueryString();
 
         $types = TypeStructure::orderBy('ordre')->get();
+        // Liste des parents possibles pour la modale de création rapide
+        $parents = Structure::orderBy('nom')->get();
 
-        return view('organisation.structures.index', compact('structures', 'types'));
+        return view('organisation.structures.index', compact('structures', 'types', 'parents'));
     }
 
     public function create()

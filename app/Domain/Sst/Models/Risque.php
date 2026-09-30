@@ -73,6 +73,11 @@ class Risque extends Model
         return $this->belongsTo(\App\Domain\Administration\Models\Utilisateur::class, 'cree_par');
     }
 
+    public function modifiePar(): BelongsTo
+    {
+        return $this->belongsTo(\App\Domain\Administration\Models\Utilisateur::class, 'modifie_par');
+    }
+
     // --- Scopes ---
 
     public function scopeRecherche(Builder $q, ?string $terme): Builder

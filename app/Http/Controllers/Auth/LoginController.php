@@ -42,20 +42,13 @@ class LoginController extends Controller
             ->where('identifiant', $donnees['identifiant'])
             ->first();
 
-        if (! $utilisateur) {
+        // Même code et même message pour un identifiant inconnu ou un mauvais mot de passe :
+        // la réponse ne doit pas révéler quels comptes existent.
+        if (! $utilisateur || ! $this->verificateur->verifier($utilisateur, $donnees['password'])) {
             RateLimiter::hit($cle, 60);
             return response()->json([
                 'success' => false,
-                'code' => 'USER_NOT_FOUND',
-                'message' => 'Identifiant ou mot de passe incorrect.',
-            ], 401);
-        }
-
-        if (! $this->verificateur->verifier($utilisateur, $donnees['password'])) {
-            RateLimiter::hit($cle, 60);
-            return response()->json([
-                'success' => false,
-                'code' => 'INVALID_PASSWORD',
+                'code' => 'INVALID_CREDENTIALS',
                 'message' => 'Identifiant ou mot de passe incorrect.',
             ], 401);
         }

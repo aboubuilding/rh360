@@ -28,16 +28,6 @@ class RegleContratController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        $this->authorize('permission', 'contrats.validate');
-
-        return view('contrats.regles.create', [
-            'types' => TypeContrat::options(),
-            'categories' => CategorieClassification::orderBy('ordre')->get(),
-        ]);
-    }
-
     public function store(StoreRegleContratRequest $request)
     {
         $this->authorize('permission', 'contrats.validate');
@@ -54,17 +44,6 @@ class RegleContratController extends Controller
 
         return redirect()->route('contrats.regles.index')
             ->with('success', 'Règle créée.');
-    }
-
-    public function edit(RegleContrat $regle)
-    {
-        $this->authorize('permission', 'contrats.validate');
-
-        return view('contrats.regles.edit', [
-            'regle' => $regle,
-            'types' => TypeContrat::options(),
-            'categories' => CategorieClassification::orderBy('ordre')->get(),
-        ]);
     }
 
     public function update(StoreRegleContratRequest $request, RegleContrat $regle)

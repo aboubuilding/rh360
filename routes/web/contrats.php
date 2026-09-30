@@ -22,18 +22,15 @@ Route::middleware('auth')->prefix('contrats')->name('contrats.')->group(function
     // Règles
     Route::resource('regles', RegleContratController::class)
         ->parameters(['regles' => 'regle'])
-        ->except(['show']);
+        ->except(['show', 'create', 'edit']); // création / modification dans la modale de la liste
 
     // Événements d'essai
     Route::get('evenements-essai', [EvenementEssaiController::class, 'index'])
         ->name('evenements-essai.index');
-    Route::get('evenements-essai/{evenement}/decider-valider',
-        [EvenementEssaiController::class, 'valider'])
-        ->whereNumber('evenement')
-        ->name('evenements-essai.valider');
+    // Décisions : POST uniquement (changement d'état protégé par CSRF)
     Route::post('evenements-essai/{evenement}/valider',
         [EvenementEssaiController::class, 'valider'])
-        ->name('evenements-essai.valider.post');
+        ->name('evenements-essai.valider');
     Route::post('evenements-essai/{evenement}/refuser',
         [EvenementEssaiController::class, 'refuser'])
         ->name('evenements-essai.refuser');

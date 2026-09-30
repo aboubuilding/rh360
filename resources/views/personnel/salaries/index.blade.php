@@ -17,7 +17,7 @@
         </a>
     @endcan
     @can('permission', 'salaries.manage')
-        <a href="{{ route('personnel.salaries.create') }}" class="btn btn-primary">
+        <a href="{{ route('personnel.salaries.wizard.demarrer') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nouveau salarié
         </a>
     @endcan
@@ -26,13 +26,13 @@
 @section('contenu')
 <div class="card mb-3">
     <div class="card-body">
-        <form method="GET" class="row g-2">
+        <form method="GET" class="row g-2" role="search" aria-label="Filtrer les salariés">
             <div class="col-md-3">
-                <input type="text" name="q" value="{{ request('q') }}" class="form-control"
+                <input type="search" name="q" value="{{ request('q') }}" class="form-control" aria-label="Rechercher un salarié"
                        placeholder="Nom, matricule, n° enregistrement...">
             </div>
             <div class="col-md-3">
-                <select name="structure_id" class="form-select">
+                <select name="structure_id" class="form-select" aria-label="Structure">
                     <option value="">Toutes les structures</option>
                     @foreach($structures as $s)
                         <option value="{{ $s->id }}" @selected(request('structure_id') == $s->id)>{{ $s->nom }}</option>
@@ -40,14 +40,14 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="situation" class="form-select">
+                <select name="situation" class="form-select" aria-label="Situation">
                     <option value="">Tous</option>
                     <option value="actifs" @selected(request('situation') === 'actifs')>Actifs</option>
                     <option value="anciens" @selected(request('situation') === 'anciens')>Anciens</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="completude" class="form-select">
+                <select name="completude" class="form-select" aria-label="Complétude du dossier">
                     <option value="">Complétude</option>
                     <option value="complets" @selected(request('completude') === 'complets')>Complets</option>
                     <option value="incomplets" @selected(request('completude') === 'incomplets')>À compléter</option>

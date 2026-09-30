@@ -15,13 +15,21 @@ class StoreContratRequest extends FormRequest
 
     public function rules(): array
     {
+        $entrepriseId = $this->user()->entreprise_id;
+
         return [
-            'salarie_id' => ['required', 'exists:salaries,id'],
-            'reference' => ['required', 'string', 'max:240'],
+            // Cloisonnement : salarié et poste doivent appartenir à l'entreprise de l'utilisateur
+            'salarie_id' => ['required', Rule::exists('salaries', 'id')->where('entreprise_id', $entrepriseId)],
+            'reference' => [
+                'required', 'string', 'max:240',
+                Rule::unique('contrats', 'reference')
+                    ->where('entreprise_id', $entrepriseId)
+                    ->ignore($this->route('contrat')?->id),
+            ],
             'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value'))],
             'date_debut' => ['required', 'date'],
             'date_fin' => ['nullable', 'date', 'after:date_debut'],
-            'poste_id' => ['required', 'exists:postes,id'],
+            'poste_id' => ['required', Rule::exists('postes', 'id')->where('entreprise_id', $entrepriseId)],
             'position_classification_id' => ['required', 'exists:positions_classification,id'],
             'conditions' => ['nullable', 'array'],
             'regle_figee' => ['nullable', 'array'],
@@ -36,6 +44,7 @@ class StoreContratRequest extends FormRequest
 
             'reference.required' => 'La référence du contrat est obligatoire.',
             'reference.max' => 'La référence ne doit pas dépasser 240 caractères.',
+            'reference.unique' => 'Cette référence de contrat est déjà utilisée dans l\'entreprise.',
 
             'type_contrat.required' => 'Le type de contrat est obligatoire.',
             'type_contrat.in' => 'Le type de contrat sélectionné est invalide.',

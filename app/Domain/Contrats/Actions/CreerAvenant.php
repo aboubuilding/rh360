@@ -24,6 +24,7 @@ class CreerAvenant
             $donnees['parent_id'] = $contratOrigine->id;
             $donnees['statut'] = StatutContrat::BROUILLON->value;
             $donnees['cle_soumission'] = $donnees['cle_soumission'] ?? (string) Str::uuid();
+            $donnees['conditions'] = $donnees['conditions'] ?? $contratOrigine->conditions ?? [];
             $donnees['cree_par'] = auth()->id() ?? 1;
             $donnees['revision'] = 1;
             $donnees['etat'] = 1;

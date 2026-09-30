@@ -15,12 +15,19 @@ class UpdateContratRequest extends FormRequest
 
     public function rules(): array
     {
+        $entrepriseId = $this->user()->entreprise_id;
+
         return [
-            'reference' => ['required', 'string', 'max:240'],
+            'reference' => [
+                'required', 'string', 'max:240',
+                Rule::unique('contrats', 'reference')
+                    ->where('entreprise_id', $entrepriseId)
+                    ->ignore($this->route('contrat')?->id),
+            ],
             'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value'))],
             'date_debut' => ['required', 'date'],
             'date_fin' => ['nullable', 'date', 'after:date_debut'],
-            'poste_id' => ['required', 'exists:postes,id'],
+            'poste_id' => ['required', Rule::exists('postes', 'id')->where('entreprise_id', $entrepriseId)],
             'position_classification_id' => ['required', 'exists:positions_classification,id'],
             'conditions' => ['nullable', 'array'],
         ];

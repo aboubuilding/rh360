@@ -58,6 +58,16 @@ class Habilitation extends Model
         return $this->hasMany(Habilitation::class, 'habilitation_origine_id');
     }
 
+    public function creePar(): BelongsTo
+    {
+        return $this->belongsTo(\App\Domain\Administration\Models\Utilisateur::class, 'cree_par');
+    }
+
+    public function modifiePar(): BelongsTo
+    {
+        return $this->belongsTo(\App\Domain\Administration\Models\Utilisateur::class, 'modifie_par');
+    }
+
     // --- Scopes ---
 
     public function scopeActives(Builder $q): Builder

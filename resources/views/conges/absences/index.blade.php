@@ -168,7 +168,7 @@
 
 @include('conges.absences.partials._modal-qualifier')
 @include('conges.absences.partials._modal-regulariser')
-@include('conges.absences._modal-transmettre')
+@include('conges.absences.partials._modal-transmettre')
 @endsection
 
 @push('js')

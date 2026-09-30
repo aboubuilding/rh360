@@ -18,6 +18,7 @@ class CreerContrat
             $donnees['entreprise_id'] = auth()->user()->entreprise_id;
             $donnees['statut'] = StatutContrat::BROUILLON->value;
             $donnees['cle_soumission'] = $donnees['cle_soumission'] ?? (string) Str::uuid();
+            $donnees['conditions'] = $donnees['conditions'] ?? [];
             $donnees['cree_par'] = auth()->id() ?? 1;
             $donnees['revision'] = 1;
             $donnees['etat'] = 1;

@@ -66,14 +66,27 @@
                                         title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form method="POST"
-                                      action="{{ route('personnel.salaries.foyer.archiver', [$salarie, $m]) }}"
-                                      class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-action" title="Archiver">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </form>
+                                @if($m->etat === \App\Domain\Shared\Enums\Etat::ACTIF)
+                                    <form method="POST"
+                                          action="{{ route('personnel.salaries.foyer.archiver', [$salarie, $m]) }}"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-action"
+                                                title="Archiver" aria-label="Archiver {{ $m->nom_complet }}">
+                                            <i class="fas fa-archive"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <form method="POST"
+                                          action="{{ route('personnel.salaries.foyer.restaurer', [$salarie, $m]) }}"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-action"
+                                                title="Restaurer" aria-label="Restaurer {{ $m->nom_complet }}">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             @endcan
                         </td>
                     </tr>

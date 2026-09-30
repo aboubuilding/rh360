@@ -27,14 +27,6 @@ class TypeCongeController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        $this->authorize('create', TypeConge::class);
-        return view('conges.types.create', [
-            'categories' => CategorieTypeConge::options(),
-        ]);
-    }
-
     public function store(StoreTypeCongeRequest $request)
     {
         $this->authorize('create', TypeConge::class);
@@ -52,14 +44,6 @@ class TypeCongeController extends Controller
             ->with('success', 'Type de congé créé.');
     }
 
-    public function edit(TypeConge $type)
-    {
-        $this->authorize('update', $type);
-        return view('conges.types.edit', [
-            'type' => $type,
-            'categories' => CategorieTypeConge::options(),
-        ]);
-    }
 
     public function update(StoreTypeCongeRequest $request, TypeConge $type)
     {

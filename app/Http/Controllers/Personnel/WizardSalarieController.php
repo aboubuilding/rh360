@@ -2,25 +2,50 @@
 
 namespace App\Http\Controllers\Personnel;
 
+use App\Domain\Classification\Models\PositionClassification;
 use App\Domain\Organisation\Models\Poste;
 use App\Domain\Organisation\Models\Structure;
 use App\Domain\Personnel\Actions\CreerSalarie;
+use App\Domain\Personnel\Models\BrouillonSalarie;
 use App\Domain\Personnel\Models\Salarie;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Assistant de création en cinq étapes (CDC §4 2.2).
+ * Le brouillon est sauvegardé en base (brouillons_salaries) à chaque étape :
+ * l'utilisateur peut le reprendre plus tard, ou l'abandonner.
+ */
 class WizardSalarieController extends Controller
 {
-    private const SESSION_KEY = 'wizard_salarie';
     private const TOTAL_ETAPES = 5;
 
-    public function demarrer()
+    /** Étape atteinte une fois les cinq étapes enregistrées : récapitulatif. */
+    private const ETAPE_RECAPITULATIF = self::TOTAL_ETAPES + 1;
+
+    /**
+     * Démarre un brouillon, ou reprend celui en cours de l'utilisateur.
+     */
+    public function demarrer(Request $request)
     {
         $this->authorize('create', Salarie::class);
 
-        session()->forget(self::SESSION_KEY);
-        session([self::SESSION_KEY => ['etape_courante' => 1, 'donnees' => []]]);
+        $brouillon = $this->brouillon($request);
+
+        if ($brouillon) {
+            return $this->redirigerVersEtape($brouillon)
+                ->with('success', 'Brouillon de création repris là où vous l\'aviez laissé.');
+        }
+
+        BrouillonSalarie::create([
+            'entreprise_id' => $request->user()->entreprise_id,
+            'utilisateur_id' => $request->user()->id,
+            'donnees' => [],
+            'etape_courante' => 1,
+            'etat' => 1,
+        ]);
 
         return redirect()->route('personnel.salaries.wizard.etape', 1);
     }
@@ -33,19 +58,23 @@ class WizardSalarieController extends Controller
             abort(404);
         }
 
-        $etat = session(self::SESSION_KEY, ['etape_courante' => 1, 'donnees' => []]);
+        $brouillon = $this->brouillon($request);
+        if (! $brouillon) {
+            return redirect()->route('personnel.salaries.wizard.demarrer');
+        }
 
-        // Autoriser la navigation vers une étape déjà atteinte uniquement
-        if ($numero > $etat['etape_courante']) {
-            return redirect()->route('personnel.salaries.wizard.etape', $etat['etape_courante']);
+        // Navigation autorisée uniquement vers une étape déjà atteinte
+        if ($numero > min($brouillon->etape_courante, self::TOTAL_ETAPES)) {
+            return $this->redirigerVersEtape($brouillon);
         }
 
         return view('personnel.salaries.create', [
             'numero' => $numero,
             'total' => self::TOTAL_ETAPES,
-            'donnees' => $etat['donnees'],
+            'donnees' => $brouillon->donnees ?? [],
             'structures' => Structure::orderBy('nom')->get(),
             'postes' => Poste::orderBy('intitule')->get(),
+            'positions' => PositionClassification::with(['categorie', 'classe', 'echelon'])->orderBy('ordre')->get(),
         ]);
     }
 
@@ -57,34 +86,34 @@ class WizardSalarieController extends Controller
             abort(404);
         }
 
-        $donnees = $request->validate(
-            $this->reglesEtape($numero),
-            $this->messagesEtape($numero),
-        );
-
-        // Étape 1 : stocker la photo en zone temporaire
-        if ($numero === 1 && $request->hasFile('photo')) {
-            // Supprimer l'ancienne photo temp si on repasse sur l'étape 1
-            $etat = session(self::SESSION_KEY, ['donnees' => []]);
-            if (! empty($etat['donnees']['chemin_photo_temp'])) {
-                Storage::disk('local')->delete($etat['donnees']['chemin_photo_temp']);
-            }
-            $donnees['chemin_photo_temp'] = $request->file('photo')
-                ->store('salaries/photos_temp', 'local');
+        $brouillon = $this->brouillon($request);
+        if (! $brouillon) {
+            return redirect()->route('personnel.salaries.wizard.demarrer');
         }
 
-        // Fusionner dans la session
-        $etat = session(self::SESSION_KEY, ['etape_courante' => 1, 'donnees' => []]);
-        $etat['donnees'] = array_merge($etat['donnees'], $donnees);
-        $etat['etape_courante'] = min($numero + 1, self::TOTAL_ETAPES);
-        session([self::SESSION_KEY => $etat]);
+        $donnees = Arr::except(
+            $request->validate($this->reglesEtape($numero), $this->messagesEtape($numero)),
+            // Champs sensibles non autorisés ignorés (CDC §6)
+            Salarie::champsSensiblesInterdits($request->user()),
+        );
+        unset($donnees['photo']);
 
-        // Destination : étape suivante ou récapitulatif
+        // Étape 1 : photo stockée en zone temporaire privée, rattachée au brouillon
+        if ($numero === 1 && $request->hasFile('photo')) {
+            if ($brouillon->chemin_photo) {
+                Storage::disk('local')->delete($brouillon->chemin_photo);
+            }
+            $brouillon->chemin_photo = $request->file('photo')->store('salaries/photos_temp', 'local');
+        }
+
+        $brouillon->donnees = array_merge($brouillon->donnees ?? [], $donnees);
+        $brouillon->etape_courante = max($brouillon->etape_courante, $numero + 1);
+        $brouillon->save();
+
         $redirect = $numero === self::TOTAL_ETAPES
             ? route('personnel.salaries.wizard.recapitulatif')
             : route('personnel.salaries.wizard.etape', $numero + 1);
 
-        // ⚠️ Réponse adaptée au type de requête
         if ($request->expectsJson()) {
             return response()->json(['redirect' => $redirect]);
         }
@@ -92,17 +121,25 @@ class WizardSalarieController extends Controller
         return redirect($redirect);
     }
 
-    public function recapitulatif()
+    public function recapitulatif(Request $request)
     {
         $this->authorize('create', Salarie::class);
 
-        $etat = session(self::SESSION_KEY);
-        if (! $etat || $etat['etape_courante'] < self::TOTAL_ETAPES) {
-            return redirect()->route('personnel.salaries.wizard.etape', 1);
+        $brouillon = $this->brouillon($request);
+        if (! $brouillon || $brouillon->etape_courante < self::ETAPE_RECAPITULATIF) {
+            return $brouillon
+                ? $this->redirigerVersEtape($brouillon)
+                : redirect()->route('personnel.salaries.wizard.demarrer');
         }
 
+        $donnees = $brouillon->donnees ?? [];
+
         return view('personnel.salaries.recapitulatif', [
-            'donnees' => $etat['donnees'],
+            'donnees' => $donnees,
+            'structure' => ! empty($donnees['structure_id']) ? Structure::find($donnees['structure_id']) : null,
+            'poste' => ! empty($donnees['poste_id']) ? Poste::find($donnees['poste_id']) : null,
+            'position' => ! empty($donnees['position_classification_id'])
+                ? PositionClassification::find($donnees['position_classification_id']) : null,
         ]);
     }
 
@@ -110,40 +147,57 @@ class WizardSalarieController extends Controller
     {
         $this->authorize('create', Salarie::class);
 
-        $etat = session(self::SESSION_KEY);
-        if (! $etat || empty($etat['donnees'])) {
-            return redirect()->route('personnel.salaries.wizard.etape', 1)
-                ->with('error', 'Aucune donnée à valider.');
+        $brouillon = $this->brouillon($request);
+        if (! $brouillon || $brouillon->etape_courante < self::ETAPE_RECAPITULATIF) {
+            return redirect()->route('personnel.salaries.wizard.demarrer')
+                ->with('error', 'Le brouillon est incomplet : terminez les cinq étapes avant de valider.');
         }
 
-        $donnees = $etat['donnees'];
+        $donnees = $brouillon->donnees ?? [];
 
-        // Déplacer la photo temp vers l'emplacement définitif
-        if (! empty($donnees['chemin_photo_temp'])) {
-            $cheminDefinitif = 'salaries/photos/' . basename($donnees['chemin_photo_temp']);
-            Storage::disk('local')->move($donnees['chemin_photo_temp'], $cheminDefinitif);
+        // Déplacer la photo temporaire vers l'emplacement définitif
+        if ($brouillon->chemin_photo && Storage::disk('local')->exists($brouillon->chemin_photo)) {
+            $cheminDefinitif = 'salaries/photos/' . basename($brouillon->chemin_photo);
+            Storage::disk('local')->move($brouillon->chemin_photo, $cheminDefinitif);
             $donnees['chemin_photo'] = $cheminDefinitif;
-            unset($donnees['chemin_photo_temp']);
         }
 
         $salarie = $action->executer($donnees);
-        session()->forget(self::SESSION_KEY);
+        $brouillon->delete();
 
         return redirect()->route('personnel.salaries.show', $salarie)
             ->with('success', 'Salarié créé avec succès.');
     }
 
-    public function abandonner()
+    public function abandonner(Request $request)
     {
-        // Nettoyer la photo temporaire si elle existe
-        $etat = session(self::SESSION_KEY);
-        if (! empty($etat['donnees']['chemin_photo_temp'])) {
-            Storage::disk('local')->delete($etat['donnees']['chemin_photo_temp']);
+        $this->authorize('create', Salarie::class);
+
+        $brouillon = $this->brouillon($request);
+        if ($brouillon) {
+            if ($brouillon->chemin_photo) {
+                Storage::disk('local')->delete($brouillon->chemin_photo);
+            }
+            $brouillon->delete();
         }
 
-        session()->forget(self::SESSION_KEY);
         return redirect()->route('personnel.salaries.index')
             ->with('success', 'Création annulée.');
+    }
+
+    /**
+     * Brouillon en cours de l'utilisateur connecté (un seul à la fois).
+     */
+    private function brouillon(Request $request): ?BrouillonSalarie
+    {
+        return BrouillonSalarie::where('utilisateur_id', $request->user()->id)->latest('id')->first();
+    }
+
+    private function redirigerVersEtape(BrouillonSalarie $brouillon)
+    {
+        return $brouillon->etape_courante >= self::ETAPE_RECAPITULATIF
+            ? redirect()->route('personnel.salaries.wizard.recapitulatif')
+            : redirect()->route('personnel.salaries.wizard.etape', max(1, $brouillon->etape_courante));
     }
 
     private function reglesEtape(int $numero): array
@@ -192,6 +246,8 @@ class WizardSalarieController extends Controller
                 'date_prise_service' => ['nullable', 'date', 'after_or_equal:date_embauche'],
                 'structure_id' => ['nullable', 'exists:structures,id'],
                 'poste_id' => ['nullable', 'exists:postes,id'],
+                'position_classification_id' => ['nullable', 'exists:positions_classification,id'],
+                'date_effet_echelon' => ['nullable', 'date'],
                 'type_contrat' => ['nullable', 'string', 'max:160'],
                 'reference_contrat' => ['nullable', 'string', 'max:255'],
                 'date_contrat' => ['nullable', 'date'],
@@ -219,6 +275,7 @@ class WizardSalarieController extends Controller
                 'date_fin_contrat.after_or_equal' => 'La date de fin de contrat doit être postérieure ou égale à la date du contrat.',
                 'structure_id.exists' => 'La structure sélectionnée n\'existe pas.',
                 'poste_id.exists' => 'Le poste sélectionné n\'existe pas.',
+                'position_classification_id.exists' => 'La position de classification sélectionnée n\'existe pas.',
             ],
             default => [],
         };

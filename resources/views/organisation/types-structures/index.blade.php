@@ -12,7 +12,7 @@
 
 @section('page_actions')
     @can('permission', 'organisation.manage')
-        <button type="button" class="btn btn-primary js-nouveau-type-structure">
+        <button type="button" class="btn btn-primary js-nouveau-type">
             <i class="fas fa-plus"></i> Nouveau type
         </button>
     @endcan
@@ -54,7 +54,7 @@
                                 <ul class="dropdown-menu dropdown-menu-actions dropdown-menu-end">
                                     @can('permission', 'organisation.manage')
                                         <li>
-                                            <button type="button" class="dropdown-item js-edit-type-structure"
+                                            <button type="button" class="dropdown-item js-edit-type"
                                                     data-id="{{ $type->id }}"
                                                     data-donnees="{{ json_encode([
                                                         'code' => $type->code,
@@ -66,8 +66,7 @@
                                             </button>
                                         </li>
                                         <li>
-                                            <form method="POST"
-                                                  action="{{ route('organisation.types-structures.destroy', $type) }}"
+                                            <form method="POST" action="{{ route('organisation.types-structures.destroy', $type) }}"
                                                   class="form-confirm-delete"
                                                   data-confirm-title="Supprimer ce type de structure ?">
                                                 @csrf
@@ -97,76 +96,48 @@
 @push('js')
 <script>
 $(function () {
-    'use strict';
-
     const URL_STORE  = "{{ route('organisation.types-structures.store') }}";
-    const URL_UPDATE = "{{ route('organisation.types-structures.update', ['type_structure' => '__ID__']) }}";
+    const URL_UPDATE = "{{ route('organisation.types-structures.update', ['typeStructure' => '__ID__']) }}";
 
-    /**
-     * Ouvre le modal en mode création ou édition.
-     * @param {number|null} id
-     * @param {object|null} donnees
-     */
-    function ouvrirModal(id = null, donnees = null) {
-        const $modal  = $('#modal-type-structure');
-        const $form   = $('#form-type-structure');
-        const $method = $('#method-type-structure');
-        const $titre  = $('#titre-modal-type-structure');
-        const $id     = $('#id-type-structure');
-
-        // Reset complet
+    function ouvrir(id = null, donnees = null) {
+        const $form = $('#form-type-structure');
         $form[0].reset();
         $form.find('.is-invalid').removeClass('is-invalid');
         $form.find('.invalid-feedback').remove();
-        $id.val('');
 
         if (id) {
-            $titre.text('Modifier le type de structure');
-            $method.val('PUT');
+            $('#titre-modal-type-structure').text('Modifier le type de structure');
             $form.attr('action', URL_UPDATE.replace('__ID__', id));
-            $id.val(id);
-
-            if (donnees) {
-                $.each(donnees, function (champ, valeur) {
-                    const $el = $form.find('[name="' + champ + '"]');
-                    if (!$el.length) return;
-
-                    if ($el.attr('type') === 'checkbox') {
-                        $el.prop('checked', !!valeur);
-                    } else {
-                        $el.val(valeur !== null && valeur !== undefined ? valeur : '');
-                    }
-                });
-            }
+            $form.find('input[name="_method"]').val('PUT');
+            $.each(donnees, function (k, v) {
+                const $el = $form.find('[name="' + k + '"]');
+                if (! $el.length) return;
+                if ($el.attr('type') === 'checkbox') $el.prop('checked', !!v);
+                else $el.val(v ?? '');
+            });
         } else {
-            $titre.text('Nouveau type de structure');
-            $method.val('POST');
+            $('#titre-modal-type-structure').text('Nouveau type de structure');
             $form.attr('action', URL_STORE);
+            $form.find('input[name="_method"]').val('POST');
         }
 
-        bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-type-structure')).show();
     }
 
-    // Bouton "Nouveau"
-    $(document).on('click', '.js-nouveau-type-structure', function () {
-        ouvrirModal();
+    $(document).on('click', '.js-nouveau-type', () => ouvrir());
+    $(document).on('click', '.js-edit-type', function () {
+        ouvrir($(this).data('id'), $(this).data('donnees'));
     });
 
-    // Bouton "Modifier" par ligne
-    $(document).on('click', '.js-edit-type-structure', function () {
-        const id = $(this).data('id');
-        const donnees = $(this).data('donnees');
-        ouvrirModal(id, donnees);
-    });
-
-    // Soumission AJAX (pour rester dans le modal en cas d'erreur)
-    $form.on('submit', function (e) {
+    $('#form-type-structure').on('submit', function (e) {
         e.preventDefault();
         const $form = $(this);
-        const $btn  = $form.find('button[type="submit"]');
-        const texteBtn = $btn.html();
+        const $btn = $form.find('button[type="submit"]');
+        const texte = $btn.html();
 
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>...');
 
         $.ajax({
             url: $form.attr('action'),
@@ -174,27 +145,20 @@ $(function () {
             data: $form.serialize(),
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         })
-        .done(function (response) {
+        .done(function (r) {
             bootstrap.Modal.getInstance(document.getElementById('modal-type-structure')).hide();
-            window.showToastThenReload(response.message || 'Enregistré.');
+            window.showToastThenReload(r.message || 'Enregistré.');
         })
         .fail(function (xhr) {
-            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                $form.find('.is-invalid').removeClass('is-invalid');
-                $form.find('.invalid-feedback').remove();
+            if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 $.each(xhr.responseJSON.errors, function (champ, messages) {
                     const $el = $form.find('[name="' + champ + '"]');
                     $el.addClass('is-invalid');
                     $el.after('<div class="invalid-feedback">' + messages[0] + '</div>');
                 });
-                window.showToast('Veuillez corriger les erreurs.', 'error');
-            } else {
-                window.showToast('Erreur lors de l\'enregistrement.', 'error');
-            }
+            } else { window.showToast('Erreur.', 'error'); }
         })
-        .always(function () {
-            $btn.prop('disabled', false).html(texteBtn);
-        });
+        .always(function () { $btn.prop('disabled', false).html(texte); });
     });
 });
 </script>

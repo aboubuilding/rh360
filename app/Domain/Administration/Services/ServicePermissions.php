@@ -21,7 +21,16 @@ class ServicePermissions
             return true;
         }
 
-        $cacheKey = "perm:u:{$u->id}:{$permission}";
+        // Clé versionnée : incrémenter la version (utilisateur ou matrice de l'entreprise)
+        // rend immédiatement obsolètes toutes les entrées, quel que soit le driver de cache.
+        $cacheKey = sprintf(
+            'perm:e%d:v%d:u%d:v%d:%s',
+            $u->entreprise_id,
+            $this->version("perm:e:{$u->entreprise_id}:version"),
+            $u->id,
+            $this->version("perm:u:{$u->id}:version"),
+            $permission,
+        );
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($u, $permission) {
             $exception = PermissionUtilisateur::query()
@@ -42,9 +51,31 @@ class ServicePermissions
         });
     }
 
+    /**
+     * Invalide les permissions en cache d'un utilisateur (rôle, état ou exceptions modifiés).
+     */
     public function viderCache(Utilisateur $u): void
     {
-        Cache::forget("perm:u:{$u->id}:*");
+        $this->incrementerVersion("perm:u:{$u->id}:version");
+    }
+
+    /**
+     * Invalide les permissions en cache de tous les utilisateurs d'une entreprise
+     * (matrice rôles × permissions modifiée).
+     */
+    public function viderCacheEntreprise(int $entrepriseId): void
+    {
+        $this->incrementerVersion("perm:e:{$entrepriseId}:version");
+    }
+
+    private function version(string $cle): int
+    {
+        return (int) Cache::get($cle, 0);
+    }
+
+    private function incrementerVersion(string $cle): void
+    {
+        Cache::forever($cle, $this->version($cle) + 1);
     }
 
     public function permissionsUtilisateur(Utilisateur $u): array

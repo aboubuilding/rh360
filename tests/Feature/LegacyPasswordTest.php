@@ -4,6 +4,10 @@ use App\Domain\Administration\Models\Utilisateur;
 use App\Domain\Administration\Services\VerificateurMotDePasseLegacy;
 use Illuminate\Support\Facades\Hash;
 
+beforeEach(function () {
+    $this->seed();
+});
+
 it('vérifie un mot de passe PBKDF2 et le rehashe en bcrypt', function () {
     $clair = 'Secret@2026';
     $iterations = 10000;

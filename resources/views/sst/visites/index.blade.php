@@ -108,7 +108,8 @@
                         </td>
                         <td class="text-end">
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-action dropdown-toggle" data-bs-toggle="dropdown">
+                                <button class="btn btn-sm btn-action dropdown-toggle" data-bs-toggle="dropdown"
+                                        aria-label="Actions sur la visite de {{ $v->salarie?->nom_complet }} du {{ $v->date_prevue?->format('d/m/Y') }}">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-actions dropdown-menu-end">

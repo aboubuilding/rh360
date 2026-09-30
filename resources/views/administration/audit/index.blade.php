@@ -23,7 +23,12 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <input type="text" name="entite" value="{{ request('entite') }}" class="form-control" placeholder="Entité (Salarie...)">
+                <select name="entite" class="form-select">
+                    <option value="">Toutes entités</option>
+                    @foreach($entites as $entite)
+                        <option value="{{ $entite }}" @selected(request('entite') === $entite)>{{ $entite }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-md-2">
                 <input type="date" name="du" value="{{ request('du') }}" class="form-control">

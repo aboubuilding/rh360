@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Administration\Models\Entreprise;
+use App\Domain\Administration\Models\JournalAudit;
 use App\Domain\Administration\Models\PermissionRole;
 use App\Domain\Administration\Models\PermissionUtilisateur;
 use App\Domain\Administration\Models\Utilisateur;
@@ -162,6 +163,8 @@ Gate::policy(DossierMaternite::class, DossierMaternitePolicy::class);
 Gate::policy(PeriodePaie::class, PeriodePaiePolicy::class);
 Gate::policy(BulletinPaie::class, BulletinPaiePolicy::class);
 Gate::policy(RubriquePaie::class, RubriquePaiePolicy::class);
+Gate::policy(\App\Domain\Paie\Models\ModelePaie::class, \App\Domain\Paie\Policies\ModelePaiePolicy::class);
+Gate::policy(\App\Domain\Paie\Models\HeureSupplementaire::class, \App\Domain\Paie\Policies\HeureSupplementairePolicy::class);
 
 Gate::policy(VisiteMedicale::class, VisiteMedicalePolicy::class);
 Gate::policy(EvenementSecurite::class, EvenementSecuritePolicy::class);

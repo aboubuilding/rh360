@@ -23,8 +23,10 @@ class CalculateurFinEssai
                 'duree_initiale_jours' => null,
                 'date_fin_theorique' => null,
                 'date_fin_ajustee' => null,
+                'jours_suspendus' => 0,
                 'nombre_renouvellements_utilises' => 0,
                 'nombre_renouvellements_autorises' => 0,
+                'peut_renouveler' => false,
             ];
         }
 

@@ -69,14 +69,20 @@ class DemandeCongePolicy
     {
         return $u->peut('conges.validate')
             && $u->entreprise_id === $d->entreprise_id
-            && in_array($d->statut, [StatutDemandeConge::PROGRAMMEE, StatutDemandeConge::AUTORISEE], true);
+            && in_array($d->statut, [StatutDemandeConge::PROGRAMMEE, StatutDemandeConge::AUTORISEE], true)
+            // Départ effectif : pas avant la date de départ
+            && $d->date_debut !== null
+            && ! $d->date_debut->isFuture();
     }
 
     public function confirmerReprise(Utilisateur $u, DemandeConge $d): bool
     {
         return $u->peut('conges.validate')
             && $u->entreprise_id === $d->entreprise_id
-            && in_array($d->statut, [StatutDemandeConge::EN_COURS, StatutDemandeConge::PROGRAMMEE], true);
+            && in_array($d->statut, [StatutDemandeConge::EN_COURS, StatutDemandeConge::PROGRAMMEE], true)
+            // À partir de la date de reprise prévue uniquement (CDC §4.1)
+            && $d->date_reprise !== null
+            && ! $d->date_reprise->isFuture();
     }
 
     public function annuler(Utilisateur $u, DemandeConge $d): bool

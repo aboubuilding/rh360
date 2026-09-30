@@ -1,0 +1,86 @@
+@extends('layouts.app')
+
+@section('title', 'Modifier ' . $echelon->libelle)
+@section('page_title', 'Modifier l\'échelon')
+@section('page_icon', 'fa-stream')
+
+@section('breadcrumb')
+    <li><a href="{{ route('dashboard') }}">Accueil</a></li>
+    <li><a href="{{ route('classification.echelons.index') }}">Échelons</a></li>
+    <li>{{ $echelon->libelle }}</li>
+    <li>Modifier</li>
+@endsection
+
+@section('contenu')
+<div class="card">
+    <div class="card-body">
+        <form id="form-echelon" method="POST" action="{{ route('classification.echelons.update', $echelon) }}">
+            @csrf
+            @method('PUT')
+
+            <div class="row">
+                <div class="col-md-6">
+                    <x-field name="referentiel_id" label="Référentiel" type="select" required
+                             :value="$echelon->referentiel_id"
+                             :options="$referentiels->pluck('nom', 'id')->all()" />
+                </div>
+                <div class="col-md-6">
+                    <x-field name="code" label="Code" required :value="$echelon->code" />
+                </div>
+                <div class="col-md-8">
+                    <x-field name="libelle" label="Libellé" required :value="$echelon->libelle" />
+                </div>
+                <div class="col-md-4">
+                    <x-field name="ordre" label="Ordre" type="number" :value="$echelon->ordre" />
+                </div>
+                <div class="col-md-12">
+                    <x-field name="actif" label="Actif" type="checkbox" :value="$echelon->actif" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                <a href="{{ route('classification.echelons.index') }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+
+@push('js')
+<script>
+$(function () {
+    $('#form-echelon').on('submit', function (e) {
+        e.preventDefault();
+        const $form = $(this);
+        const $btn = $form.find('button[type="submit"]');
+        const texte = $btn.html();
+
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+
+        $.ajax({
+            url: $form.attr('action'),
+            method: 'POST',
+            data: $form.serialize(),
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        })
+        .done(function (r) {
+            window.showToast(r.message || 'Mise à jour.');
+            setTimeout(() => { window.location.href = "{{ route('classification.echelons.index') }}"; }, 600);
+        })
+        .fail(function (xhr) {
+            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function (champ, messages) {
+                    const $el = $form.find('[name="' + champ + '"]');
+                    $el.addClass('is-invalid');
+                    $el.after('<div class="invalid-feedback">' + messages[0] + '</div>');
+                });
+            } else { window.showToast('Erreur.', 'error'); }
+        })
+        .always(function () { $btn.prop('disabled', false).html(texte); });
+    });
+});
+</script>
+@endpush

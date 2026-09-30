@@ -78,7 +78,7 @@ class CongesDemoSeeder extends Seeder
 
                 $compteur++;
             } catch (\Throwable $e) {
-                $this->error("Erreur pour salarié {$salarie->id} : " . $e->getMessage());
+                $this->command->error("Erreur pour salarié {$salarie->id} : " . $e->getMessage());
             }
         }
 

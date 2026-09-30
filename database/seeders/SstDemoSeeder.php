@@ -79,6 +79,7 @@ class SstDemoSeeder extends Seeder
                 'statut' => StatutVisiteMedicale::PLANIFIEE->value,
                 'aptitude' => AptitudeMedicale::EN_ATTENTE->value,
                 'cree_par' => $superAdmin?->id ?? 1,
+                'modifie_par' => $superAdmin?->id ?? 1,
                 'revision' => 1,
                 'etat' => 1,
             ]);

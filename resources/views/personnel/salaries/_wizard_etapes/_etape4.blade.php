@@ -5,6 +5,7 @@
     Ces informations sont confidentielles et ne seront visibles qu'aux utilisateurs habilités.
 </div>
 
+@can('permission', 'sensitive.social_health')
 <h6 class="text-muted mb-3"><i class="fas fa-shield-alt"></i> Protection sociale</h6>
 <div class="row">
     <div class="col-md-4">
@@ -22,7 +23,9 @@
                  :value="$v('organisme_assurance')" />
     </div>
 </div>
+@endcan
 
+@can('permission', 'sensitive.banking')
 <hr class="my-4">
 
 <h6 class="text-muted mb-3"><i class="fas fa-university"></i> Coordonnées bancaires</h6>
@@ -46,3 +49,4 @@
                  ]" />
     </div>
 </div>
+@endcan

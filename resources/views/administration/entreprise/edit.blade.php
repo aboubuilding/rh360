@@ -11,9 +11,7 @@
 @endsection
 
 @section('contenu')
-<form id="form-entreprise" method="POST"
-      action="{{ route('admin.entreprise.update') }}"
-      enctype="multipart/form-data">
+<form id="form-entreprise" method="POST" action="{{ route('admin.entreprise.update') }}" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -24,7 +22,6 @@
                 <div class="col-md-6"><x-field name="nom" label="Raison sociale" required :value="$entreprise->nom" /></div>
                 <div class="col-md-3"><x-field name="sigle" label="Sigle" :value="$entreprise->sigle" /></div>
                 <div class="col-md-3"><x-field name="forme_juridique" label="Forme juridique" :value="$entreprise->forme_juridique" /></div>
-
                 <div class="col-md-4"><x-field name="nif" label="NIF" :value="$entreprise->nif" /></div>
                 <div class="col-md-4"><x-field name="numero_employeur_cnss" label="N° employeur CNSS" :value="$entreprise->numero_employeur_cnss" /></div>
                 <div class="col-md-4"><x-field name="secteur" label="Secteur" :value="$entreprise->secteur" /></div>
@@ -55,7 +52,6 @@
                 <div class="col-md-6"><x-field name="service_emetteur" label="Service émetteur" :value="$entreprise->service_emetteur" /></div>
                 <div class="col-md-12"><x-field name="texte_en_tete" label="Texte d'en-tête" type="textarea" :value="$entreprise->texte_en_tete" /></div>
                 <div class="col-md-12"><x-field name="texte_pied_page" label="Texte de pied de page" type="textarea" :value="$entreprise->texte_pied_page" /></div>
-
                 <div class="col-md-4"><x-field name="nom_signataire" label="Nom du signataire" :value="$entreprise->nom_signataire" /></div>
                 <div class="col-md-4"><x-field name="fonction_signataire" label="Fonction du signataire" :value="$entreprise->fonction_signataire" /></div>
                 <div class="col-md-4"><x-field name="lieu_signature" label="Lieu de signature" :value="$entreprise->lieu_signature" /></div>
@@ -75,18 +71,14 @@
                     @endif
                 </div>
                 <div class="col-md-9">
-                    <label for="logo" class="form-label">Changer le logo</label>
-                    <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
-                    <small class="text-muted">PNG, JPG, JPEG, SVG — 2 Mo max.</small>
+                    <x-field name="logo" label="Changer le logo" type="file" help="PNG, JPG ou JPEG — 2 Mo max." />
                 </div>
             </div>
         </div>
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Enregistrer
-        </button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
         <a href="{{ route('admin.entreprise.index') }}" class="btn btn-secondary">Annuler</a>
     </div>
 </form>
@@ -95,37 +87,29 @@
 @push('js')
 <script>
 $(function () {
-    'use strict';
-
-    const URL_UPDATE = "{{ route('admin.entreprise.update') }}";
-
     $('#form-entreprise').on('submit', function (e) {
         e.preventDefault();
         const $form = $(this);
         const $btn = $form.find('button[type="submit"]');
-        const texteBtn = $btn.html();
+        const texte = $btn.html();
 
         $form.find('.is-invalid').removeClass('is-invalid');
         $form.find('.invalid-feedback').remove();
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
-
-        // Upload fichier → FormData
-        const formData = new FormData($form[0]);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>...');
 
         $.ajax({
-            url: URL_UPDATE,
+            url: $form.attr('action'),
             method: 'POST',
-            data: formData,
+            data: new FormData($form[0]),
             processData: false,
             contentType: false,
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         })
-        .done(function (response) {
-            window.showToast(response.message || 'Fiche mise à jour.');
-            setTimeout(() => { window.location.href = "{{ route('admin.entreprise.index') }}"; }, 600);
+        .done(function (r) {
+            window.showToastThenReload(r.message || 'Fiche mise à jour.');
         })
         .fail(function (xhr) {
-            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+            if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 $.each(xhr.responseJSON.errors, function (champ, messages) {
                     const $el = $form.find('[name="' + champ + '"]');
                     $el.addClass('is-invalid');
@@ -133,12 +117,10 @@ $(function () {
                 });
                 window.showToast('Veuillez corriger les erreurs.', 'error');
             } else {
-                window.showToast('Erreur lors de l\'enregistrement.', 'error');
+                window.showToast('Erreur.', 'error');
             }
         })
-        .always(function () {
-            $btn.prop('disabled', false).html(texteBtn);
-        });
+        .always(function () { $btn.prop('disabled', false).html(texte); });
     });
 });
 </script>

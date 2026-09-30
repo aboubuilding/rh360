@@ -149,6 +149,15 @@ class ContratController extends Controller
 
         return view('contrats.contrats.create-avenant', [
             'parent' => $contrat,
+            // Valeurs reprises du contrat d'origine (CDC §4 2.3), modifiables par l'utilisateur
+            'modele' => new Contrat([
+                'reference' => $contrat->reference.'-AV',
+                'type_contrat' => $contrat->type_contrat,
+                'date_debut' => now(),
+                'date_fin' => $contrat->date_fin,
+                'poste_id' => $contrat->poste_id,
+                'position_classification_id' => $contrat->position_classification_id,
+            ]),
             'postes' => Poste::orderBy('intitule')->get(),
             'positions' => PositionClassification::orderBy('ordre')->get(),
             'types' => TypeContrat::options(),

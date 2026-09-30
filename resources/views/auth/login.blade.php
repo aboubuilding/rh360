@@ -129,6 +129,11 @@
         }
         .school-form-inner { width: 100%; max-width: 400px; margin: 0 auto; }
 
+        .school-back-link {
+            display: inline-flex; align-items: center; gap: 8px; margin-bottom: 28px;
+            font-size: .85rem; font-weight: 600; color: var(--rh-primary); text-decoration: none;
+        }
+        .school-back-link:hover { color: var(--rh-primary-dark); text-decoration: underline; }
         .school-card-head { margin-bottom: 32px; }
         .school-card-head h3 {
             font-family: 'Playfair Display', serif; font-weight: 700;
@@ -291,6 +296,10 @@
     <div class="school-form-panel">
         <div class="school-form-inner">
 
+            <a href="{{ route('accueil') }}" class="school-back-link">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i> Retour à l'accueil
+            </a>
+
             <div class="school-card-head">
                 <h3>Connexion</h3>
                 <p>Saisissez vos identifiants pour accéder à votre espace.</p>
@@ -381,15 +390,11 @@
     };
 
     var ERROR_MAP = {
-        USER_NOT_FOUND: {
-            field: 'identifiant', banner: 'danger',
-            title: 'Identifiant introuvable',
-            text: "Aucun compte ne correspond à cet identifiant."
-        },
-        INVALID_PASSWORD: {
+        // Message volontairement identique pour un identifiant inconnu ou un mauvais mot de passe
+        INVALID_CREDENTIALS: {
             field: 'password', banner: 'danger',
-            title: 'Mot de passe incorrect',
-            text: "Le mot de passe saisi est incorrect."
+            title: 'Connexion refusée',
+            text: "Identifiant ou mot de passe incorrect."
         },
         ACCOUNT_INACTIVE: {
             sweetalert: {

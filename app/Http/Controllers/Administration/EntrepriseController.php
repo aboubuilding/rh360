@@ -39,7 +39,30 @@ class EntrepriseController extends Controller
 
         $entreprise->update($donnees);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Fiche entreprise mise à jour.',
+                'redirect' => route('admin.entreprise.index'),
+            ]);
+        }
+
         return redirect()->route('admin.entreprise.index')
             ->with('success', 'Fiche entreprise mise à jour.');
+    }
+
+    /**
+     * Sert le logo depuis le disque privé (jamais d'URL publique).
+     */
+    public function logo()
+    {
+        $entreprise = Entreprise::findOrFail(auth()->user()->entreprise_id);
+        $this->authorize('view', $entreprise);
+
+        abort_unless(
+            $entreprise->chemin_logo && Storage::disk('local')->exists($entreprise->chemin_logo),
+            404
+        );
+
+        return Storage::disk('local')->response($entreprise->chemin_logo);
     }
 }

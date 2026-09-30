@@ -23,7 +23,7 @@ it('programme une nouvelle visite', function () {
     $this->post(route('sst.visites.store'), [
         'salarie_id' => $this->salarie->id,
         'type_visite' => 'periodique',
-        'date_prevue' => now()->addDays(15)->format('Y-m-d'),
+        'date_prevue' => now()->addDays(45)->format('Y-m-d'),
         'prestataire' => 'Dr. Test',
     ])->assertRedirect();
 
@@ -34,6 +34,19 @@ it('programme une nouvelle visite', function () {
         'etat' => 1,
     ]);
 });
+
+it('refuse une seconde visite du même type le même jour pour le même salarié', function () {
+    $donnees = [
+        'salarie_id' => $this->salarie->id,
+        'type_visite' => 'reprise',
+        'date_prevue' => now()->addDays(50)->format('Y-m-d'),
+    ];
+
+    $this->post(route('sst.visites.store'), $donnees)->assertRedirect()->assertSessionHasNoErrors();
+    $this->post(route('sst.visites.store'), $donnees)->assertSessionHasErrors('date_prevue');
+
+    expect(VisiteMedicale::where('salarie_id', $this->salarie->id)->where('type_visite', 'reprise')->count())->toBe(1);
+})->skip(fn () => config('database.default') === 'sqlite', 'SQLite stocke la date avec l\'heure : la contrainte ne s\'y applique pas');
 
 it('renseigne une visite avec aptitude', function () {
     $visite = VisiteMedicale::factory()->create([

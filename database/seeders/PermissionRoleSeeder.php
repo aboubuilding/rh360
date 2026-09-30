@@ -17,24 +17,30 @@ class PermissionRoleSeeder extends Seeder
 
         $this->attribuer($entrepriseId, Utilisateur::ROLE_SUPER_ADMIN, $toutes);
 
-        $admin = array_filter($toutes, fn ($p) => ! str_starts_with($p, 'salaries.')
-            && ! str_starts_with($p, 'health.')
-            && ! str_starts_with($p, 'safety.')
-            && ! str_starts_with($p, 'risks.')
-            && ! str_starts_with($p, 'ppe.')
-            && ! str_starts_with($p, 'habilitations.')
-            && ! str_starts_with($p, 'sensitive.'));
-        $this->attribuer($entrepriseId, Utilisateur::ROLE_ADMIN, array_values($admin));
+        // Administrateur : paramétrage technique, sans accès aux données nominatives (CDC §3, §5).
+        // Les permissions (matrice, exceptions) relèvent du Super administrateur et du DRH (CDC §4 8.4).
+        $admin = [
+            'dashboard.view',
+            'admin.entreprise.view', 'admin.entreprise.manage',
+            'admin.utilisateurs.view', 'admin.utilisateurs.manage',
+            'admin.audit.view',
+            'organisation.view', 'organisation.manage',
+            'classification.view', 'classification.manage',
+        ];
+        $this->attribuer($entrepriseId, Utilisateur::ROLE_ADMIN, $admin);
 
-        $drh = array_filter($toutes, fn ($p) => ! str_starts_with($p, 'admin.utilisateurs.')
-            && ! str_starts_with($p, 'admin.entreprise.')
-            && ! str_starts_with($p, 'admin.permissions.'));
+        // DRH : tout le métier + gestion des permissions (matrice et exceptions individuelles) ;
+        // consulte les comptes pour attribuer les exceptions mais ne les gère pas (CDC §4 8.1, 8.4).
+        $drh = array_filter($toutes, fn ($p) => $p !== 'admin.utilisateurs.manage'
+            && $p !== 'admin.entreprise.manage');
         $this->attribuer($entrepriseId, Utilisateur::ROLE_DRH, array_values($drh));
 
         $rh = [
             'dashboard.view',
+            'admin.entreprise.view',
             'salaries.view', 'salaries.manage', 'salaries.import', 'salaries.export',
-            'contrats.view', 'contrats.manage',
+            // Préparation et référencement de la signature, sans validation (CDC §4 2.3, §5)
+            'contrats.view', 'contrats.manage', 'contrats.sign',
             'carriere.view', 'carriere.manage',
             'conges.view', 'conges.manage', 'conges.soldes.view',
             'paie.view', 'paie.manage',
@@ -47,7 +53,8 @@ class PermissionRoleSeeder extends Seeder
             'ppe.view', 'ppe.manage',
             'habilitations.view', 'habilitations.manage',
             'sensitive.social_health',
-            'organisation.view',
+            // Gestion de l'organisation (CDC §4 8.2) ; grille salariale en consultation (CDC §4 8.3)
+            'organisation.view', 'organisation.manage',
             'classification.view',
             'reports.personnel',
         ];
@@ -55,6 +62,7 @@ class PermissionRoleSeeder extends Seeder
 
         $manager = [
             'dashboard.view',
+            'admin.entreprise.view',
             'salaries.view',
             'conges.view',
             'formation.view',
@@ -64,8 +72,11 @@ class PermissionRoleSeeder extends Seeder
         ];
         $this->attribuer($entrepriseId, Utilisateur::ROLE_MANAGER, $manager);
 
+        // Direction et Auditeur : SST en indicateurs agrégés uniquement (reports.sst),
+        // jamais les registres nominatifs health/safety/risks/ppe/habilitations (CDC §4 7.1–7.5, §6).
         $direction = [
             'dashboard.view',
+            'admin.entreprise.view',
             'salaries.view',
             'contrats.view',
             'carriere.view',
@@ -74,11 +85,6 @@ class PermissionRoleSeeder extends Seeder
             'formation.view',
             'performance.view',
             'recrutement.view',
-            'health.view',
-            'safety.view',
-            'risks.view',
-            'ppe.view',
-            'habilitations.view',
             'organisation.view',
             'classification.view',
             'reports.global', 'reports.personnel', 'reports.paie', 'reports.sst',
@@ -87,13 +93,11 @@ class PermissionRoleSeeder extends Seeder
 
         $auditeur = [
             'dashboard.view',
+            'admin.entreprise.view',
             'paie.view',
             'contrats.view',
             'admin.audit.view',
-            'health.view',
-            'safety.view',
-            'risks.view',
-            'reports.global',
+            'reports.global', 'reports.sst',
         ];
         $this->attribuer($entrepriseId, Utilisateur::ROLE_AUDITEUR, $auditeur);
     }

@@ -17,7 +17,7 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     // 4.5 Types & règles
     Route::resource('types', TypeCongeController::class)
         ->parameters(['types' => 'type'])
-        ->except(['show']);
+        ->except(['show', 'create', 'edit']); // création / modification dans la modale de la liste
 
     // 4.4 Droits & soldes
     Route::get('soldes', [SoldeCongeController::class, 'index'])->name('soldes.index');

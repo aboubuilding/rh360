@@ -224,7 +224,13 @@ $(function () {
     }
 
     $(document).on('click', '.js-controler', () => ouvrir('modal-controler'));
-    $(document).on('click', '.js-verifier',  () => ouvrir('modal-valider'));
+    $(document).on('click', '.js-verifier', function () {
+        // Vérification DRH (à vérifier → vérifié) : même formulaire, route « verifier »
+        $('#form-valider').data('url', "{{ route('carriere.mouvements.verifier', $mouvement) }}");
+        $('#modal-valider .modal-title').text('Vérification DRH');
+        $('#form-valider button[type="submit"]').html('<i class="fas fa-search"></i> Vérifier');
+        ouvrir('modal-valider');
+    });
     $(document).on('click', '.js-valider',   () => ouvrir('modal-valider'));
     $(document).on('click', '.js-rejeter',   () => ouvrir('modal-rejeter'));
     $(document).on('click', '.js-programmer',() => ouvrir('modal-programmer'));
@@ -259,7 +265,7 @@ $(function () {
             $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
 
             $.ajax({
-                url: url,
+                url: $form.data('url') || url, // URL surchargeable (vérification / validation)
                 method: 'POST',
                 data: $form.serialize(),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },

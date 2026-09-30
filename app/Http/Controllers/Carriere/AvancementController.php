@@ -38,6 +38,12 @@ class AvancementController extends Controller
         $crees = 0;
 
         foreach ($echeances as $calcul) {
+            // CDC §3.3 : proposition automatique uniquement pour un dossier complet
+            $salarie = \App\Domain\Personnel\Models\Salarie::find($calcul['salarie_id']);
+            if (! $salarie || $salarie->statut_dossier !== \App\Domain\Personnel\Enums\StatutDossier::COMPLET) {
+                continue;
+            }
+
             // Ne créer la proposition que si le salarié n'a pas déjà un
             // mouvement en cours pour un avancement
             $existe = \App\Domain\Carriere\Models\MouvementCarriere::where('salarie_id', $calcul['salarie_id'])
@@ -52,6 +58,7 @@ class AvancementController extends Controller
                     'salarie_id' => $calcul['salarie_id'],
                     'type_mouvement' => 'avancement',
                     'date_eligibilite' => $calcul['date_eligibilite'],
+                    'position_classification_depart_id' => $calcul['position_actuelle_id'],
                     'position_classification_cible_id' => $calcul['position_suivante_id'],
                     'motif' => 'Proposition automatique : échéance ' . $calcul['date_eligibilite'],
                 ]);

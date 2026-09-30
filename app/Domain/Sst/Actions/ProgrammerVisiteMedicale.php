@@ -16,6 +16,7 @@ class ProgrammerVisiteMedicale
             $donnees['statut'] = StatutVisiteMedicale::PLANIFIEE->value;
             $donnees['aptitude'] = AptitudeMedicale::EN_ATTENTE->value;
             $donnees['cree_par'] = auth()->id();
+            $donnees['modifie_par'] = auth()->id();
             $donnees['revision'] = 1;
             $donnees['etat'] = 1;
 

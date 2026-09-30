@@ -8,24 +8,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
     web: [
         __DIR__.'/../routes/web.php',
+        __DIR__.'/../routes/web/pilotage.php',
         __DIR__.'/../routes/web/administration.php',
         __DIR__.'/../routes/web/organisation.php',
         __DIR__.'/../routes/web/classification.php',
         __DIR__.'/../routes/web/personnel.php',
-
-         __DIR__.'/../routes/web/contrats.php',
-           __DIR__.'/../routes/web/carriere.php',
-
-           __DIR__.'/../routes/web/conges.php',
-
-            __DIR__.'/../routes/web/paie.php',
-
-              __DIR__.'/../routes/web/sst.php',
-
-               __DIR__.'/../routes/web/formation.php',
+        __DIR__.'/../routes/web/contrats.php',
+        __DIR__.'/../routes/web/carriere.php',
+        __DIR__.'/../routes/web/conges.php',
+        __DIR__.'/../routes/web/paie.php',
+        __DIR__.'/../routes/web/sst.php',
+        __DIR__.'/../routes/web/formation.php',
         __DIR__.'/../routes/web/performance.php',
-        __DIR__.'/../routes/web/recrutement.php',
-
         __DIR__.'/../routes/web/recrutement.php',
     ],
     commands: __DIR__.'/../routes/console.php',

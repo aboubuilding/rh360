@@ -1,0 +1,97 @@
+/* ========== Header Styles ========== */
+.header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 0.5rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    height: 70px;
+}
+
+/* Logo styles */
+.header-left a.logo img {
+    max-height: 50px; /* Contrôle la taille du logo */
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.header-left a.logo:hover img {
+    transform: scale(1.05);
+}
+
+/* Logo variations hidden by default unless needed */
+.logo-white, .logo-small {
+    display: none;
+}
+
+/* Optional: Show different logos depending on theme/size */
+@media (max-width: 768px) {
+    .logo-normal {
+        display: none;
+    }
+    .logo-small {
+        display: inline-block;
+    }
+}
+
+
+.btn.btn-primary {
+    color: rgb(255, 255, 255);
+    box-shadow: rgba(254, 159, 67, 0.15) 0px 4px 20px;
+    background-color: #006a4e !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: #006a4e !important;
+
+}
+
+
+.active-menu > a {
+    background: #0d6efd;
+    color: #fff !important;
+    border-radius: 6px;
+    padding-left: 12px;
+}
+
+.active-menu > a i {
+    color: #fff !important;
+}
+
+.submenu.open > a {
+    background: #e9f3ff;
+    border-radius: 6px;
+}
+
+.active-submenu > a {
+    color: #0d6efd !important;
+    font-weight: bold;
+}
+
+.nav-menu li:hover > a {
+    background: #f2f8ff;
+    border-radius: 6px;
+}
+
+.submenu .menu-arrow {
+    float: right;
+    transform: rotate(90deg);
+}
+
+
+  .rotate {
+        transition: transform .3s ease;
+    }
+    .rotate.open {
+        transform: rotate(90deg);
+    }
+
+

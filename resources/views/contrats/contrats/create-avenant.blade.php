@@ -24,7 +24,7 @@
               action="{{ route('contrats.contrats.store-avenant', $parent) }}">
             @csrf
 
-            @include('contrats.contrats._form', ['contrat' => null])
+            @include('contrats.contrats._form', ['contrat' => $modele])
 
             <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-primary">

@@ -40,9 +40,9 @@
 <div class="row">
     @forelse($periodes as $p)
         <div class="col-md-4 mb-3">
-            <div class="card h-100">
+            <article class="card h-100" aria-labelledby="periode-{{ $p->id }}" data-testid="periode-{{ $p->statut->value }}">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <strong>{{ $p->libelle }}</strong>
+                    <strong id="periode-{{ $p->id }}">{{ $p->libelle }}</strong>
                     <span class="badge bg-{{ $p->statut->couleur() }}">
                         {{ $p->statut->libelle() }}
                     </span>
@@ -86,7 +86,7 @@
                         @endcan
                     @endif
                 </div>
-            </div>
+            </article>
         </div>
     @empty
         <div class="col-12">

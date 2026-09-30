@@ -11,7 +11,8 @@ class NotificationContratController extends Controller
 {
     public function index(Request $request)
     {
-        $this->authorize('viewAny', NotificationContrat::class);
+        // Boîte de réception personnelle : ouverte à tout détenteur de contrats.view (CDC §1.2)
+        abort_unless($request->user()->peut('contrats.view'), 403);
 
         $notifications = NotificationContrat::query()
             ->with(['alerte.contrat.salarie'])

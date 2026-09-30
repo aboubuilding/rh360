@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('taux', 9, 4)->default(0);
             $table->decimal('montant', 15, 2)->default(0);
             $table->text('observations')->nullable();
+            $table->string('source', 60)->default('manual')->comment('Origine de la saisie (reprise payroll_entries.source)');
             $table->foreignId('cree_par')->nullable();
             $table->foreignId('modifie_par')->nullable();
             $table->tinyInteger('etat')->default(1)->comment('1=actif, 0=inactif, -1=supprime');

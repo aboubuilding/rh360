@@ -101,14 +101,15 @@ class AgregateurTableauDeBord
         // ============================================================
         // SST
         // ============================================================
-        if ($utilisateur->peut('health.view') || $utilisateur->peut('safety.view')) {
+        // Indicateurs agrégés (comptages) : accessibles aussi via reports.sst (Direction, Auditeur)
+        if ($utilisateur->peut('health.view') || $utilisateur->peut('safety.view') || $utilisateur->peut('reports.sst')) {
             $widgets->push(new Widget(
                 cle: 'sst',
                 titre: 'Santé & Sécurité',
                 icone: 'fa-hard-hat',
                 couleur: 'danger',
                 ordre: 60,
-                indicateurs: $this->sst->calculer($entrepriseId),
+                indicateurs: $this->liensSstAutorises($utilisateur, $this->sst->calculer($entrepriseId)),
             ));
         }
 
@@ -139,5 +140,32 @@ class AgregateurTableauDeBord
             ],
             derniereSynchro: now()->format('d/m/Y H:i:s'),
         );
+    }
+
+    /**
+     * Sans accès aux registres nominatifs SST (Direction, Auditeur), les indicateurs
+     * mènent au reporting agrégé plutôt qu'à une liste nominative refusée (CDC §4 7.1, §6).
+     */
+    private function liensSstAutorises(Utilisateur $utilisateur, Collection $indicateurs): Collection
+    {
+        $registres = [
+            '/sst/visites' => 'health.view',
+            '/sst/evenements' => 'safety.view',
+            '/sst/risques' => 'risks.view',
+            '/sst/epi' => 'ppe.view',
+            '/sst/habilitations' => 'habilitations.view',
+        ];
+
+        return $indicateurs->map(function ($indicateur) use ($utilisateur, $registres) {
+            $chemin = $indicateur->lien ? parse_url($indicateur->lien, PHP_URL_PATH) : null;
+
+            foreach ($registres as $prefixe => $permission) {
+                if ($chemin && str_starts_with($chemin, $prefixe) && ! $utilisateur->peut($permission)) {
+                    return $indicateur->avecLien(route('sst.reporting.index'));
+                }
+            }
+
+            return $indicateur;
+        });
     }
 }

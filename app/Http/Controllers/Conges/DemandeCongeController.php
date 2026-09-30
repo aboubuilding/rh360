@@ -115,6 +115,8 @@ class DemandeCongeController extends Controller
 
         return view('conges.demandes.edit', [
             'demande' => $demande,
+            // Le salarié d'une demande existante n'est pas modifiable : affiché en lecture seule
+            'salarie' => $demande->salarie,
             'types' => TypeConge::where('actif', true)->orderBy('nom')->get(),
         ]);
     }

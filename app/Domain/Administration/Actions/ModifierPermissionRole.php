@@ -3,10 +3,13 @@
 namespace App\Domain\Administration\Actions;
 
 use App\Domain\Administration\Models\PermissionRole;
+use App\Domain\Administration\Services\ServicePermissions;
 use Illuminate\Support\Facades\DB;
 
 class ModifierPermissionRole
 {
+    public function __construct(private ServicePermissions $permissions) {}
+
     /**
      * @param string $role
      * @param array<string, bool> $permissions  ex. ['salaries.view' => true, 'salaries.manage' => false]
@@ -26,7 +29,7 @@ class ModifierPermissionRole
             }
         });
 
-        // Note : le cache des permissions est vidé au niveau du contrôleur
-        // via ServicePermissions::viderCacheRole() ou un flush global.
+        // Effet immédiat pour tous les utilisateurs de l'entreprise
+        $this->permissions->viderCacheEntreprise($entrepriseId);
     }
 }

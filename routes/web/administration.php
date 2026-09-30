@@ -15,6 +15,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         ->middleware('permission:admin.entreprise.manage')->name('entreprise.edit');
     Route::put('entreprise', [EntrepriseController::class, 'update'])
         ->middleware('permission:admin.entreprise.manage')->name('entreprise.update');
+    Route::get('entreprise/logo', [EntrepriseController::class, 'logo'])
+        ->middleware('permission:admin.entreprise.view')->name('entreprise.logo');
 
     // 8.4 — Utilisateurs
     Route::resource('utilisateurs', UtilisateurController::class)

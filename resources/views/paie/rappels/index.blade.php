@@ -88,7 +88,7 @@ $(function () {
             title: 'Générer les rappels ?',
             text: 'Tous les mouvements d\'avancement effectifs non encore rappelés seront traités.',
             input: 'select',
-            inputOptions: @json(\App\Domain\Paie\Models\PeriodePaie::recentes()->pluck('libelle', 'id')),
+            inputOptions: @json(\App\Domain\Paie\Models\PeriodePaie::recentes()->get()->pluck('libelle', 'id')),
             inputPlaceholder: 'Sélectionner la période de génération',
             inputValidator: (value) => {
                 if (!value) return 'Vous devez choisir une période.';

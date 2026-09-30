@@ -6,7 +6,7 @@ use App\Domain\Administration\Actions\ModifierPermissionRole;
 use App\Domain\Administration\Models\PermissionRole;
 use App\Domain\Administration\Models\PermissionUtilisateur;
 use App\Domain\Administration\Models\Utilisateur;
-use App\Database\Seeders\PermissionSeeder;
+use Database\Seeders\PermissionSeeder;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 

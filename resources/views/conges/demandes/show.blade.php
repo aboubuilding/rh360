@@ -33,26 +33,27 @@
         @endcan
     @endif
 
-    @if(in_array($demande->statut->value, ['authorized', 'scheduled']))
+    @if($demande->statut->value === 'authorized')
         @can('permission', 'conges.validate')
-            @if($demande->statut->value === 'authorized')
-                <button type="button" class="btn btn-primary js-programmer">
-                    <i class="fas fa-calendar-check"></i> Programmer
-                </button>
-            @endif
-            <button type="button" class="btn btn-warning js-demarrer">
-                <i class="fas fa-play"></i> Démarrer
+            <button type="button" class="btn btn-primary js-programmer">
+                <i class="fas fa-calendar-check"></i> Programmer
             </button>
         @endcan
     @endif
 
-    @if($demande->statut->value === 'in_progress')
-        @can('permission', 'conges.validate')
-            <button type="button" class="btn btn-success js-reprise">
-                <i class="fas fa-flag-checkered"></i> Confirmer la reprise
-            </button>
-        @endcan
-    @endif
+    {{-- Départ constaté à partir de la date de départ uniquement --}}
+    @can('demarrer', $demande)
+        <button type="button" class="btn btn-warning js-demarrer">
+            <i class="fas fa-play"></i> Démarrer
+        </button>
+    @endcan
+
+    {{-- À partir de la date de reprise prévue uniquement (CDC §4 4.1) --}}
+    @can('confirmerReprise', $demande)
+        <button type="button" class="btn btn-success js-reprise">
+            <i class="fas fa-flag-checkered"></i> Confirmer la reprise
+        </button>
+    @endcan
 
     @if(in_array($demande->statut->value, ['authorized', 'scheduled', 'in_progress']))
         <a href="{{ route('conges.demandes.acte', $demande) }}" target="_blank" class="btn btn-secondary">
@@ -141,12 +142,10 @@
     </div>
 </div>
 
-{{-- Modals --}}
-@include('conges.demandes.partials._modal-soumettre')
+{{-- Modals (soumettre et démarrer passent par une confirmation SweetAlert) --}}
 @include('conges.demandes.partials._modal-autoriser')
 @include('conges.demandes.partials._modal-refuser')
 @include('conges.demandes.partials._modal-programmer')
-@include('conges.demandes.partials._modal-demarrer')
 @include('conges.demandes.partials._modal-reprise')
 @include('conges.demandes.partials._modal-annuler')
 @endsection

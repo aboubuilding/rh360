@@ -23,8 +23,7 @@
     <div class="card-body">
         <form method="GET" class="row g-2">
             <div class="col-md-4">
-                <input type="text" name="q" value="{{ request('q') }}" class="form-control"
-                       placeholder="Rechercher nom, identifiant, email...">
+                <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Rechercher nom, identifiant, email...">
             </div>
             <div class="col-md-3">
                 <select name="role" class="form-select">
@@ -71,12 +70,13 @@
                         <td>{{ $u->email ?? '—' }}</td>
                         <td><span class="badge bg-primary">{{ $u->libelleRole() }}</span></td>
                         <td>
-                            @if($u->estActif())
-                                <span class="badge bg-success">Actif</span>
-                            @elseif($u->estInactif())
-                                <span class="badge bg-secondary">Inactif</span>
-                            @else
+                            {{-- « Désactivé » = connexion bloquée (colonne actif) ; « Supprimé » = suppression logique (etat) --}}
+                            @if($u->estSupprime())
                                 <span class="badge bg-danger">Supprimé</span>
+                            @elseif(! $u->estActif())
+                                <span class="badge bg-secondary">Désactivé</span>
+                            @else
+                                <span class="badge bg-success">Actif</span>
                             @endif
                         </td>
                         <td>{{ $u->derniere_connexion?->format('d/m/Y H:i') ?? '—' }}</td>
@@ -86,11 +86,7 @@
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-actions dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('admin.utilisateurs.show', $u) }}">
-                                            <i class="fas fa-eye"></i> Voir
-                                        </a>
-                                    </li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.utilisateurs.show', $u) }}"><i class="fas fa-eye"></i> Voir</a></li>
                                     @can('permission', 'admin.utilisateurs.manage')
                                         <li>
                                             <button type="button" class="dropdown-item js-edit-utilisateur"
@@ -106,27 +102,21 @@
                                             </button>
                                         </li>
                                         <li>
-                                            <button type="button" class="dropdown-item js-toggle-utilisateur"
-                                                    data-id="{{ $u->id }}"
-                                                    data-nom="{{ $u->nom_complet }}"
-                                                    data-actif="{{ $u->actif ? '1' : '0' }}">
-                                                <i class="fas fa-{{ $u->actif ? 'ban' : 'check' }}"></i>
-                                                {{ $u->actif ? 'Désactiver' : 'Activer' }}
-                                            </button>
+                                            <form method="POST" action="{{ route('admin.utilisateurs.toggle-actif', $u) }}">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="fas fa-{{ $u->actif ? 'ban' : 'check' }}"></i>
+                                                    {{ $u->actif ? 'Désactiver' : 'Activer' }}
+                                                </button>
+                                            </form>
                                         </li>
                                     @endcan
                                     @can('permission', 'admin.permissions.manage')
-                                        <li>
-                                            <a class="dropdown-item"
-                                               href="{{ route('admin.permissions.exceptions', $u) }}">
-                                                <i class="fas fa-key"></i> Exceptions
-                                            </a>
-                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.permissions.exceptions', $u) }}"><i class="fas fa-key"></i> Exceptions</a></li>
                                     @endcan
                                     @can('permission', 'admin.utilisateurs.manage')
                                         <li>
-                                            <form method="POST"
-                                                  action="{{ route('admin.utilisateurs.destroy', $u) }}"
+                                            <form method="POST" action="{{ route('admin.utilisateurs.destroy', $u) }}"
                                                   class="form-confirm-delete"
                                                   data-confirm-title="Supprimer cet utilisateur ?">
                                                 @csrf
@@ -156,94 +146,48 @@
 @push('js')
 <script>
 $(function () {
-    'use strict';
-
     const URL_STORE  = "{{ route('admin.utilisateurs.store') }}";
     const URL_UPDATE = "{{ route('admin.utilisateurs.update', ['utilisateur' => '__ID__']) }}";
-    const MODAL_ID   = 'modal-utilisateur';
-    const FORM_ID    = 'form-utilisateur';
 
-    function ouvrirModal(id = null, donnees = null) {
-        const $modal  = $('#' + MODAL_ID);
-        const $form   = $('#' + FORM_ID);
-        const $method = $('#method-utilisateur');
-        const $titre  = $('#titre-modal-utilisateur');
-        const $id     = $('#id-utilisateur');
-
+    function ouvrir(id = null, donnees = null) {
+        const $form = $('#form-utilisateur');
         $form[0].reset();
         $form.find('.is-invalid').removeClass('is-invalid');
         $form.find('.invalid-feedback').remove();
-        $id.val('');
 
         if (id) {
-            $titre.text('Modifier l\'utilisateur');
-            $method.val('PUT');
+            $('#titre-modal-utilisateur').text('Modifier l\'utilisateur');
             $form.attr('action', URL_UPDATE.replace('__ID__', id));
-            $id.val(id);
-            if (donnees) {
-                $.each(donnees, function (champ, valeur) {
-                    const $el = $form.find('[name="' + champ + '"]');
-                    if (!$el.length) return;
-                    if ($el.attr('type') === 'checkbox') $el.prop('checked', !!valeur);
-                    else $el.val(valeur !== null && valeur !== undefined ? valeur : '');
-                });
-            }
+            $form.find('input[name="_method"]').val('PUT');
+            $.each(donnees, function (k, v) {
+                const $el = $form.find('[name="' + k + '"]');
+                if (! $el.length) return;
+                if ($el.attr('type') === 'checkbox') $el.prop('checked', !!v);
+                else $el.val(v ?? '');
+            });
         } else {
-            $titre.text('Nouvel utilisateur');
-            $method.val('POST');
+            $('#titre-modal-utilisateur').text('Nouvel utilisateur');
             $form.attr('action', URL_STORE);
+            $form.find('input[name="_method"]').val('POST');
         }
 
-        bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-utilisateur')).show();
     }
 
-    $(document).on('click', '.js-nouveau-utilisateur', function () { ouvrirModal(); });
+    $(document).on('click', '.js-nouveau-utilisateur', () => ouvrir());
     $(document).on('click', '.js-edit-utilisateur', function () {
-        ouvrirModal($(this).data('id'), $(this).data('donnees'));
+        ouvrir($(this).data('id'), $(this).data('donnees'));
     });
 
-    // Toggle actif/inactif par AJAX
-    $(document).on('click', '.js-toggle-utilisateur', function () {
-        const $btn = $(this);
-        const id = $btn.data('id');
-        const nom = $btn.data('nom');
-        const actif = $btn.data('actif') == 1;
-
-        Swal.fire({
-            title: actif ? 'Désactiver cet utilisateur ?' : 'Activer cet utilisateur ?',
-            text: nom,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1B4965',
-            cancelButtonColor: '#6f7e8c',
-            confirmButtonText: 'Oui',
-            cancelButtonText: 'Annuler'
-        }).then(function (result) {
-            if (!result.isConfirmed) return;
-
-            $.ajax({
-                url: "{{ route('admin.utilisateurs.toggle-actif', ['utilisateur' => '__ID__']) }}".replace('__ID__', id),
-                method: 'POST',
-                data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-            })
-            .done(function (response) {
-                window.showToastThenReload(response.message || 'Statut modifié.');
-            })
-            .fail(function () {
-                window.showToast('Erreur lors de la modification du statut.', 'error');
-            });
-        });
-    });
-
-    // Soumission AJAX du modal
-    $('#' + FORM_ID).on('submit', function (e) {
+    $('#form-utilisateur').on('submit', function (e) {
         e.preventDefault();
         const $form = $(this);
-        const $btn  = $form.find('button[type="submit"]');
-        const texteBtn = $btn.html();
+        const $btn = $form.find('button[type="submit"]');
+        const texte = $btn.html();
 
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>...');
 
         $.ajax({
             url: $form.attr('action'),
@@ -251,14 +195,12 @@ $(function () {
             data: $form.serialize(),
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         })
-        .done(function (response) {
-            bootstrap.Modal.getInstance(document.getElementById(MODAL_ID)).hide();
-            window.showToastThenReload(response.message || 'Enregistré.');
+        .done(function (r) {
+            bootstrap.Modal.getInstance(document.getElementById('modal-utilisateur')).hide();
+            window.showToastThenReload(r.message || 'Enregistré.');
         })
         .fail(function (xhr) {
-            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                $form.find('.is-invalid').removeClass('is-invalid');
-                $form.find('.invalid-feedback').remove();
+            if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 $.each(xhr.responseJSON.errors, function (champ, messages) {
                     const $el = $form.find('[name="' + champ + '"]');
                     $el.addClass('is-invalid');
@@ -266,12 +208,10 @@ $(function () {
                 });
                 window.showToast('Veuillez corriger les erreurs.', 'error');
             } else {
-                window.showToast('Erreur lors de l\'enregistrement.', 'error');
+                window.showToast('Erreur.', 'error');
             }
         })
-        .always(function () {
-            $btn.prop('disabled', false).html(texteBtn);
-        });
+        .always(function () { $btn.prop('disabled', false).html(texte); });
     });
 });
 </script>

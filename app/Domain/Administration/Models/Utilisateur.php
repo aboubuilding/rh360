@@ -2,18 +2,24 @@
 
 namespace App\Domain\Administration\Models;
 
+use App\Domain\Administration\Services\VerificateurMotDePasseLegacy;
 use App\Domain\Shared\Enums\Etat;
 use App\Domain\Shared\Traits\AvecEtat;
 use App\Domain\Shared\Traits\BelongsToEntreprise;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
 class Utilisateur extends Authenticatable
 {
-    use HasFactory, Notifiable, AvecEtat, BelongsToEntreprise;
+    use HasFactory, Notifiable, BelongsToEntreprise;
+    use AvecEtat {
+        estActif as protected estActifSelonEtat;
+    }
 
     protected $table = 'utilisateurs';
 
@@ -28,11 +34,27 @@ class Utilisateur extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            // Pas de cast « hashed » : il re-hacherait les hashes PBKDF2 hérités (voir password()).
             'actif' => 'boolean',
             'etat' => Etat::class,
             'derniere_connexion' => 'datetime',
         ];
+    }
+
+    /**
+     * Hache le mot de passe en clair, mais conserve tels quels les hashes déjà calculés :
+     * bcrypt/argon (Laravel) et PBKDF2-SHA256 de l'application d'origine, re-hachés
+     * à la première connexion par VerificateurMotDePasseLegacy.
+     */
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $valeur) => $valeur === null
+                || Hash::isHashed($valeur)
+                || app(VerificateurMotDePasseLegacy::class)->estFormatLegacy($valeur)
+                    ? $valeur
+                    : Hash::make($valeur),
+        );
     }
 
     // --- Rôles ---
@@ -61,6 +83,15 @@ class Utilisateur extends Authenticatable
     public function libelleRole(): string
     {
         return self::roles()[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Un compte peut se connecter s'il n'est ni supprimé/inactif (etat)
+     * ni désactivé par un administrateur (actif).
+     */
+    public function estActif(): bool
+    {
+        return $this->estActifSelonEtat() && (bool) $this->actif;
     }
 
     public function estSuperAdmin(): bool

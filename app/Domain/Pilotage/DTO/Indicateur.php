@@ -20,6 +20,12 @@ final class Indicateur
         public readonly ?string $aide = null,
     ) {}
 
+    /** Copie de l'indicateur pointant vers un autre écran. */
+    public function avecLien(?string $lien): self
+    {
+        return new self($this->cle, $this->libelle, $this->valeur, $this->couleur, $this->icone, $lien, $this->suffixe, $this->aide);
+    }
+
     public function estZero(): bool
     {
         return is_numeric($this->valeur) && (float) $this->valeur === 0.0;

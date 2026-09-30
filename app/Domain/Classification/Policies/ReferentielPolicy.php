@@ -12,6 +12,11 @@ class ReferentielPolicy
         return $u->peut('classification.view');
     }
 
+    public function view(Utilisateur $u, ReferentielClassification $r): bool
+    {
+        return $u->peut('classification.view') && $u->entreprise_id === $r->entreprise_id;
+    }
+
     public function create(Utilisateur $u): bool
     {
         return $u->peut('classification.manage');

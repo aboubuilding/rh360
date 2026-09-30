@@ -15,7 +15,7 @@ class StoreRegleContratRequest extends FormRequest
 
     public function rules(): array
     {
-        $regleId = $this->route('regle_contrat')?->id;
+        $regleId = $this->route('regle')?->id;
 
         return [
             'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value'))],

@@ -16,9 +16,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Salarie extends Model
 {
-    use HasFactory, AvecEtat, BelongsToEntreprise;
+    use HasFactory, BelongsToEntreprise;
+    use AvecEtat {
+        estActif as protected estActifSelonEtat;
+    }
 
     protected $table = 'salaries';
+
+    /**
+     * Familles de données sensibles (CDC §6) : sans la permission, ces champs
+     * ne sont ni affichés, ni modifiables, ni exportés.
+     */
+    public const CHAMPS_SENSIBLES = [
+        'sensitive.social_health' => ['numero_cnss', 'date_immatriculation_cnss', 'numero_amu', 'organisme_assurance'],
+        'sensitive.banking' => ['banque', 'compte_bancaire', 'mode_paiement'],
+        'sensitive.gps' => ['gps_latitude', 'gps_longitude'],
+    ];
+
+    /**
+     * Champs sensibles que l'utilisateur n'a pas le droit de lire ni d'écrire.
+     *
+     * @return list<string>
+     */
+    public static function champsSensiblesInterdits(\App\Domain\Administration\Models\Utilisateur $utilisateur): array
+    {
+        return collect(self::CHAMPS_SENSIBLES)
+            ->reject(fn (array $champs, string $permission) => $utilisateur->peut($permission))
+            ->flatten()
+            ->values()
+            ->all();
+    }
 
     protected $fillable = [
         'entreprise_id', 'numero_enregistrement', 'matricule',
@@ -76,6 +103,15 @@ class Salarie extends Model
     public function membresFoyer(): HasMany
     {
         return $this->hasMany(MembreFoyer::class, 'salarie_id');
+    }
+
+    /**
+     * Alias utilisé par la liaison de route imbriquée {salarie}/foyer/{membre}
+     * (scopeBindings déduit la relation du nom du paramètre : « membres »).
+     */
+    public function membres(): HasMany
+    {
+        return $this->membresFoyer();
     }
 
     public function documents(): HasMany
@@ -139,7 +175,7 @@ class Salarie extends Model
 
     public function estActif(): bool
     {
-        return parent::estActif() && $this->actif;
+        return $this->estActifSelonEtat() && $this->actif;
     }
 
     public function getInitialesAttribute(): string

@@ -40,6 +40,14 @@ class Structure extends Model
         return $this->hasMany(Structure::class, 'parent_id');
     }
 
+    /**
+     * Sous-arborescence complète (organigramme) : enfants chargés récursivement.
+     */
+    public function enfantsRecursifs(): HasMany
+    {
+        return $this->enfants()->with(['enfantsRecursifs', 'typeStructure'])->orderBy('nom');
+    }
+
     public function postes(): HasMany
     {
         return $this->hasMany(Poste::class, 'structure_id');

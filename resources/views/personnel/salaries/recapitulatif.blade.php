@@ -49,6 +49,10 @@
                 ],
                 'Situation professionnelle' => [
                     'Date d\'embauche' => $donnees['date_embauche'] ?? '—',
+                    'Structure' => $structure?->nom ?? '—',
+                    'Poste' => $poste?->intitule ?? '—',
+                    'Classification' => $position?->code ?? '—',
+                    'Effet de l\'échelon' => $donnees['date_effet_echelon'] ?? '—',
                     'Type de contrat' => $donnees['type_contrat'] ?? '—',
                     'Référence du contrat' => $donnees['reference_contrat'] ?? '—',
                     'Lieu d\'affectation' => $donnees['lieu_affectation'] ?? '—',
@@ -72,27 +76,25 @@
 
         <hr>
 
-        <form method="POST" action="{{ route('personnel.salaries.wizard.valider') }}" id="form-validation">
-            @csrf
-            <div class="d-flex justify-content-between">
-                <a href="{{ route('personnel.salaries.wizard.etape', 5) }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Modifier
-                </a>
-                <div>
-                    <form method="POST" action="{{ route('personnel.salaries.wizard.abandonner') }}"
-                          class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-link text-danger"
-                                onclick="return confirm('Abandonner la création ?')">
-                            Abandonner
-                        </button>
-                    </form>
+        {{-- Deux formulaires distincts (jamais imbriqués) : « Abandonner » ne doit pas valider la création --}}
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ route('personnel.salaries.wizard.etape', 5) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Modifier
+            </a>
+            <div class="d-flex gap-2">
+                <form method="POST" action="{{ route('personnel.salaries.wizard.abandonner') }}"
+                      onsubmit="return confirm('Abandonner la création ?')">
+                    @csrf
+                    <button type="submit" class="btn btn-link text-danger">Abandonner</button>
+                </form>
+                <form method="POST" action="{{ route('personnel.salaries.wizard.valider') }}" id="form-validation">
+                    @csrf
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-check"></i> Valider la création
                     </button>
-                </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 @endsection

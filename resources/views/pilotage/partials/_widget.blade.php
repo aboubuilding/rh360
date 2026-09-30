@@ -2,7 +2,7 @@
     /** @var \App\Domain\Pilotage\DTO\Widget $widget */
 @endphp
 
-<div class="card h-100 shadow-sm">
+<section class="card h-100 shadow-sm" aria-label="{{ $widget->titre }}" data-testid="widget-{{ $widget->cle }}">
     <div class="card-header d-flex align-items-center" style="background: linear-gradient(90deg, var(--rh-primary-dark, #0F2E42), var(--rh-primary, #1B4965)); color: #fff;">
         @if($widget->icone)
             <i class="fas {{ $widget->icone }} me-2"></i>
@@ -16,4 +16,4 @@
             <div class="text-center text-muted py-4 small">Aucun indicateur.</div>
         @endforelse
     </div>
-</div>
+</section>

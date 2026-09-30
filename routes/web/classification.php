@@ -12,10 +12,21 @@ Route::middleware('auth')->prefix('admin/classification')->name('classification.
 
     Route::resource('referentiels', ReferentielController::class)
         ->parameters(['referentiels' => 'referentiel']);
-    Route::resource('categories', CategorieController::class);
-    Route::resource('classes', ClasseController::class);
-    Route::resource('echelons', EchelonController::class);
-    Route::resource('positions', PositionController::class);
+
+    Route::resource('categories', CategorieController::class)
+        ->except(['create', 'edit', 'show']);
+
+    Route::resource('classes', ClasseController::class)
+        ->except(['create', 'edit', 'show'])
+        ->parameters(['classes' => 'classe']);
+
+    Route::resource('echelons', EchelonController::class)
+        ->except(['create', 'edit', 'show']);
+
+    Route::resource('positions', PositionController::class)
+        ->except(['show']);
+
     Route::resource('regles-evolution', RegleEvolutionController::class)
+        ->except(['show'])
         ->parameters(['regles-evolution' => 'regleEvolution']);
 });

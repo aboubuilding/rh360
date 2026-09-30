@@ -123,6 +123,8 @@ class MouvementCarriereController extends Controller
 
         return view('carriere.mouvements.edit', [
             'mouvement' => $mouvement,
+            // Le salarié d'un acte existant n'est pas modifiable : affiché en lecture seule
+            'salarie' => $mouvement->salarie,
             'structures' => Structure::orderBy('nom')->get(),
             'postes' => Poste::orderBy('intitule')->get(),
             'positions' => PositionClassification::orderBy('ordre')->get(),
@@ -227,12 +229,16 @@ class MouvementCarriereController extends Controller
     {
         $this->authorize('programmer', $mouvement);
 
-        $action->executer($mouvement, $request->date_effet);
+        $mouvement = $action->executer($mouvement, $request->date_effet);
+
+        $message = $mouvement->statut === StatutMouvement::EFFECTIF
+            ? 'Acte à effet rétroactif appliqué : affectation et situation de carrière mises à jour.'
+            : 'Mouvement programmé.';
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Mouvement programmé.']);
+            return response()->json(['message' => $message]);
         }
-        return back()->with('success', 'Mouvement programmé.');
+        return back()->with('success', $message);
     }
 
     public function appliquer(Request $request, MouvementCarriere $mouvement, AppliquerMouvement $action)

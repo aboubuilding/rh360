@@ -10,8 +10,8 @@ Route::middleware('auth')->group(function () {
     // ============================================================
     // Tableau de bord
     // ============================================================
-    Route::get('/', [TableauDeBordController::class, 'index'])->name('dashboard');
-    Route::get('tableau-de-bord', [TableauDeBordController::class, 'index'])->name('dashboard.alias');
+    // « / » est la page d'accueil publique (routes/web.php)
+    Route::get('tableau-de-bord', [TableauDeBordController::class, 'index'])->name('dashboard');
 
     // ============================================================
     // Recherche rapide (AJAX, Ctrl+K)

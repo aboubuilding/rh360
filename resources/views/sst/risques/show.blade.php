@@ -190,9 +190,9 @@
     </div>
 </div>
 
-@include('sst.risques.partials._modal-evaluer')
-@include('sst.risques.partials._modal-action')
-@include('sst.risques.partials._modal-archiver')
+@include('sst.risques._modal-evaluer')
+@include('sst.risques._modal-action')
+@include('sst.risques._modal-archiver')
 @endsection
 
 @push('js')

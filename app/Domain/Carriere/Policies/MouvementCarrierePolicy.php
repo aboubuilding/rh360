@@ -62,7 +62,8 @@ class MouvementCarrierePolicy
     {
         return $u->peut('carriere.validate')
             && $u->entreprise_id === $m->entreprise_id
-            && in_array($m->statut, [StatutMouvement::VERIFIE, StatutMouvement::A_VERIFIER], true);
+            // Circuit : à vérifier → vérifié (verifier) → validé ; pas de saut d'étape
+            && $m->statut === StatutMouvement::VERIFIE;
     }
 
     public function rejeter(Utilisateur $u, MouvementCarriere $m): bool
