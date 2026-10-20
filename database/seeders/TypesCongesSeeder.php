@@ -149,6 +149,21 @@ class TypesCongesSeeder extends Seeder
                 'impact_anciennete' => ImpactAnciennete::SUSPENDUE->value,
                 'autorisation_prealable_requise' => true,
             ],
+            [
+                // RG-TT-05 — sert au refus des missions d'intérim remplaçant des grévistes.
+                // Traitement salarial et impacts à vérifier par les RH.
+                'code' => 'GREVE',
+                'nom' => 'Grève',
+                'categorie' => CategorieTypeConge::ABSENCE->value,
+                'unite' => UniteConge::JOUR_CALENDAIRE->value,
+                'droit_annuel' => 0,
+                'remunere' => false,
+                'justificatif_requis' => false,
+                'traitement_salarial' => TraitementSalarial::NON_REMUNERE->value,
+                'impact_conge_annuel' => ImpactCongeAnnuel::AUCUNE->value,
+                'impact_anciennete' => ImpactAnciennete::MAINTENUE->value,
+                'autorisation_prealable_requise' => false,
+            ],
         ];
 
         foreach ($types as $type) {

@@ -149,6 +149,8 @@ Gate::policy(MouvementCarriere::class, MouvementCarrierePolicy::class);
 Gate::policy(SituationCarriere::class, SituationCarrierePolicy::class);
 Gate::policy(InstantaneCarriere::class, InstantaneCarrierePolicy::class);
 Gate::policy(\App\Domain\Interim\Models\InterimInterne::class, \App\Domain\Interim\Policies\InterimInternePolicy::class);
+Gate::policy(\App\Domain\Interim\Models\EntrepriseInterim::class, \App\Domain\Interim\Policies\TravailInterimairePolicy::class);
+Gate::policy(\App\Domain\Interim\Models\MissionInterim::class, \App\Domain\Interim\Policies\TravailInterimairePolicy::class);
 
 // Policies Carrière
 Gate::policy(\App\Domain\Carriere\Models\MouvementCarriere::class, \App\Domain\Carriere\Policies\MouvementCarrierePolicy::class);

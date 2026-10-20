@@ -44,7 +44,7 @@ class ParametreInterimController extends Controller
         $this->authorize('create', InterimInterne::class);
 
         // Une liste vide n'est pas transmise par le navigateur : on la rétablit explicitement.
-        $valeurs = $request->validated() + ['referentiels_conventions_ids' => [], 'codes_conges_maladie' => []];
+        $valeurs = $request->validated() + ['referentiels_conventions_ids' => [], 'codes_conges_maladie' => [], 'codes_absences_greve' => []];
         $this->parametres->enregistrer($valeurs);
 
         return $this->repondre($request, 'Paramètres enregistrés.');

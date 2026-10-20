@@ -22,7 +22,7 @@ class StoreAvenantRequest extends FormRequest
                 'required', 'string', 'max:240',
                 Rule::unique('contrats', 'reference')->where('entreprise_id', $entrepriseId),
             ],
-            'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value'))],
+            'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value')), TypeContrat::regleHorsInterim()],
             'date_debut' => ['required', 'date'],
             'date_fin' => ['nullable', 'date', 'after:date_debut'],
             'poste_id' => ['required', Rule::exists('postes', 'id')->where('entreprise_id', $entrepriseId)],

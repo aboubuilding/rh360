@@ -73,4 +73,10 @@ return [
     // points d'extension pour la durée maximale des missions et les renouvellements.
     'missions_duree_max_mois' => null,
     'missions_renouvellements_max' => null,
+
+    // RG-TT-05 — Types d'absence correspondant à une grève (codes de types_conges).
+    'codes_absences_greve' => ['GREVE'],
+
+    // RG-TT-07 — Alerte si la checklist SST n'est pas validée N jours avant le début d'une mission.
+    'alerte_sst_jours_avant_mission' => 7,
 ];

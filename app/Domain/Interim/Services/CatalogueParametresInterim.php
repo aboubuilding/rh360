@@ -122,6 +122,18 @@ class CatalogueParametresInterim
                 'type' => 'entier_facultatif', 'min' => 1,
                 'reference' => 'Décret n°2022-027/PR (Code, art. 63) — non intégré',
             ],
+            'codes_absences_greve' => [
+                'groupe' => 'Travail intérimaire',
+                'libelle' => 'Types d\'absence correspondant à une grève',
+                'type' => 'types_conges',
+                'reference' => 'Code du travail, art. 62',
+            ],
+            'alerte_sst_jours_avant_mission' => [
+                'groupe' => 'Travail intérimaire',
+                'libelle' => 'Alerte si la checklist SST n\'est pas validée avant le début d\'une mission (jours)',
+                'type' => 'entier', 'min' => 1,
+                'reference' => self::NON_TRANCHE,
+            ],
             'missions_renouvellements_max' => [
                 'groupe' => 'Travail intérimaire',
                 'libelle' => 'Nombre maximal de renouvellements d\'une mission (vide = non limité)',

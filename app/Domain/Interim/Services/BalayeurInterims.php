@@ -6,6 +6,7 @@ use App\Domain\Conges\Models\Absence;
 use App\Domain\Interim\Enums\StatutInterim;
 use App\Domain\Interim\Models\AlerteInterim;
 use App\Domain\Interim\Models\InterimInterne;
+use App\Domain\Interim\Models\MissionInterim;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -51,8 +52,47 @@ class BalayeurInterims
         }
 
         $bilan['alertes'] += $this->alertesMaladieTitulaire($entrepriseId, $aujourdhui);
+        $this->alertesSstMissions($entrepriseId, $aujourdhui, $bilan);
 
         return $bilan;
+    }
+
+    /**
+     * RG-TT-07 — Checklist SST à valider avant le premier jour de mission.
+     *
+     * @param  array{alertes:int, a_regulariser:int}  $bilan
+     */
+    private function alertesSstMissions(int $entrepriseId, Carbon $aujourdhui, array &$bilan): void
+    {
+        $joursAvant = (int) $this->parametres->get('alerte_sst_jours_avant_mission');
+
+        $missions = MissionInterim::withoutGlobalScopes()
+            ->where('entreprise_id', $entrepriseId)
+            ->where('etat', 1)
+            ->with('poste')
+            ->get();
+
+        foreach ($missions as $mission) {
+            $concernee = ! $mission->statut->estFinal()
+                && ! $mission->checklistSstComplete()
+                && $aujourdhui->gte($mission->date_debut->copy()->subDays($joursAvant));
+
+            if (! $concernee) {
+                AlerteInterim::withoutGlobalScopes()->where('objet_type', $mission->getMorphClass())
+                    ->where('objet_id', $mission->id)->where('cle', 'checklist_sst')->where('en_cours', true)
+                    ->update(['en_cours' => false, 'cloture_le' => now()]);
+
+                continue;
+            }
+
+            $commencee = $aujourdhui->gte($mission->date_debut);
+            $this->alerter($mission, 'checklist_sst', $commencee ? 'danger' : 'warning',
+                ($commencee ? 'Mission commencée sans checklist SST — ' : 'Checklist SST à valider — ').$mission->reference,
+                "{$mission->nom_interimaire} ({$mission->poste?->intitule}), début le {$mission->date_debut->format('d/m/Y')} : "
+                .'accueil sécurité, EPI remis et consignes du poste à valider avant le premier jour ; l\'entreprise '
+                .'utilisatrice répond de la santé, de la sécurité et de l\'hygiène (Code du travail, art. 60 à 63).',
+                $mission->date_debut, $bilan);
+        }
     }
 
     /**

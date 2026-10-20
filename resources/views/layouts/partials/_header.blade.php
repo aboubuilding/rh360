@@ -238,7 +238,9 @@
             ['Situations des salariés', 'carriere.situations.index', ['carriere.view'], 'fa-id-badge'],
             ['Actes de carrière', 'carriere.mouvements.index', ['carriere.view'], 'fa-file-signature'],
             ['Avancements', 'carriere.avancements.index', ['carriere.view'], 'fa-arrow-up'],
-            ['Intérims', 'carriere.interims.index', ['carriere.view'], 'fa-people-arrows'],
+            ['Intérims internes', 'carriere.interims.index', ['carriere.view'], 'fa-people-arrows'],
+            ['Missions d\'intérim (agences)', 'carriere.interims.missions.index', ['carriere.view'], 'fa-user-tie'],
+            ['Agences d\'intérim', 'carriere.interims.agences.index', ['carriere.view'], 'fa-building'],
             ['Échéances & reporting', 'carriere.reporting.index', ['carriere.view'], 'fa-chart-column'],
         ]],
         ['cle' => 'conges', 'libelle' => 'Congés & Absences', 'icone' => 'fa-calendar-days', 'entrees' => [

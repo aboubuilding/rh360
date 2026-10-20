@@ -31,6 +31,8 @@
                     <span class="badge bg-{{ $a->niveau }} me-1">{{ $a->date_echeance?->format('d/m/Y') }}</span>
                     @if($a->objet_type === (new \App\Domain\Interim\Models\InterimInterne)->getMorphClass())
                         <a href="{{ route('carriere.interims.show', $a->objet_id) }}"><strong>{{ $a->intitule }}</strong></a>
+                    @elseif($a->objet_type === (new \App\Domain\Interim\Models\MissionInterim)->getMorphClass())
+                        <a href="{{ route('carriere.interims.missions.show', $a->objet_id) }}"><strong>{{ $a->intitule }}</strong></a>
                     @else
                         <strong>{{ $a->intitule }}</strong>
                     @endif
