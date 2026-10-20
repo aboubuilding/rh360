@@ -2,6 +2,7 @@
 
 namespace App\Domain\Paie\Services;
 
+use App\Domain\Interim\Services\PreparateurPaieInterims;
 use App\Domain\Paie\Enums\NatureRubrique;
 use App\Domain\Paie\Enums\StatutPeriode;
 use App\Domain\Paie\Enums\TraitementFiscal;
@@ -37,6 +38,9 @@ class MoteurPaie
         }
 
         return DB::transaction(function () use ($periode) {
+            // RG-INT-06 / RG-INT-07 — indemnité et avantages d'intérim, recalculés en saisies de la période.
+            $rapportInterims = app(PreparateurPaieInterims::class)->preparer($periode);
+
             $dateDebutPeriode = Carbon::createFromDate($periode->annee, $periode->mois, 1);
             $dateFinPeriode = $dateDebutPeriode->copy()->endOfMonth();
             $dateReference = $dateFinPeriode;
@@ -55,6 +59,7 @@ class MoteurPaie
                 'bulletins_calcules' => 0,
                 'total_brut' => 0,
                 'total_net' => 0,
+                'anomalies_interims' => $rapportInterims->anomalies,
             ];
 
             foreach ($salaries as $salarie) {

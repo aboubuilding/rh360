@@ -60,7 +60,7 @@ function donneesInterim(array $surcharges = []): array
         'titulaire_id' => test()->titulaire->id,
         'motif' => MotifInterim::POSTE_VACANT->value,
         'date_debut' => '2026-09-19',
-        'date_fin_prevue' => '2026-11-19',
+        'date_fin_prevue' => '2026-11-18',
     ], $surcharges);
 }
 
@@ -150,17 +150,17 @@ it('RG-INT-02 : conserve le poste permanent, la position et le salaire de base d
 
 // --- RG-INT-03 ---
 
-it('RG-INT-03 : accepte une durée de 2 mois date à date (19/09 → 19/11)', function () {
+it('RG-INT-03 : accepte une durée de 2 mois date à date (du 19/09 au 18/11 inclus)', function () {
     $interim = $this->service->creer(donneesInterim());
 
-    expect($interim->date_limite->toDateString())->toBe('2026-11-19');
+    expect($interim->date_limite->toDateString())->toBe('2026-11-18');
 });
 
 it('RG-INT-03 : refuse une fin au-delà de 2 mois sans motif éligible', function () {
-    $erreurs = erreursDe(fn () => $this->service->creer(donneesInterim(['date_fin_prevue' => '2026-11-20'])));
+    $erreurs = erreursDe(fn () => $this->service->creer(donneesInterim(['date_fin_prevue' => '2026-11-19'])));
 
     expect($erreurs['date_fin_prevue'][0])
-        ->toContain('au plus tard le 19/11/2026')
+        ->toContain('au plus tard le 18/11/2026')
         ->toContain('ne permet pas de prolongation')
         ->toContain('CCIT, art. 13');
 });
@@ -170,12 +170,12 @@ it('RG-INT-03 : cumule les intérims successifs sur le même poste et le même t
     $premier = InterimInterne::sole();
     $this->service->cloturer($premier, CauseFinInterim::RETOUR_TITULAIRE, '2026-09-01');
 
-    // 31 jours déjà effectués : la nouvelle limite est le 02/11 - 31 j.
+    // 32 jours déjà effectués (01/08 au 01/09 inclus) : la nouvelle limite est le 01/11 - 32 j.
     $erreurs = erreursDe(fn () => $this->service->creer(donneesInterim([
         'date_debut' => '2026-09-02', 'date_fin_prevue' => '2026-11-02',
     ])));
 
-    expect($erreurs['date_fin_prevue'][0])->toContain('31 jours déjà effectués');
+    expect($erreurs['date_fin_prevue'][0])->toContain('32 jours déjà effectués');
 });
 
 it('RG-INT-03 : ne cumule pas un intérim séparé par une interruption', function () {
@@ -184,7 +184,7 @@ it('RG-INT-03 : ne cumule pas un intérim séparé par une interruption', functi
 
     $interim = $this->service->creer(donneesInterim());
 
-    expect($interim->date_limite->toDateString())->toBe('2026-11-19');
+    expect($interim->date_limite->toDateString())->toBe('2026-11-18');
 });
 
 it('RG-INT-03 : n\'applique pas le cumul lorsque le paramètre est désactivé', function () {
@@ -192,9 +192,9 @@ it('RG-INT-03 : n\'applique pas le cumul lorsque le paramètre est désactivé',
     $this->service->creer(donneesInterim(['date_debut' => '2026-08-01', 'date_fin_prevue' => '2026-09-01']));
     $this->service->cloturer(InterimInterne::sole(), CauseFinInterim::RETOUR_TITULAIRE, '2026-09-01');
 
-    $interim = $this->service->creer(donneesInterim(['date_debut' => '2026-09-02', 'date_fin_prevue' => '2026-11-02']));
+    $interim = $this->service->creer(donneesInterim(['date_debut' => '2026-09-02', 'date_fin_prevue' => '2026-11-01']));
 
-    expect($interim->date_limite->toDateString())->toBe('2026-11-02');
+    expect($interim->date_limite->toDateString())->toBe('2026-11-01');
 });
 
 // --- RG-INT-04 ---
@@ -230,8 +230,8 @@ it('RG-INT-04 : plafonne à 2 mois chaque motif non éligible', function (MotifI
 // --- RG-INT-05 ---
 
 it('RG-INT-05 : plafonne la maladie à 6 mois (Code art. 65 c ; CCIT art. 14)', function () {
-    $interim = $this->service->creer(donneesInterim(['motif' => MotifInterim::MALADIE_ACCIDENT->value, 'date_fin_prevue' => '2027-03-19']));
-    expect($interim->date_limite->toDateString())->toBe('2027-03-19');
+    $interim = $this->service->creer(donneesInterim(['motif' => MotifInterim::MALADIE_ACCIDENT->value, 'date_fin_prevue' => '2027-03-18']));
+    expect($interim->date_limite->toDateString())->toBe('2027-03-18');
 
     $autrePoste = Poste::where('intitule', 'Comptable')->firstOrFail();
     $autrePoste->update(['categorie_classification_id' => $this->categorieB->id]);
@@ -250,10 +250,10 @@ it('RG-INT-05 : fait courir le délai maladie depuis le début de l\'absence du 
     $erreurs = erreursDe(fn () => $this->service->creer(donneesInterim([
         'motif' => MotifInterim::MALADIE_ACCIDENT->value,
         'absence_titulaire_id' => $absence->id,
-        'date_fin_prevue' => '2027-02-02',
+        'date_fin_prevue' => '2027-02-01',
     ])));
 
-    expect($erreurs['date_fin_prevue'][0])->toContain('au plus tard le 01/02/2027');
+    expect($erreurs['date_fin_prevue'][0])->toContain('au plus tard le 31/01/2027');
 });
 
 it('RG-INT-05 : plafonne la détention préventive à 6 mois (Code art. 65 h)', function () {

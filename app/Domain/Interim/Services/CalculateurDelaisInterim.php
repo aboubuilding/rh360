@@ -15,10 +15,19 @@ class CalculateurDelaisInterim
 {
     public function __construct(private ParametresInterim $parametres) {}
 
-    // Mode « date_a_date » (calendaire) : du 19/09 au 19/11 pour deux mois.
+    // Mode « date_a_date » (calendaire) : même quantième N mois plus tard (19/09 + 2 mois = 19/11).
     public function ajouterMois(CarbonInterface $date, int $mois): Carbon
     {
         return Carbon::parse($date)->startOfDay()->addMonthsNoOverflow($mois);
+    }
+
+    /**
+     * Dernier jour d'une durée de N mois dont le premier jour est inclus : la veille de la date
+     * anniversaire. Deux mois à partir du 19/09 couvrent le 19/09 au 18/11 ; le 3e mois commence le 19/11.
+     */
+    public function finDuree(CarbonInterface $debut, int $mois): Carbon
+    {
+        return $this->ajouterMois($debut, $mois)->subDay();
     }
 
     /**
@@ -44,14 +53,16 @@ class CalculateurDelaisInterim
 
         foreach ($precedents as $precedent) {
             $fin = ($precedent->date_fin_reelle ?? $precedent->date_fin_prevue)->copy()->startOfDay();
+            $veille = $debutChaine->copy()->subDay();
 
-            // Une interruption d'au moins un jour rompt la succession.
-            if ($fin->lt($debutChaine->copy()->subDay())) {
+            // Une interruption d'au moins un jour (fin avant la veille) rompt la succession.
+            if ($fin->lt($veille)) {
                 break;
             }
 
-            $finRetenue = $fin->gt($debutChaine) ? $debutChaine : $fin;
-            $jours += (int) $precedent->date_debut->diffInDays($finRetenue);
+            // Jours effectués, premier et dernier jours inclus, sans chevauchement avec la suite.
+            $finRetenue = $fin->min($veille);
+            $jours += (int) $precedent->date_debut->diffInDays($finRetenue) + 1;
             $debutChaine = $precedent->date_debut->copy()->startOfDay();
         }
 
@@ -61,7 +72,7 @@ class CalculateurDelaisInterim
     // RG-INT-03 — Date de fin au plus tard sans motif éligible.
     public function plafondNormal(CarbonInterface $debut, int $joursDejaEffectues = 0): Carbon
     {
-        return $this->ajouterMois($debut, (int) $this->parametres->get('duree_max_interim_mois'))
+        return $this->finDuree($debut, (int) $this->parametres->get('duree_max_interim_mois'))
             ->subDays($joursDejaEffectues);
     }
 
@@ -91,7 +102,7 @@ class CalculateurDelaisInterim
                 ? ($absenceTitulaire?->debut_le ?? $debutChaine)
                 : $debutChaine;
 
-            return $this->ajouterMois($origine, $delai);
+            return $this->finDuree($origine, $delai);
         }
 
         return match ($delai) {

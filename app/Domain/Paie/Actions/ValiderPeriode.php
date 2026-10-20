@@ -2,6 +2,7 @@
 
 namespace App\Domain\Paie\Actions;
 
+use App\Domain\Interim\Services\ControleClotureInterims;
 use App\Domain\Paie\Enums\StatutPeriode;
 use App\Domain\Paie\Events\PeriodeValidee;
 use App\Domain\Paie\Models\PeriodePaie;
@@ -18,6 +19,9 @@ class ValiderPeriode
         if ($periode->bulletins()->count() === 0) {
             throw new \DomainException('Impossible de valider une période sans bulletins calculés.');
         }
+
+        // RG-INT-09 — un intérim à régulariser bloque la validation de la paie du mois.
+        app(ControleClotureInterims::class)->verifier($periode);
 
         return DB::transaction(function () use ($periode) {
             $periode->update([

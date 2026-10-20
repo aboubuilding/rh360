@@ -53,7 +53,7 @@ function interimParametre(array $surcharges = []): array
         'titulaire_id' => test()->titulaire->id,
         'motif' => MotifInterim::POSTE_VACANT->value,
         'date_debut' => '2026-09-19',
-        'date_fin_prevue' => '2026-11-19',
+        'date_fin_prevue' => '2026-11-18',
     ], $surcharges);
 }
 
@@ -81,9 +81,9 @@ it('affiche l\'écran des paramètres avec les valeurs des textes et leurs réf�
 it('applique la durée maximale saisie par l\'entreprise au lieu de la valeur des textes', function () {
     enregistrerParametres(['duree_max_interim_mois' => 3]);
 
-    $interim = $this->service->creer(interimParametre(['date_fin_prevue' => '2026-12-19']));
+    $interim = $this->service->creer(interimParametre(['date_fin_prevue' => '2026-12-18']));
 
-    expect($interim->date_limite->toDateString())->toBe('2026-12-19');
+    expect($interim->date_limite->toDateString())->toBe('2026-12-18');
     expect(app(ParametresInterim::class)->estSurcharge('duree_max_interim_mois'))->toBeTrue();
 });
 
@@ -125,7 +125,7 @@ it('fait courir par défaut le délai maladie depuis le début de l\'absence du 
     $donnees = interimParametre([
         'motif' => MotifInterim::MALADIE_ACCIDENT->value,
         'absence_titulaire_id' => $absence->id,
-        'date_fin_prevue' => '2027-03-19',
+        'date_fin_prevue' => '2027-03-18',
     ]);
 
     expect(fn () => $this->service->creer($donnees))->toThrow(ValidationException::class);
@@ -133,7 +133,7 @@ it('fait courir par défaut le délai maladie depuis le début de l\'absence du 
     enregistrerParametres(['origine_delai_legal' => 'debut_interim']);
     $interim = app(InterimInterneService::class)->creer($donnees);
 
-    expect($interim->date_limite->toDateString())->toBe('2027-03-19');
+    expect($interim->date_limite->toDateString())->toBe('2027-03-18');
 });
 
 it('applique le délai maladie saisi par l\'entreprise', function () {
