@@ -323,12 +323,6 @@ class InterimInterneService
 
     private function controlerReclassement(InterimInterne $interim, Carbon $dateEffet, ?int $positionCibleId, ?int $nouveauSalaire): PositionClassification
     {
-        if ($dateEffet->isFuture()) {
-            throw ValidationException::withMessages([
-                'date_effet' => 'La date d\'effet d\'un reclassement ne peut pas être postérieure à aujourd\'hui.',
-            ]);
-        }
-
         $position = $positionCibleId ? PositionClassification::find($positionCibleId) : null;
         if (! $position || $position->categorie_id !== $interim->categorie_occupee_id) {
             throw ValidationException::withMessages([
@@ -370,6 +364,8 @@ class InterimInterneService
 
     /**
      * RG-INT-08 reclassement — nouvelle catégorie, nouveau salaire de base, historisation dans la carrière.
+     * À une date d'effet future, le reclassement est programmé et appliqué à sa date
+     * (commande interims:appliquer-reclassements).
      *
      * @return array<string, mixed>
      */
@@ -395,21 +391,60 @@ class InterimInterneService
             'valide_par' => auth()->id(),
             'etat' => 1,
         ]);
-        $this->appliqueur->appliquer($mouvement);
+
+        $interim->update([
+            'reclassement_mouvement_id' => $mouvement->id,
+            'reclassement_salaire_base' => $nouveauSalaire,
+        ]);
 
         $ancienSalaire = $this->salaireBase($interim->salarie);
-        $rubriqueBase = RubriquePaie::where('code', 'SAL-BASE')->firstOrFail();
-        ElementPaieSalarie::updateOrCreate(
-            ['salarie_id' => $interim->salarie_id, 'rubrique_id' => $rubriqueBase->id],
-            ['entreprise_id' => $interim->entreprise_id, 'montant' => $nouveauSalaire, 'actif' => true, 'etat' => 1],
-        );
+        if (! $dateEffet->isFuture()) {
+            $this->appliquerReclassementProgramme($interim);
+        }
 
         return [
             'mouvement_reclassement_id' => $mouvement->id,
             'position_cible_id' => $position->id,
             'ancien_salaire_base' => $ancienSalaire,
             'nouveau_salaire_base' => $nouveauSalaire,
+            'programme' => $dateEffet->isFuture(),
         ];
+    }
+
+    /**
+     * RG-INT-08 — Applique à sa date d'effet un reclassement décidé : position de classification
+     * (via le mouvement de carrière) et nouveau salaire de base. Sans effet s'il est déjà appliqué
+     * ou si sa date n'est pas atteinte.
+     */
+    public function appliquerReclassementProgramme(InterimInterne $interim): bool
+    {
+        $mouvement = $interim->reclassement_mouvement_id
+            ? MouvementCarriere::find($interim->reclassement_mouvement_id)
+            : null;
+
+        if (! $mouvement || $interim->reclassement_applique_le || $mouvement->date_effet->isFuture()) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($interim, $mouvement) {
+            if ($mouvement->statut === StatutMouvement::PROGRAMME) {
+                $this->appliqueur->appliquer($mouvement);
+            }
+
+            $rubriqueBase = RubriquePaie::where('entreprise_id', $interim->entreprise_id)->where('code', 'SAL-BASE')->firstOrFail();
+            ElementPaieSalarie::updateOrCreate(
+                ['salarie_id' => $interim->salarie_id, 'rubrique_id' => $rubriqueBase->id],
+                ['entreprise_id' => $interim->entreprise_id, 'montant' => $interim->reclassement_salaire_base, 'actif' => true, 'etat' => 1],
+            );
+
+            $interim->update(['reclassement_applique_le' => now()]);
+            $this->audit->tracer('interim.interne.reclassement_applique', $interim, [
+                'mouvement_id' => $mouvement->id,
+                'nouveau_salaire_base' => $interim->reclassement_salaire_base,
+            ]);
+
+            return true;
+        });
     }
 
     private function fermer(InterimInterne $interim, Carbon $dateFin, CauseFinInterim $cause, ?DecisionFinInterim $decision, ?string $commentaire): void

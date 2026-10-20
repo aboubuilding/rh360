@@ -19,6 +19,9 @@
                         <div class="col-md-8"><x-field name="intitule" label="Intitulé du poste" required /></div>
                         <div class="col-md-6"><x-field name="categorie" label="Catégorie" help="Ex. A, B, C..." /></div>
                         <div class="col-md-6"><x-field name="effectif_cible" label="Effectif cible" type="number" /></div>
+                        <div class="col-md-6"><x-field name="categorie_classification_id" label="Catégorie de classification" type="select"
+                                 :options="[null => '—'] + $categories" help="Sert au contrôle des intérims (CCIT, art. 13)." /></div>
+                        <div class="col-md-6"><x-field name="travaux_dangereux" label="Travaux particulièrement dangereux (intérim d'agence interdit)" type="checkbox" /></div>
                         <div class="col-md-12"><x-field name="actif" label="Actif" type="checkbox" :value="true" /></div>
                     </div>
                 </div>

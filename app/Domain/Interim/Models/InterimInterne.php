@@ -40,6 +40,7 @@ class InterimInterne extends Model
         'date_debut', 'date_fin_prevue', 'date_fin_motif', 'date_limite', 'date_fin_reelle',
         'salaire_base_origine', 'position_origine_id', 'affectation_origine_id',
         'statut', 'cause_fin', 'decision_fin', 'date_decision', 'decide_par', 'motif_cloture',
+        'reclassement_mouvement_id', 'reclassement_salaire_base', 'reclassement_applique_le',
         'reference_lot_reprise', 'cree_par', 'etat',
     ];
 
@@ -57,6 +58,8 @@ class InterimInterne extends Model
             'date_fin_reelle' => 'date',
             'date_decision' => 'date',
             'salaire_base_origine' => 'integer',
+            'reclassement_salaire_base' => 'integer',
+            'reclassement_applique_le' => 'datetime',
         ];
     }
 
@@ -110,6 +113,11 @@ class InterimInterne extends Model
     public function affectationOrigine(): BelongsTo
     {
         return $this->belongsTo(Affectation::class, 'affectation_origine_id');
+    }
+
+    public function mouvementReclassement(): BelongsTo
+    {
+        return $this->belongsTo(MouvementCarriere::class, 'reclassement_mouvement_id');
     }
 
     public function decidePar(): BelongsTo

@@ -12,6 +12,9 @@
 
 @section('page_actions')
     @can('permission', 'carriere.manage')
+        <a href="{{ route('carriere.interims.parametres') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-sliders-h"></i> Paramètres
+        </a>
         <a href="{{ route('carriere.interims.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nouvel intérim
         </a>

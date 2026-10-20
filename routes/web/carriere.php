@@ -3,6 +3,7 @@
 use App\Http\Controllers\Carriere\AvancementController;
 use App\Http\Controllers\Carriere\InterimController;
 use App\Http\Controllers\Carriere\MouvementCarriereController;
+use App\Http\Controllers\Carriere\ParametreInterimController;
 use App\Http\Controllers\Carriere\ReportingCarriereController;
 use App\Http\Controllers\Carriere\SituationCarriereController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::middleware('auth')->prefix('carriere')->name('carriere.')->group(function
     Route::get('interims', [InterimController::class, 'index'])->name('interims.index');
     Route::get('interims/creer', [InterimController::class, 'create'])->name('interims.create');
     Route::post('interims', [InterimController::class, 'store'])->name('interims.store');
+    Route::get('interims/parametres', [ParametreInterimController::class, 'edit'])->name('interims.parametres');
+    Route::put('interims/parametres', [ParametreInterimController::class, 'update'])->name('interims.parametres.update');
+    Route::post('interims/parametres/reinitialiser', [ParametreInterimController::class, 'reinitialiser'])->name('interims.parametres.reinitialiser');
 
     // Reporting
     Route::get('reporting', [ReportingCarriereController::class, 'index'])->name('reporting.index');

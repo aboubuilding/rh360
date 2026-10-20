@@ -26,6 +26,10 @@ class StorePosteRequest extends FormRequest
             ],
             'intitule' => ['required', 'string', 'max:255'],
             'categorie' => ['nullable', 'string', 'max:200'],
+            // RG-INT-01 — catégorie de classification comparée à celle du salarié en intérim
+            'categorie_classification_id' => ['nullable', 'exists:categories_classification,id'],
+            // RG-TT-06 — poste interdit au travail intérimaire
+            'travaux_dangereux' => ['boolean'],
             'effectif_cible' => ['nullable', 'integer', 'min:0'],
             'actif' => ['boolean'],
         ];
@@ -42,6 +46,7 @@ class StorePosteRequest extends FormRequest
             'intitule.required' => 'L\'intitulé du poste est obligatoire.',
             'intitule.max' => 'L\'intitulé ne doit pas dépasser 255 caractères.',
             'categorie.max' => 'La catégorie ne doit pas dépasser 200 caractères.',
+            'categorie_classification_id.exists' => 'La catégorie de classification sélectionnée n\'existe pas.',
             'effectif_cible.integer' => 'L\'effectif cible doit être un nombre entier.',
             'effectif_cible.min' => 'L\'effectif cible ne peut pas être négatif.',
         ];
@@ -54,6 +59,8 @@ class StorePosteRequest extends FormRequest
             'code' => 'code',
             'intitule' => 'intitulé',
             'categorie' => 'catégorie',
+            'categorie_classification_id' => 'catégorie de classification',
+            'travaux_dangereux' => 'travaux particulièrement dangereux',
             'effectif_cible' => 'effectif cible',
         ];
     }

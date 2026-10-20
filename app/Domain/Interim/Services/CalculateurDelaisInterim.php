@@ -13,6 +13,8 @@ use Carbon\CarbonInterface;
  */
 class CalculateurDelaisInterim
 {
+    public function __construct(private ParametresInterim $parametres) {}
+
     // Mode « date_a_date » (calendaire) : du 19/09 au 19/11 pour deux mois.
     public function ajouterMois(CarbonInterface $date, int $mois): Carbon
     {
@@ -25,7 +27,7 @@ class CalculateurDelaisInterim
      */
     public function joursDejaEffectues(int $posteId, ?int $titulaireId, CarbonInterface $debut, ?int $exclureId = null): int
     {
-        if (! config('interim.cumul_interims_meme_poste')) {
+        if (! $this->parametres->get('cumul_interims_meme_poste')) {
             return 0;
         }
 
@@ -59,7 +61,7 @@ class CalculateurDelaisInterim
     // RG-INT-03 — Date de fin au plus tard sans motif éligible.
     public function plafondNormal(CarbonInterface $debut, int $joursDejaEffectues = 0): Carbon
     {
-        return $this->ajouterMois($debut, (int) config('interim.duree_max_interim_mois'))
+        return $this->ajouterMois($debut, (int) $this->parametres->get('duree_max_interim_mois'))
             ->subDays($joursDejaEffectues);
     }
 
@@ -75,18 +77,19 @@ class CalculateurDelaisInterim
         ?Absence $absenceTitulaire = null,
         int $joursDejaEffectues = 0,
     ): ?Carbon {
-        $cle = $motif->cleDelaiLegal();
-        if ($cle === null) {
+        $delai = $this->delaiLegal($motif);
+        if ($delai === null) {
             return null;
         }
 
-        $delai = config("interim.delais_legaux_par_motif.{$cle}");
-
         if (is_int($delai)) {
-            // Le délai court depuis le début de l'absence du titulaire lorsqu'elle est
-            // connue, sinon depuis le début de la chaîne d'intérims.
-            $origine = $absenceTitulaire?->debut_le
-                ?? Carbon::parse($debut)->subDays($joursDejaEffectues);
+            // Par défaut, le délai est celui de la suspension du contrat du titulaire : il court
+            // depuis le début de son absence lorsqu'elle est connue, sinon depuis le début
+            // de la chaîne d'intérims (paramètre origine_delai_legal).
+            $debutChaine = Carbon::parse($debut)->subDays($joursDejaEffectues);
+            $origine = $this->parametres->get('origine_delai_legal') === 'debut_absence_titulaire'
+                ? ($absenceTitulaire?->debut_le ?? $debutChaine)
+                : $debutChaine;
 
             return $this->ajouterMois($origine, $delai);
         }
@@ -96,6 +99,21 @@ class CalculateurDelaisInterim
                 ? Carbon::parse($dateFinMotif)->startOfDay()
                 : ($absenceTitulaire?->fin_le ? Carbon::parse($absenceTitulaire->fin_le)->startOfDay() : null),
             'date_consolidation' => $dateFinMotif ? Carbon::parse($dateFinMotif)->startOfDay() : null,
+            default => null,
+        };
+    }
+
+    /**
+     * RG-INT-05 — Délai légal du motif : un nombre de mois paramétré, ou « fin_conge » /
+     * « date_consolidation » lorsque le plafond est une date saisie. Null si le motif n'est pas éligible.
+     */
+    public function delaiLegal(MotifInterim $motif): int|string|null
+    {
+        return match ($motif->cleDelaiLegal()) {
+            'maladie' => (int) $this->parametres->get('delai_maladie_mois'),
+            'detention_preventive' => (int) $this->parametres->get('delai_detention_preventive_mois'),
+            'conges' => config('interim.delais_par_date.conges'),
+            'at_mp' => config('interim.delais_par_date.at_mp'),
             default => null,
         };
     }

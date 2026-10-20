@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Organisation;
 
+use App\Domain\Classification\Models\CategorieClassification;
 use App\Domain\Organisation\Models\Poste;
 use App\Domain\Organisation\Models\Structure;
 use App\Domain\Organisation\Requests\StorePosteRequest;
@@ -25,14 +26,16 @@ class PosteController extends Controller
             ->withQueryString();
 
         $structures = Structure::orderBy('nom')->get();
-        return view('organisation.postes.index', compact('postes', 'structures'));
+        $categories = $this->categoriesClassification();
+        return view('organisation.postes.index', compact('postes', 'structures', 'categories'));
     }
 
     public function create()
     {
         $this->authorize('create', Poste::class);
         $structures = Structure::orderBy('nom')->get();
-        return view('organisation.postes.create', compact('structures'));
+        $categories = $this->categoriesClassification();
+        return view('organisation.postes.create', compact('structures', 'categories'));
     }
 
     public function store(StorePosteRequest $request)
@@ -47,7 +50,8 @@ class PosteController extends Controller
     {
         $this->authorize('update', $poste);
         $structures = Structure::orderBy('nom')->get();
-        return view('organisation.postes.edit', compact('poste', 'structures'));
+        $categories = $this->categoriesClassification();
+        return view('organisation.postes.edit', compact('poste', 'structures', 'categories'));
     }
 
     public function update(StorePosteRequest $request, Poste $poste)
@@ -64,5 +68,13 @@ class PosteController extends Controller
         $poste->marquerSupprime();
         return redirect()->route('organisation.postes.index')
             ->with('success', 'Poste supprimé.');
+    }
+
+    /** @return array<int, string> Catégories de classification, libellées avec leur référentiel. */
+    private function categoriesClassification(): array
+    {
+        return CategorieClassification::with('referentiel')->orderBy('referentiel_id')->orderBy('ordre')->get()
+            ->mapWithKeys(fn ($c) => [$c->id => $c->referentiel?->nom.' — '.$c->code.' '.$c->libelle])
+            ->all();
     }
 }

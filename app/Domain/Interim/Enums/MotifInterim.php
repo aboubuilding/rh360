@@ -36,7 +36,7 @@ enum MotifInterim: string
         return $this->cleDelaiLegal() !== null;
     }
 
-    // RG-INT-05 — Clé du plafond de prolongation dans config('interim.delais_legaux_par_motif').
+    // RG-INT-05 — Nature du délai légal du motif (voir CalculateurDelaisInterim::delaiLegal).
     public function cleDelaiLegal(): ?string
     {
         return match ($this) {

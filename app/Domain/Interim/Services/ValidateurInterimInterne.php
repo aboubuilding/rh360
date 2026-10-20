@@ -18,6 +18,7 @@ class ValidateurInterimInterne
     public function __construct(
         private ComparateurCategories $comparateur,
         private CalculateurDelaisInterim $delais,
+        private ParametresInterim $parametres,
     ) {}
 
     /**
@@ -117,7 +118,7 @@ class ValidateurInterimInterne
             $controle->dateLimite = $plafondNormal;
             if ($finPrevue->gt($plafondNormal)) {
                 $controle->erreur('date_fin_prevue',
-                    'Intérim refusé : la durée maximale est de '.config('interim.duree_max_interim_mois')
+                    'Intérim refusé : la durée maximale est de '.$this->parametres->get('duree_max_interim_mois')
                     ." mois{$mentionCumul}, soit une fin au plus tard le {$plafondNormal->format('d/m/Y')}. "
                     ."Le motif « {$motif->libelle()} » ne permet pas de prolongation (CCIT, art. 13).");
             }
@@ -127,8 +128,7 @@ class ValidateurInterimInterne
 
         // RG-INT-05 — Motif éligible : plafond du délai légal du motif.
         $plafondLegal = $this->delais->plafondLegal($motif, $debut, $dateFinMotif, $absence, $dejaEffectues);
-        $cle = $motif->cleDelaiLegal();
-        $delai = config("interim.delais_legaux_par_motif.{$cle}");
+        $delai = $this->delais->delaiLegal($motif);
 
         if ($plafondLegal === null && $delai === 'fin_conge') {
             $controle->erreur('date_fin_motif',

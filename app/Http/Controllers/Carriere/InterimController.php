@@ -18,6 +18,7 @@ use App\Domain\Interim\Requests\ProlongerInterimInterneRequest;
 use App\Domain\Interim\Requests\StoreAvantageInterimRequest;
 use App\Domain\Interim\Requests\StoreInterimInterneRequest;
 use App\Domain\Interim\Services\InterimInterneService;
+use App\Domain\Interim\Services\ParametresInterim;
 use App\Domain\Organisation\Models\Poste;
 use App\Domain\Paie\Models\RubriquePaie;
 use App\Domain\Personnel\Models\Salarie;
@@ -72,6 +73,7 @@ class InterimController extends Controller
             'postes' => Poste::with('categorieClassification')->where('actif', true)->orderBy('intitule')->get(),
             'absences' => Absence::with(['salarie', 'typeConge'])->where('debut_le', '>=', now()->subYear())->orderByDesc('debut_le')->get(),
             'motifs' => MotifInterim::options(),
+            'dureeMax' => (int) app(ParametresInterim::class)->get('duree_max_interim_mois'),
         ]);
     }
 

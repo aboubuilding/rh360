@@ -107,6 +107,7 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Domain\Administration\Services\ServicePermissions::class);
         $this->app->singleton(\App\Domain\Administration\Services\ServiceAudit::class);
         $this->app->singleton(\App\Domain\Administration\Services\VerificateurMotDePasseLegacy::class);
+        $this->app->scoped(\App\Domain\Interim\Services\ParametresInterim::class);
     }
 
     public function boot(): void

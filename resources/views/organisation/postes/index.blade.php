@@ -85,6 +85,8 @@
                                                         'intitule' => $poste->intitule,
                                                         'categorie' => $poste->categorie,
                                                         'effectif_cible' => $poste->effectif_cible,
+                                                        'categorie_classification_id' => $poste->categorie_classification_id,
+                                                        'travaux_dangereux' => $poste->travaux_dangereux,
                                                         'actif' => $poste->actif,
                                                     ]) }}">
                                                 <i class="fas fa-edit"></i> Modifier

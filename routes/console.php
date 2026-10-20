@@ -14,6 +14,9 @@ Schedule::command('rh:balayer-alertes-contrats')->dailyAt('06:00');
 // Lot 4 — Application des mouvements de carrière
 Schedule::command('rh:appliquer-mouvements-carriere')->dailyAt('05:30');
 
+// Intérims — reclassements programmés à l'issue d'un intérim (RG-INT-08)
+Schedule::command('interims:appliquer-reclassements')->dailyAt('05:45');
+
 
 // Lot 5 — Recalcul annuel des soldes de congés (1er janvier à minuit)
 Schedule::command('rh:recalculer-soldes-conges')

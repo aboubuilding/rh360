@@ -52,7 +52,7 @@
                 </div>
                 <div class="col-md-6">
                     <x-field name="date_fin_prevue" label="Date de fin prévue" type="date" required
-                             :value="now()->addMonths(config('interim.duree_max_interim_mois'))->format('Y-m-d')" />
+                             :value="now()->addMonths($dureeMax)->format('Y-m-d')" />
                 </div>
                 <div class="col-md-12">
                     <x-field name="precision_motif" label="Précision sur le motif" type="textarea" />

@@ -11,6 +11,8 @@ use App\Domain\Interim\Enums\StatutInterim;
 use App\Domain\Interim\Enums\TypeDecisionInterim;
 use App\Domain\Interim\Models\DecisionInterim;
 use App\Domain\Interim\Models\InterimInterne;
+use App\Domain\Interim\Services\CalculateurDelaisInterim;
+use App\Domain\Interim\Services\ParametresInterim;
 use App\Domain\Organisation\Models\Poste;
 use App\Domain\Personnel\Models\Salarie;
 use Illuminate\Support\Facades\Schema;
@@ -74,27 +76,31 @@ it('ne rend éligibles à prolongation que les motifs prévus par la CCIT', func
 ]);
 
 // RG-INT-05
-it('associe chaque motif éligible à un délai légal paramétré', function () {
-    $delais = config('interim.delais_legaux_par_motif');
+it('associe chaque motif éligible au délai légal prévu par les textes', function () {
+    $delais = app(CalculateurDelaisInterim::class);
 
     foreach (MotifInterim::cases() as $motif) {
-        if ($motif->estEligibleProlongation()) {
-            expect($delais)->toHaveKey($motif->cleDelaiLegal());
-        }
+        expect($delais->delaiLegal($motif) !== null)->toBe($motif->estEligibleProlongation());
     }
 
-    expect($delais['maladie'])->toBe(6);
-    expect($delais['detention_preventive'])->toBe(6);
-    expect($delais['conges'])->toBe('fin_conge');
-    expect($delais['at_mp'])->toBe('date_consolidation');
+    expect($delais->delaiLegal(MotifInterim::MALADIE_ACCIDENT))->toBe(6);
+    expect($delais->delaiLegal(MotifInterim::DETENTION_PREVENTIVE))->toBe(6);
+    expect($delais->delaiLegal(MotifInterim::CONGE_ANNUEL))->toBe('fin_conge');
+    expect($delais->delaiLegal(MotifInterim::CONGE_MATERNITE))->toBe('fin_conge');
+    expect($delais->delaiLegal(MotifInterim::AT_MP))->toBe('date_consolidation');
 });
 
-it('expose les paramètres non tranchés par les textes avec leurs valeurs par défaut', function () {
-    expect(config('interim.duree_max_interim_mois'))->toBe(2);
-    expect(config('interim.mode_calcul_duree'))->toBe('date_a_date');
-    expect(config('interim.prorata_indemnite'))->toBe('jours_reels_du_mois');
-    expect(config('interim.cumul_interims_meme_poste'))->toBeTrue();
-    expect(config('interim.bloquer_cloture_paie_si_a_regulariser'))->toBeTrue();
+it('expose par défaut les valeurs des textes et les choix des points non tranchés', function () {
+    $parametres = app(ParametresInterim::class);
+
+    expect($parametres->get('duree_max_interim_mois'))->toBe(2);
+    expect($parametres->get('delai_maladie_mois'))->toBe(6);
+    expect($parametres->get('delai_detention_preventive_mois'))->toBe(6);
+    expect($parametres->get('origine_delai_legal'))->toBe('debut_absence_titulaire');
+    expect($parametres->get('mode_calcul_duree'))->toBe('date_a_date');
+    expect($parametres->get('prorata_indemnite'))->toBe('jours_reels_du_mois');
+    expect($parametres->get('cumul_interims_meme_poste'))->toBeTrue();
+    expect($parametres->get('bloquer_cloture_paie_si_a_regulariser'))->toBeTrue();
 });
 
 it('historise une décision RH avec son auteur, sa date et sa pièce', function () {
