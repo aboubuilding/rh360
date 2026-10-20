@@ -69,8 +69,8 @@ it('génère les cotisations CNSS et AMU', function () {
 
     $periode = PeriodePaie::factory()->create([
         'entreprise_id' => 1,
-        'annee' => now()->year,
-        'mois' => 12, // Mois unique
+        'annee' => now()->addMonths(8)->year,
+        'mois' => now()->addMonths(8)->month, // Mois distinct de ceux créés par le seeder
     ]);
 
     app(MoteurPaie::class)->calculer($periode);

@@ -19,7 +19,7 @@ it('calcule le taux horaire correctement (base 173.33 h)', function () {
 
 it('calcule le montant total d\'un acte HS', function () {
     $salarie = Salarie::where('actif', true)->first();
-    $periode = PeriodePaie::factory()->create(['entreprise_id' => 1, 'annee' => now()->year, 'mois' => 11]);
+    $periode = PeriodePaie::factory()->create(['entreprise_id' => 1, 'annee' => now()->addMonths(6)->year, 'mois' => now()->addMonths(6)->month]);
 
     $acte = HeureSupplementaire::create([
         'entreprise_id' => 1,
@@ -46,7 +46,7 @@ it('calcule le montant total d\'un acte HS', function () {
 
 it('ajoute un acte HS via l\'action', function () {
     $salarie = Salarie::where('actif', true)->first();
-    $periode = PeriodePaie::factory()->create(['entreprise_id' => 1, 'annee' => now()->year, 'mois' => 10]);
+    $periode = PeriodePaie::factory()->create(['entreprise_id' => 1, 'annee' => now()->addMonths(7)->year, 'mois' => now()->addMonths(7)->month]);
 
     $this->post(route('paie.heures-supp.store'), [
         'salarie_id' => $salarie->id,
