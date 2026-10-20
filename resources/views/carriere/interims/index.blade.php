@@ -22,6 +22,25 @@
 @endsection
 
 @section('contenu')
+@if($alertes->isNotEmpty())
+    <div class="card mb-3">
+        <div class="card-header"><i class="fas fa-bell"></i> Alertes en cours ({{ $alertes->count() }})</div>
+        <ul class="list-group list-group-flush">
+            @foreach($alertes as $a)
+                <li class="list-group-item">
+                    <span class="badge bg-{{ $a->niveau }} me-1">{{ $a->date_echeance?->format('d/m/Y') }}</span>
+                    @if($a->objet_type === (new \App\Domain\Interim\Models\InterimInterne)->getMorphClass())
+                        <a href="{{ route('carriere.interims.show', $a->objet_id) }}"><strong>{{ $a->intitule }}</strong></a>
+                    @else
+                        <strong>{{ $a->intitule }}</strong>
+                    @endif
+                    <br><small class="text-muted">{{ $a->message }}</small>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="card mb-3">
     <div class="card-body">
         <form method="GET" class="row g-2">

@@ -135,6 +135,11 @@ class InterimInterne extends Model
         return $this->morphMany(DecisionInterim::class, 'objet')->orderBy('decide_le');
     }
 
+    public function alertes(): MorphMany
+    {
+        return $this->morphMany(AlerteInterim::class, 'objet');
+    }
+
     public function avantages(): HasMany
     {
         return $this->hasMany(AvantageInterim::class, 'interim_interne_id');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Carriere;
 
 use App\Domain\Classification\Models\ReferentielClassification;
+use App\Domain\Conges\Models\TypeConge;
 use App\Domain\Interim\Models\InterimInterne;
 use App\Domain\Interim\Requests\UpdateParametresInterimRequest;
 use App\Domain\Interim\Services\CatalogueParametresInterim;
@@ -34,6 +35,7 @@ class ParametreInterimController extends Controller
         return view('carriere.interims.parametres', [
             'groupes' => $lignes,
             'referentiels' => ReferentielClassification::orderBy('nom')->get(),
+            'typesConges' => TypeConge::orderBy('nom')->get(),
         ]);
     }
 
@@ -42,7 +44,7 @@ class ParametreInterimController extends Controller
         $this->authorize('create', InterimInterne::class);
 
         // Une liste vide n'est pas transmise par le navigateur : on la rétablit explicitement.
-        $valeurs = $request->validated() + ['referentiels_conventions_ids' => []];
+        $valeurs = $request->validated() + ['referentiels_conventions_ids' => [], 'codes_conges_maladie' => []];
         $this->parametres->enregistrer($valeurs);
 
         return $this->repondre($request, 'Paramètres enregistrés.');

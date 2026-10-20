@@ -16,6 +16,8 @@ Schedule::command('rh:appliquer-mouvements-carriere')->dailyAt('05:30');
 
 // Intérims — reclassements programmés à l'issue d'un intérim (RG-INT-08)
 Schedule::command('interims:appliquer-reclassements')->dailyAt('05:45');
+// Intérims — alertes J-15, 3e mois, passage à régulariser, maladie du titulaire (RG-INT-03 à 09, RG-REM-06)
+Schedule::command('interims:balayer')->dailyAt('06:15');
 
 
 // Lot 5 — Recalcul annuel des soldes de congés (1er janvier à minuit)

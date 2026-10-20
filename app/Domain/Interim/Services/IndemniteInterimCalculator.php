@@ -78,9 +78,10 @@ class IndemniteInterimCalculator
 
     /**
      * Indemnité due pour un mois de paie, proratisée sur les jours couverts (RG-INT-10).
-     * Retourne null si l'indemnité ne court pas pendant ce mois.
+     * Le salaire de base est celui du salarié, ou celui du bulletin du mois pour un contrôle
+     * a posteriori. Retourne null si l'indemnité ne court pas pendant ce mois.
      */
-    public function pourMois(InterimInterne $interim, int $annee, int $mois): ?IndemniteMois
+    public function pourMois(InterimInterne $interim, int $annee, int $mois, ?int $salaireBase = null): ?IndemniteMois
     {
         $debutMois = Carbon::create($annee, $mois, 1)->startOfDay();
         $finMois = $debutMois->copy()->endOfMonth()->startOfDay();
@@ -93,7 +94,7 @@ class IndemniteInterimCalculator
         }
 
         $minimum = $this->minimumCategorie($interim, $du);
-        $salaireBase = $this->salaireBase($interim);
+        $salaireBase ??= $this->salaireBase($interim);
         $mensuel = max(0, $minimum - $salaireBase);
         [$jours, $joursBase] = $this->joursProrata($du, $au, $debutMois, $finMois);
 

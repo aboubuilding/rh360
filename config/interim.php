@@ -66,6 +66,9 @@ return [
     // RG-REM-06 — Seuil d'alerte d'absence maladie du titulaire (Code art. 65 c).
     'alerte_maladie_titulaire_mois' => 6,
 
+    // Types de congé qui correspondent à une absence pour maladie (codes de types_conges).
+    'codes_conges_maladie' => ['MAL'],
+
     // Travail intérimaire — décret n°2022-027/PR (Code art. 63) non intégré :
     // points d'extension pour la durée maximale des missions et les renouvellements.
     'missions_duree_max_mois' => null,

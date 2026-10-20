@@ -10,6 +10,7 @@ use App\Domain\Interim\Enums\CauseFinInterim;
 use App\Domain\Interim\Enums\DecisionFinInterim;
 use App\Domain\Interim\Enums\MotifInterim;
 use App\Domain\Interim\Enums\StatutInterim;
+use App\Domain\Interim\Models\AlerteInterim;
 use App\Domain\Interim\Models\DecisionInterim;
 use App\Domain\Interim\Models\InterimInterne;
 use App\Domain\Interim\Requests\CloturerInterimInterneRequest;
@@ -57,8 +58,14 @@ class InterimController extends Controller
             ->orderByDesc('date_effet')
             ->get();
 
+        $alertes = AlerteInterim::enCours()
+            ->orderByRaw("niveau = 'danger' desc")
+            ->orderBy('date_echeance')
+            ->get();
+
         return view('carriere.interims.index', [
             'interims' => $interims,
+            'alertes' => $alertes,
             'nonRepris' => $nonRepris,
             'statuts' => StatutInterim::options(),
         ]);
@@ -94,6 +101,7 @@ class InterimController extends Controller
             'salarie', 'posteOccupe.structure', 'categorieOccupee', 'categorieOrigine', 'titulaire',
             'absenceTitulaire.typeConge', 'positionOrigine', 'affectationOrigine.poste',
             'mouvementCarriere', 'decisions.decidePar', 'avantages.rubrique', 'decidePar',
+            'alertes' => fn ($q) => $q->where('en_cours', true),
         ]);
 
         return view('carriere.interims.show', [

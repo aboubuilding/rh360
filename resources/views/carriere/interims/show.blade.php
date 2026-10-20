@@ -38,6 +38,12 @@
     </div>
 @endif
 
+@foreach($interim->alertes->where('cle', '!=', 'a_regulariser') as $a)
+    <div class="alert alert-{{ $a->niveau }}">
+        <i class="fas fa-bell"></i> <strong>{{ $a->intitule }}</strong> — {{ $a->message }}
+    </div>
+@endforeach
+
 <div class="row mb-3">
     @foreach([
         'Statut' => '<span class="badge bg-'.$interim->statut->couleur().' fs-6">'.e($interim->statut->libelle()).'</span>',

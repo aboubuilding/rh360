@@ -26,12 +26,15 @@ class UpdateParametresInterimRequest extends FormRequest
                 'booleen' => ['required', 'boolean'],
                 'choix' => ['required', Rule::in(array_keys($definition['options']))],
                 'referentiel' => ['nullable', 'exists:referentiels_classification,id'],
-                'referentiels' => ['nullable', 'array'],
+                'referentiels', 'types_conges' => ['nullable', 'array'],
                 default => ['required', 'string', 'max:160'],
             };
 
             if ($definition['type'] === 'referentiels') {
                 $regles["{$cle}.*"] = ['exists:referentiels_classification,id'];
+            }
+            if ($definition['type'] === 'types_conges') {
+                $regles["{$cle}.*"] = ['exists:types_conges,code'];
             }
         }
 

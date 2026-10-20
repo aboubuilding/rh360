@@ -108,6 +108,12 @@ class CatalogueParametresInterim
                 'type' => 'entier', 'min' => 1,
                 'reference' => 'Code du travail, art. 65 c ; CCIT, art. 14 et 16',
             ],
+            'codes_conges_maladie' => [
+                'groupe' => 'Alertes',
+                'libelle' => 'Types de congé correspondant à une maladie du titulaire',
+                'type' => 'types_conges',
+                'reference' => 'Code du travail, art. 65 c',
+            ],
 
             // --- Travail intérimaire ---
             'missions_duree_max_mois' => [

@@ -96,6 +96,7 @@ class ParametresInterim
             'entier_facultatif', 'referentiel' => ($valeur === null || $valeur === '') ? null : (int) $valeur,
             'booleen' => filter_var($valeur, FILTER_VALIDATE_BOOLEAN),
             'referentiels' => array_values(array_map('intval', array_filter((array) $valeur, fn ($v) => $v !== '' && $v !== null))),
+            'types_conges' => array_values(array_map('strval', array_filter((array) $valeur, fn ($v) => $v !== '' && $v !== null))),
             default => (string) $valeur,
         };
     }

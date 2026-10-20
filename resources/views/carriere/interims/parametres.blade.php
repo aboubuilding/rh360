@@ -46,12 +46,13 @@
                     <tbody>
                         @foreach($lignes as $l)
                             @php
-                                $libelleValeur = function ($v) use ($l, $referentiels) {
+                                $libelleValeur = function ($v) use ($l, $referentiels, $typesConges) {
                                     return match ($l['type']) {
                                         'booleen' => $v ? 'Oui' : 'Non',
                                         'choix' => $l['options'][$v] ?? $v,
                                         'referentiel' => $v ? ($referentiels->firstWhere('id', $v)?->nom ?? '#'.$v) : 'Niveau source « ccit »',
                                         'referentiels' => $v ? $referentiels->whereIn('id', $v)->pluck('nom')->join(', ') : 'Niveau source « convention_sectorielle »',
+                                        'types_conges' => $typesConges->whereIn('code', (array) $v)->pluck('nom')->join(', ') ?: implode(', ', (array) $v),
                                         default => $v === null || $v === '' ? 'Non limité' : $v,
                                     };
                                 };
@@ -88,6 +89,13 @@
                                             <select name="{{ $l['cle'] }}[]" class="form-select" multiple>
                                                 @foreach($referentiels as $r)
                                                     <option value="{{ $r->id }}" @selected(in_array($r->id, (array) $l['valeur'], true))>{{ $r->nom }}</option>
+                                                @endforeach
+                                            </select>
+                                            @break
+                                        @case('types_conges')
+                                            <select name="{{ $l['cle'] }}[]" class="form-select" multiple>
+                                                @foreach($typesConges as $t)
+                                                    <option value="{{ $t->code }}" @selected(in_array($t->code, (array) $l['valeur'], true))>{{ $t->nom }}</option>
                                                 @endforeach
                                             </select>
                                             @break
