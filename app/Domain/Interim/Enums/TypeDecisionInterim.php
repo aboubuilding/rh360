@@ -19,6 +19,9 @@ enum TypeDecisionInterim: string
     case DEMARRAGE = 'demarrage';
     case RENOUVELLEMENT = 'renouvellement';
     case ANNULATION = 'annulation';
+    case PIECE = 'piece';
+    case REFUS_SALARIE = 'refus_salarie';
+    case REFACTURATION = 'refacturation';
 
     public function libelle(): string
     {
@@ -35,6 +38,9 @@ enum TypeDecisionInterim: string
             self::DEMARRAGE => 'Démarrage de la mission',
             self::RENOUVELLEMENT => 'Renouvellement',
             self::ANNULATION => 'Annulation',
+            self::PIECE => 'Pièce obligatoire déposée',
+            self::REFUS_SALARIE => 'Refus du salarié',
+            self::REFACTURATION => 'Refacturation',
         };
     }
 }

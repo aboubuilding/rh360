@@ -134,6 +134,12 @@ class CatalogueParametresInterim
                 'type' => 'entier', 'min' => 1,
                 'reference' => self::NON_TRANCHE,
             ],
+            'alerte_pieces_pret_jours' => [
+                'groupe' => 'Prêt de main-d\'œuvre',
+                'libelle' => 'Alerte si les trois pièces ne sont pas réunies avant le début du prêt (jours)',
+                'type' => 'entier', 'min' => 1,
+                'reference' => self::NON_TRANCHE,
+            ],
             'missions_renouvellements_max' => [
                 'groupe' => 'Travail intérimaire',
                 'libelle' => 'Nombre maximal de renouvellements d\'une mission (vide = non limité)',

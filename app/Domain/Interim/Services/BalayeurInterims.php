@@ -4,9 +4,11 @@ namespace App\Domain\Interim\Services;
 
 use App\Domain\Conges\Models\Absence;
 use App\Domain\Interim\Enums\StatutInterim;
+use App\Domain\Interim\Enums\StatutPret;
 use App\Domain\Interim\Models\AlerteInterim;
 use App\Domain\Interim\Models\InterimInterne;
 use App\Domain\Interim\Models\MissionInterim;
+use App\Domain\Interim\Models\PretMainOeuvre;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -53,8 +55,54 @@ class BalayeurInterims
 
         $bilan['alertes'] += $this->alertesMaladieTitulaire($entrepriseId, $aujourdhui);
         $this->alertesSstMissions($entrepriseId, $aujourdhui, $bilan);
+        $this->alertesPrets($entrepriseId, $aujourdhui, $bilan);
 
         return $bilan;
+    }
+
+    /**
+     * RG-PMO-02 — pièces obligatoires à réunir avant le début ; RG-PMO-05 — retour du salarié à acter.
+     *
+     * @param  array{alertes:int, a_regulariser:int}  $bilan
+     */
+    private function alertesPrets(int $entrepriseId, Carbon $aujourdhui, array &$bilan): void
+    {
+        $joursAvant = (int) $this->parametres->get('alerte_pieces_pret_jours');
+
+        $prets = PretMainOeuvre::withoutGlobalScopes()
+            ->where('entreprise_id', $entrepriseId)
+            ->where('etat', 1)
+            ->with('salarie')
+            ->get();
+
+        foreach ($prets as $pret) {
+            $actives = [];
+
+            if ($pret->statut === StatutPret::PROJET && $aujourdhui->gte($pret->date_debut->copy()->subDays($joursAvant))) {
+                $manquantes = $pret->piecesManquantes();
+                if ($manquantes !== []) {
+                    $depasse = $aujourdhui->gte($pret->date_debut);
+                    $actives[] = $this->alerter($pret, 'pieces_pret', $depasse ? 'danger' : 'warning',
+                        "Pièces manquantes — prêt {$pret->reference}",
+                        "{$pret->salarie?->nom_complet}, début le {$pret->date_debut->format('d/m/Y')} : "
+                        .implode(' ; ', array_map(fn ($t) => $t->libelle(), $manquantes))
+                        .'. Le prêt ne peut pas commencer sans ces trois pièces (Code du travail, art. 8).',
+                        $pret->date_debut, $bilan);
+                }
+            }
+
+            if ($pret->statut === StatutPret::EN_COURS && $aujourdhui->gt($pret->date_fin)) {
+                $actives[] = $this->alerter($pret, 'retour_pret', 'warning',
+                    "Retour à enregistrer — prêt {$pret->reference}",
+                    "{$pret->salarie?->nom_complet} : le prêt a pris fin le {$pret->date_fin->format('d/m/Y')}. Le salarié retrouve son "
+                    .'poste ou un poste équivalent, sans baisse de catégorie ni de salaire (Code du travail, art. 8).',
+                    $pret->date_fin, $bilan);
+            }
+
+            AlerteInterim::withoutGlobalScopes()->where('objet_type', $pret->getMorphClass())->where('objet_id', $pret->id)
+                ->where('en_cours', true)->whereNotIn('cle', $actives)
+                ->update(['en_cours' => false, 'cloture_le' => now()]);
+        }
     }
 
     /**

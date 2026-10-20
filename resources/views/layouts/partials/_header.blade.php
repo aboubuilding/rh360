@@ -241,6 +241,7 @@
             ['Intérims internes', 'carriere.interims.index', ['carriere.view'], 'fa-people-arrows'],
             ['Missions d\'intérim (agences)', 'carriere.interims.missions.index', ['carriere.view'], 'fa-user-tie'],
             ['Agences d\'intérim', 'carriere.interims.agences.index', ['carriere.view'], 'fa-building'],
+            ['Prêts de main-d\'œuvre', 'carriere.interims.prets.index', ['carriere.view'], 'fa-handshake'],
             ['Échéances & reporting', 'carriere.reporting.index', ['carriere.view'], 'fa-chart-column'],
         ]],
         ['cle' => 'conges', 'libelle' => 'Congés & Absences', 'icone' => 'fa-calendar-days', 'entrees' => [

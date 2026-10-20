@@ -79,4 +79,7 @@ return [
 
     // RG-TT-07 — Alerte si la checklist SST n'est pas validée N jours avant le début d'une mission.
     'alerte_sst_jours_avant_mission' => 7,
+
+    // RG-PMO-02 — Alerte si les pièces d'un prêt ne sont pas réunies N jours avant son début.
+    'alerte_pieces_pret_jours' => 7,
 ];

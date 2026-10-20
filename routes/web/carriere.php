@@ -6,6 +6,7 @@ use App\Http\Controllers\Carriere\InterimController;
 use App\Http\Controllers\Carriere\MissionInterimController;
 use App\Http\Controllers\Carriere\MouvementCarriereController;
 use App\Http\Controllers\Carriere\ParametreInterimController;
+use App\Http\Controllers\Carriere\PretMainOeuvreController;
 use App\Http\Controllers\Carriere\ReportingCarriereController;
 use App\Http\Controllers\Carriere\SituationCarriereController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,18 @@ Route::middleware('auth')->prefix('carriere')->name('carriere.')->group(function
     Route::post('interims/missions/{mission}/renouveler', [MissionInterimController::class, 'renouveler'])->name('interims.missions.renouveler');
     Route::post('interims/missions/{mission}/terminer', [MissionInterimController::class, 'terminer'])->name('interims.missions.terminer');
     Route::post('interims/missions/{mission}/annuler', [MissionInterimController::class, 'annuler'])->name('interims.missions.annuler');
+
+    // Prêt de main-d'œuvre à but non lucratif (Code du travail, art. 8)
+    Route::get('interims/prets', [PretMainOeuvreController::class, 'index'])->name('interims.prets.index');
+    Route::get('interims/prets/creer', [PretMainOeuvreController::class, 'create'])->name('interims.prets.create');
+    Route::post('interims/prets', [PretMainOeuvreController::class, 'store'])->name('interims.prets.store');
+    Route::get('interims/prets/{pret}', [PretMainOeuvreController::class, 'show'])->name('interims.prets.show');
+    Route::post('interims/prets/{pret}/pieces', [PretMainOeuvreController::class, 'piece'])->name('interims.prets.piece');
+    Route::post('interims/prets/{pret}/refus', [PretMainOeuvreController::class, 'refus'])->name('interims.prets.refus');
+    Route::post('interims/prets/{pret}/demarrer', [PretMainOeuvreController::class, 'demarrer'])->name('interims.prets.demarrer');
+    Route::post('interims/prets/{pret}/refacturations', [PretMainOeuvreController::class, 'refacturation'])->name('interims.prets.refacturation');
+    Route::post('interims/prets/{pret}/retour', [PretMainOeuvreController::class, 'retour'])->name('interims.prets.retour');
+    Route::post('interims/prets/{pret}/annuler', [PretMainOeuvreController::class, 'annuler'])->name('interims.prets.annuler');
 
     // Reporting
     Route::get('reporting', [ReportingCarriereController::class, 'index'])->name('reporting.index');
