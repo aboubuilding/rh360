@@ -97,7 +97,7 @@ class BalayeurInterims
                 $this->alerter($contrat, 'terme_cdd', 'warning',
                     "Terme du CDD {$contrat->reference} à vérifier",
                     "{$contrat->salarie?->nom_complet} remplace {$titulaire?->nom_complet} : {$evenement}. Le terme du CDD fixé par "
-                    ."« {$contrat->terme_evenement->libelle()} » est peut-être atteint (Code du travail, art. 48, 49).",
+                    ."« {$contrat->terme_evenement->libelle()} » est peut-être atteint.",
                     $aujourdhui, $bilan);
             } else {
                 AlerteInterim::withoutGlobalScopes()->where('objet_type', $contrat->getMorphClass())->where('objet_id', $contrat->id)
@@ -132,7 +132,7 @@ class BalayeurInterims
                         "Pièces manquantes — prêt {$pret->reference}",
                         "{$pret->salarie?->nom_complet}, début le {$pret->date_debut->format('d/m/Y')} : "
                         .implode(' ; ', array_map(fn ($t) => $t->libelle(), $manquantes))
-                        .'. Le prêt ne peut pas commencer sans ces trois pièces (Code du travail, art. 8).',
+                        .'. Le prêt ne peut pas commencer sans ces trois pièces.',
                         $pret->date_debut, $bilan);
                 }
             }
@@ -141,7 +141,7 @@ class BalayeurInterims
                 $actives[] = $this->alerter($pret, 'retour_pret', 'warning',
                     "Retour à enregistrer — prêt {$pret->reference}",
                     "{$pret->salarie?->nom_complet} : le prêt a pris fin le {$pret->date_fin->format('d/m/Y')}. Le salarié retrouve son "
-                    .'poste ou un poste équivalent, sans baisse de catégorie ni de salaire (Code du travail, art. 8).',
+                    .'poste ou un poste équivalent, sans baisse de catégorie ni de salaire.',
                     $pret->date_fin, $bilan);
             }
 
@@ -184,7 +184,7 @@ class BalayeurInterims
                 ($commencee ? 'Mission commencée sans checklist SST — ' : 'Checklist SST à valider — ').$mission->reference,
                 "{$mission->nom_interimaire} ({$mission->poste?->intitule}), début le {$mission->date_debut->format('d/m/Y')} : "
                 .'accueil sécurité, EPI remis et consignes du poste à valider avant le premier jour ; l\'entreprise '
-                .'utilisatrice répond de la santé, de la sécurité et de l\'hygiène (Code du travail, art. 60 à 63).',
+                .'utilisatrice répond de la santé, de la sécurité et de l\'hygiène.',
                 $mission->date_debut, $bilan);
         }
     }
@@ -211,7 +211,7 @@ class BalayeurInterims
                 : 'le motif ne permet pas de prolongation : décider d\'un reclassement ou d\'un retour';
             $actives[] = $this->alerter($interim, 'echeance_duree_max', 'warning',
                 "Fin des {$dureeMax} mois d'intérim le {$finDeuxMois->format('d/m/Y')}",
-                "{$qui} : {$suite} (CCIT, art. 13).", $finDeuxMois, $bilan);
+                "{$qui} : {$suite}.", $finDeuxMois, $bilan);
         }
 
         // RG-INT-05 — J-15 avant la date limite du délai légal, si elle est postérieure.
@@ -219,7 +219,7 @@ class BalayeurInterims
             && $aujourdhui->betweenIncluded($interim->date_limite->copy()->subDays($joursAvant), $interim->date_limite)) {
             $actives[] = $this->alerter($interim, 'echeance_delai_legal', 'warning',
                 "Fin du délai légal de l'intérim le {$interim->date_limite->format('d/m/Y')}",
-                "{$qui} : une décision de reclassement ou de retour sera obligatoire ({$interim->motif->referenceDelaiLegal()}).",
+                "{$qui} : une décision de reclassement ou de retour sera obligatoire.",
                 $interim->date_limite, $bilan);
         }
 
@@ -230,7 +230,7 @@ class BalayeurInterims
             $actives[] = $this->alerter($interim, 'debut_indemnite', 'info',
                 "Indemnité d'intérim due depuis le {$debutIndemnite->format('d/m/Y')}",
                 "{$qui} : à partir du 3e mois, différence entre le minimum de la catégorie occupée et le salaire de base, "
-                .'versée par la paie (CCIT, art. 13).', $debutIndemnite, $bilan);
+                .'versée par la paie.', $debutIndemnite, $bilan);
         }
 
         // RG-INT-09 — Délai dépassé sans décision : à régulariser (jamais clôturé automatiquement).
@@ -243,7 +243,7 @@ class BalayeurInterims
             $actives[] = $this->alerter($interim, 'a_regulariser', 'danger',
                 'Intérim à régulariser',
                 "{$qui} : délai expiré le {$interim->date_limite->format('d/m/Y')} sans décision. "
-                .'Un reclassement ou un retour est obligatoire ; la validation de la paie est bloquée (CCIT, art. 13).',
+                .'Un reclassement ou un retour est obligatoire ; la validation de la paie est bloquée.',
                 $interim->date_limite, $bilan);
         } elseif ($aujourdhui->gt($interim->date_fin_prevue)) {
             // Fin prévue dépassée sans clôture, dans la limite du délai.
@@ -281,7 +281,7 @@ class BalayeurInterims
                 $this->alerter($absence, 'maladie_titulaire', 'warning',
                     "Absence maladie de {$mois} mois — {$absence->salarie?->nom_complet}",
                     "Absent pour maladie depuis le {$absence->debut_le->format('d/m/Y')} : le remplacement définitif "
-                    .'devient possible, après avis du médecin-inspecteur du travail (Code du travail, art. 65 c ; CCIT, art. 14 et 16).',
+                    .'devient possible, après avis du médecin-inspecteur du travail.',
                     $seuil, $bilan);
                 $creees += $bilan['alertes'];
             } else {

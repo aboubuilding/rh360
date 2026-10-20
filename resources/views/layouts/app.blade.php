@@ -317,6 +317,29 @@
     });
 </script>
 
+<script>
+// Tableaux sans défilement horizontal : sur petit écran, chaque ligne s'affiche en fiche ;
+// l'intitulé de la colonne est recopié devant chaque valeur (voir mystyle.css).
+(function () {
+    function etiqueter(table) {
+        const entetes = Array.from(table.querySelectorAll(':scope > thead > tr:last-child > th'))
+            .map((th) => th.textContent.trim());
+        if (! entetes.length) { return; }
+        table.classList.add('table-empilable');
+        table.querySelectorAll(':scope > tbody > tr').forEach((tr) => {
+            Array.from(tr.children).forEach((td, i) => {
+                if (td.tagName === 'TD' && ! td.hasAttribute('colspan') && entetes[i]) {
+                    td.setAttribute('data-label', entetes[i]);
+                }
+            });
+        });
+    }
+    function etiqueterTout() { document.querySelectorAll('table.table').forEach(etiqueter); }
+    document.addEventListener('DOMContentLoaded', etiqueterTout);
+    if (window.jQuery) { jQuery(document).on('draw.dt', etiqueterTout); }
+})();
+</script>
+
 @stack('js')
 @yield('js')
 

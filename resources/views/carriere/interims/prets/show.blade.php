@@ -36,7 +36,7 @@
 @if($statut === \App\Domain\Interim\Enums\StatutPret::REFUSE_SALARIE)
     <div class="alert alert-warning">
         Le salarié a refusé ce prêt le {{ $pret->date_reponse_salarie?->format('d/m/Y') }}. Ce refus ne peut entraîner aucune sanction
-        ni mesure défavorable (Code du travail, art. 8).
+        ni mesure défavorable.
     </div>
 @endif
 
@@ -156,7 +156,7 @@
                         </div>
                         <div class="modal-body">
                             @if($cle === 'refus')
-                                <div class="alert alert-info small">Le refus du salarié ne peut entraîner aucune sanction ni mesure défavorable (Code du travail, art. 8).</div>
+                                <div class="alert alert-info small">Le refus du salarié ne peut entraîner aucune sanction ni mesure défavorable.</div>
                             @endif
                             @foreach($champs as [$nom, $libelle, $type, $requis, $options])
                                 <x-field :name="$nom" :label="$libelle" :type="$type" :required="$requis" :options="$options ?? []" />

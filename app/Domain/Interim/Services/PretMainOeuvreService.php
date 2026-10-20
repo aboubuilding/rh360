@@ -79,7 +79,7 @@ class PretMainOeuvreService
 
         if ($dateSignature->gt($pret->date_debut)) {
             throw ValidationException::withMessages(['date_signature' => "Pièce refusée : « {$type->libelle()} » doit être signée "
-                .'avant le début du prêt, le '.$pret->date_debut->format('d/m/Y').' (Code du travail, art. 8).']);
+                .'avant le début du prêt, le '.$pret->date_debut->format('d/m/Y').'.']);
         }
 
         return DB::transaction(function () use ($pret, $type, $dateSignature, $fichier) {
@@ -122,7 +122,7 @@ class PretMainOeuvreService
             ]);
 
             $this->historiser($pret, TypeDecisionInterim::REFUS_SALARIE, ['date' => $date],
-                trim('Refus du salarié : aucune sanction ni mesure défavorable ne peut y être liée (Code du travail, art. 8). '.($commentaire ?? '')),
+                trim('Refus du salarié : aucune sanction ni mesure défavorable ne peut y être liée. '.($commentaire ?? '')),
                 $piece);
 
             return $pret->fresh();
@@ -141,11 +141,11 @@ class PretMainOeuvreService
         $manquantes = $pret->piecesManquantes();
         if ($manquantes !== []) {
             throw ValidationException::withMessages(['pieces' => 'Prêt refusé : pièces obligatoires manquantes avant le début — '
-                .implode(' ; ', array_map(fn ($t) => $t->libelle(), $manquantes)).' (Code du travail, art. 8).']);
+                .implode(' ; ', array_map(fn ($t) => $t->libelle(), $manquantes)).'.']);
         }
 
         if ($pret->reponse_salarie !== ReponseSalarie::ACCEPTE) {
-            throw ValidationException::withMessages(['reponse_salarie' => 'Prêt refusé : l\'accord écrit du salarié est obligatoire (Code du travail, art. 8).']);
+            throw ValidationException::withMessages(['reponse_salarie' => 'Prêt refusé : l\'accord écrit du salarié est obligatoire.']);
         }
 
         return DB::transaction(function () use ($pret) {
@@ -154,7 +154,7 @@ class PretMainOeuvreService
                 'numero_mouvement' => $this->numeroteur->generer($pret->entreprise_id),
                 'salarie_id' => $pret->salarie_id,
                 'type_mouvement' => TypeMouvement::MISE_A_DISPOSITION->value,
-                'motif' => "Prêt de main-d'œuvre à but non lucratif ({$pret->reference}) auprès de {$pret->utilisatrice_raison_sociale} (Code du travail, art. 8)",
+                'motif' => "Prêt de main-d'œuvre à but non lucratif ({$pret->reference}) auprès de {$pret->utilisatrice_raison_sociale}",
                 'statut' => $pret->date_debut->lte(today()) ? StatutMouvement::EFFECTIF->value : StatutMouvement::PROGRAMME->value,
                 'date_proposition' => now(),
                 'date_effet' => $pret->date_debut,
@@ -187,7 +187,7 @@ class PretMainOeuvreService
             ? 'Marge de '.number_format($montant - $base, 0, ',', ' ').' FCFA : le montant refacturé ('.number_format($montant, 0, ',', ' ')
                 .' FCFA) dépasse la base refacturable ('.number_format($base, 0, ',', ' ').' FCFA = salaires + charges sociales + '
                 .'frais professionnels remboursés). Un prêt de main-d\'œuvre à but lucratif est illicite en dehors d\'une entreprise '
-                .'de travail temporaire (Code du travail, art. 8).'
+                .'de travail temporaire.'
             : null;
 
         return DB::transaction(function () use ($pret, $donnees, $alerte, $base) {
@@ -230,10 +230,10 @@ class PretMainOeuvreService
             $cible = $posteRetour->categorieClassification;
             if (! $origine || ! $cible || $origine->referentiel_id !== $cible->referentiel_id) {
                 $erreurs['poste_retour_id'][] = 'Retour refusé : l\'équivalence du poste de retour ne peut pas être vérifiée '
-                    .'(catégories de classification non renseignées ou de référentiels différents) (Code du travail, art. 8).';
+                    .'(catégories de classification non renseignées ou de référentiels différents).';
             } elseif ($cible->ordre < $origine->ordre) {
                 $erreurs['poste_retour_id'][] = "Retour refusé : le poste « {$posteRetour->intitule} » ({$cible->libelle}) est de catégorie "
-                    ."inférieure au poste d'origine ({$origine->libelle}). Le salarié retrouve son poste ou un poste équivalent (Code du travail, art. 8).";
+                    ."inférieure au poste d'origine ({$origine->libelle}). Le salarié retrouve son poste ou un poste équivalent.";
             }
         }
 
@@ -241,7 +241,7 @@ class PretMainOeuvreService
         if ($pret->salaire_base_origine !== null && ($salaireActuel ?? 0) < $pret->salaire_base_origine) {
             $erreurs['salaire'][] = 'Retour refusé : le salaire de base actuel ('.number_format((int) $salaireActuel, 0, ',', ' ')
                 .' FCFA) est inférieur à celui d\'avant le prêt ('.number_format($pret->salaire_base_origine, 0, ',', ' ')
-                .' FCFA). Aucune baisse de salaire ne peut être liée au retour (Code du travail, art. 8).';
+                .' FCFA). Aucune baisse de salaire ne peut être liée au retour.';
         }
 
         $positionOrigine = $pret->positionOrigine;
@@ -250,7 +250,7 @@ class PretMainOeuvreService
             && $positionActuelle->categorie && $positionOrigine->categorie
             && $positionActuelle->categorie->ordre < $positionOrigine->categorie->ordre) {
             $erreurs['categorie'][] = "Retour refusé : la catégorie actuelle ({$positionActuelle->categorie->libelle}) est inférieure à celle "
-                ."d'avant le prêt ({$positionOrigine->categorie->libelle}). Aucune baisse de catégorie ne peut être liée au retour (Code du travail, art. 8).";
+                ."d'avant le prêt ({$positionOrigine->categorie->libelle}). Aucune baisse de catégorie ne peut être liée au retour.";
         }
 
         if ($erreurs !== []) {
@@ -265,7 +265,7 @@ class PretMainOeuvreService
                     'numero_mouvement' => $this->numeroteur->generer($pret->entreprise_id),
                     'salarie_id' => $pret->salarie_id,
                     'type_mouvement' => TypeMouvement::AFFECTATION->value,
-                    'motif' => "Retour de prêt de main-d'œuvre ({$pret->reference}) sur un poste équivalent (Code du travail, art. 8)",
+                    'motif' => "Retour de prêt de main-d'œuvre ({$pret->reference}) sur un poste équivalent",
                     'statut' => StatutMouvement::PROGRAMME->value,
                     'date_proposition' => now(),
                     'date_effet' => $dateRetour,

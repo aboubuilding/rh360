@@ -20,15 +20,6 @@ enum MotifMaintienRemuneration: string
         };
     }
 
-    public function reference(): string
-    {
-        return match ($this) {
-            self::AFFECTATION_PROVISOIRE_INFERIEURE => 'CCIT, art. 13',
-            self::AFFECTATION_DEFINITIVE_INFERIEURE => 'règle RG-INF-02',
-            self::MUTATION_ETAT_GROSSESSE => 'règle RG-INF-03',
-        };
-    }
-
     // Le classement est maintenu dans les deux cas d'affectation à un emploi inférieur.
     public function maintientClassement(): bool
     {

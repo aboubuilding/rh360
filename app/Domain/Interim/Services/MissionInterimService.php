@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 class MissionInterimService
 {
     // RG-TT-10 — sanction encourue en cas de remplacement de gréviste ou de travaux dangereux.
-    public const SANCTION = 'Sanction encourue (Code du travail, art. 356) : amende de 500 000 à 2 000 000 FCFA ; '
+    public const SANCTION = 'Sanction encourue : amende de 500 000 à 2 000 000 FCFA ; '
         .'en récidive, amende de 1 000 000 à 5 000 000 FCFA et/ou emprisonnement de 1 à 6 mois.';
 
     public function __construct(
@@ -58,32 +58,32 @@ class MissionInterimService
         if (! $agence || ! $agence->agrementValideSur($debut, $fin)) {
             $erreurs['entreprise_interim_id'][] = 'Mission refusée : l\'entreprise de travail temporaire « '
                 .($agence?->raison_sociale ?? '?').' » n\'a pas d\'agrément valide du ministre chargé du travail '
-                .'sur toute la durée de la mission (Code du travail, art. 60 à 63).';
+                .'sur toute la durée de la mission.';
         }
 
         // RG-TT-05 — remplacement de gréviste interdit.
         if ($typeMotif === TypeMotifMission::REMPLACEMENT_GREVISTE) {
-            $erreurs['type_motif'][] = 'Mission refusée : remplacement de gréviste interdit (Code du travail, art. 62). '.self::SANCTION;
+            $erreurs['type_motif'][] = 'Mission refusée : remplacement de gréviste interdit. '.self::SANCTION;
         } elseif ($greviste = $this->titulaireEnGreve($poste, $donnees['titulaire_remplace_id'] ?? null, $debut, $fin)) {
-            $erreurs['poste_id'][] = "Mission refusée : remplacement de gréviste interdit — {$greviste} est en grève sur la période "
-                .'(Code du travail, art. 62). '.self::SANCTION;
+            $erreurs['poste_id'][] = "Mission refusée : remplacement de gréviste interdit — {$greviste} est en grève sur la période. "
+                .self::SANCTION;
         }
 
         // RG-TT-06 — travaux particulièrement dangereux interdits.
         if ($poste?->travaux_dangereux) {
             $erreurs['poste_id'][] = "Mission refusée : le poste « {$poste->intitule} » comporte des travaux particulièrement "
-                .'dangereux, interdits au travail intérimaire (Code du travail, art. 60 à 63). '.self::SANCTION;
+                .'dangereux, interdits au travail intérimaire. '.self::SANCTION;
         }
 
         // Décret n°2022-027/PR (Code art. 63) : limites appliquées seulement si elles sont paramétrées.
         $dureeMax = $this->parametres->get('missions_duree_max_mois');
         if ($dureeMax && $fin->gt($this->delais->finDuree($debut, (int) $dureeMax))) {
-            $erreurs['date_fin'][] = "Mission refusée : la durée dépasse {$dureeMax} mois (paramètre de l'entreprise, décret n°2022-027/PR).";
+            $erreurs['date_fin'][] = "Mission refusée : la durée dépasse {$dureeMax} mois (paramètre de l'entreprise).";
         }
         $renouvellementsMax = $this->parametres->get('missions_renouvellements_max');
         if ($renouvellementsMax !== null && $renouvellements > (int) $renouvellementsMax) {
             $erreurs['date_fin'][] = "Renouvellement refusé : {$renouvellementsMax} renouvellement(s) au plus "
-                .'(paramètre de l\'entreprise, décret n°2022-027/PR).';
+                .'(paramètre de l\'entreprise).';
         }
 
         [$alerte, $minimum] = $this->controlerSalaire($poste, $donnees['salaire_convenu'] ?? null, $debut);
@@ -157,12 +157,12 @@ class MissionInterimService
         if (! $mission->checklistSstComplete()) {
             throw ValidationException::withMessages(['checklist' => 'Mission non démarrée : la checklist SST (accueil sécurité, '
                 .'EPI remis, consignes du poste) doit être validée avant le premier jour ; l\'entreprise utilisatrice répond '
-                .'de la santé, de la sécurité et de l\'hygiène de l\'intérimaire (Code du travail, art. 60 à 63).']);
+                .'de la santé, de la sécurité et de l\'hygiène de l\'intérimaire.']);
         }
 
         if (! $mission->agence?->agrementValideSur($mission->date_debut, $mission->date_fin)) {
             throw ValidationException::withMessages(['entreprise_interim_id' => 'Mission non démarrée : l\'agrément de l\'agence '
-                .'n\'est plus valide (Code du travail, art. 60 à 63).']);
+                .'n\'est plus valide.']);
         }
 
         $mission->update(['statut' => StatutMission::EN_COURS->value]);
@@ -287,11 +287,11 @@ class MissionInterimService
     private function controlerSalaire(?Poste $poste, mixed $salaire, Carbon $date): array
     {
         if ($salaire === null || $salaire === '') {
-            return ['Salaire convenu avec l\'agence non renseigné : contrôle de prudence impossible (Code du travail, art. 155 ; CCIT, art. 28).', null];
+            return ['Salaire convenu avec l\'agence non renseigné : contrôle de prudence impossible.', null];
         }
 
         if (! $poste?->categorieClassification) {
-            return ['Poste sans catégorie de classification : contrôle de prudence du salaire impossible (Code du travail, art. 155 ; CCIT, art. 28).', null];
+            return ['Poste sans catégorie de classification : contrôle de prudence du salaire impossible.', null];
         }
 
         try {
@@ -301,13 +301,13 @@ class MissionInterimService
         }
 
         if ($minimum === null) {
-            return ['Barème introuvable pour la catégorie du poste : contrôle de prudence du salaire impossible (CCIT, art. 28).', null];
+            return ['Barème introuvable pour la catégorie du poste : contrôle de prudence du salaire impossible.', null];
         }
 
         if ((int) $salaire < $minimum) {
             return ['Salaire convenu ('.number_format((int) $salaire, 0, ',', ' ').' FCFA) inférieur au minimum de la catégorie '
                 .$poste->categorieClassification->code.' ('.number_format($minimum, 0, ',', ' ').' FCFA) : à signaler à l\'agence, '
-                .'à qui incombe l\'obligation (Code du travail, art. 155 ; CCIT, art. 28).', $minimum];
+                .'à qui incombe l\'obligation.', $minimum];
         }
 
         return [null, $minimum];

@@ -115,7 +115,7 @@ class PreparateurPaieInterims
                     .' − base '.number_format($indemnite->salaireBase, 0, ',', ' ')
                     .' = '.number_format($indemnite->mensuel, 0, ',', ' ').' FCFA/mois'
                     .', du '.$indemnite->du->format('d/m/Y').' au '.$indemnite->au->format('d/m/Y')
-                    .' ('.$indemnite->jours.'/'.$indemnite->joursBase.' j) — CCIT, art. 13');
+                    .' ('.$indemnite->jours.'/'.$indemnite->joursBase.' j)');
             }
 
             // RG-INT-07 — avantages convenus entre les parties, sur les jours couverts du mois.
@@ -123,7 +123,7 @@ class PreparateurPaieInterims
                 $montant = $this->montantAvantage($avantage, $interim, $debutMois, $finMois);
                 if ($montant > 0) {
                     $this->cumuler($cumul, $interim, $avantage->rubrique, $montant,
-                        $avantage->rubrique->nom.' — avantage du poste occupé, accord '.$avantage->reference_accord.' — CCIT, art. 13');
+                        $avantage->rubrique->nom.' — avantage du poste occupé, accord '.$avantage->reference_accord.'');
                 }
             }
         }
@@ -180,7 +180,7 @@ class PreparateurPaieInterims
             [
                 'nom' => 'Indemnité d\'intérim',
                 'description' => 'Différence entre le salaire minimum de la catégorie occupée et le salaire de base, '
-                    .'à partir du 3e mois d\'un intérim prolongé (CCIT, art. 13).',
+                    .'à partir du 3e mois d\'un intérim prolongé.',
                 'nature' => NatureRubrique::GAIN->value,
                 'recurrence' => RecurrenceRubrique::VARIABLE->value,
                 'mode_calcul' => ModeCalculRubrique::MONTANT_FIXE->value,

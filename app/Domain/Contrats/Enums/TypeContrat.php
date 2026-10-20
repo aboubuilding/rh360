@@ -27,7 +27,7 @@ enum TypeContrat: string
         return function (string $attribut, mixed $valeur, \Closure $echec) {
             if ($valeur === self::INTERIM->value) {
                 $echec('Contrat refusé : un travailleur intérimaire reste salarié de l\'entreprise de travail temporaire, '
-                    .'seul employeur. Enregistrer une mission d\'intérim (Code du travail, art. 60 à 63).');
+                    .'seul employeur. Enregistrer une mission d\'intérim.');
             }
         };
     }

@@ -9,7 +9,7 @@
         <div class="alert alert-danger">
             <i class="fas fa-lock"></i>
             <strong>Validation bloquée :</strong> {{ $bloquantsInterim->count() }} intérim(s) à régulariser sans décision
-            de reclassement ou de retour (CCIT, art. 13).
+            de reclassement ou de retour.
             <ul class="mb-0 mt-1">
                 @foreach($bloquantsInterim as $i)
                     <li>

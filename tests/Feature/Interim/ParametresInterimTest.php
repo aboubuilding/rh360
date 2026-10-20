@@ -69,13 +69,15 @@ function enregistrerParametres(array $valeurs): void
     ))->assertRedirect(route('carriere.interims.parametres'));
 }
 
-it('affiche l\'écran des paramètres avec les valeurs des textes et leurs références', function () {
-    $this->get(route('carriere.interims.parametres'))
+it('affiche l\'écran des paramètres avec leurs valeurs par défaut, sans référence aux textes', function () {
+    $html = $this->get(route('carriere.interims.parametres'))
         ->assertOk()
         ->assertSee('Durée maximale sans motif éligible (mois)')
-        ->assertSee('CCIT, art. 13')
-        ->assertSee('Code du travail, art. 65 c ; CCIT, art. 14')
-        ->assertSee('Non tranché par les textes');
+        ->assertSee('Par défaut : 2')
+        ->assertDontSee('Non tranché')
+        ->getContent();
+
+    expect(preg_match('/\bart\.\s*\d|CCIT|Code du travail/u', strip_tags($html)))->toBe(0);
 });
 
 it('applique la durée maximale saisie par l\'entreprise au lieu de la valeur des textes', function () {

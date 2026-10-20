@@ -22,7 +22,7 @@
 <div class="alert alert-info">
     <i class="fas fa-info-circle"></i>
     Une mission ne peut être confiée qu'à une entreprise de travail temporaire agréée par le ministre chargé du travail
-    (Code du travail, art. 60 à 63). L'agence est le seul employeur de l'intérimaire : aucune paie ni cotisation n'est
+. L'agence est le seul employeur de l'intérimaire : aucune paie ni cotisation n'est
     calculée, seules ses factures sont enregistrées.
 </div>
 

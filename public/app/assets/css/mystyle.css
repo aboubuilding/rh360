@@ -95,3 +95,47 @@
     }
 
 
+
+/* ===== Tableaux : lisibles sans défilement horizontal =====
+   Le thème impose white-space: nowrap à toutes les cellules, ce qui oblige à faire défiler
+   les tableaux larges. Les cellules reviennent à la ligne ; sur petit écran, chaque ligne
+   s'affiche en fiche, avec l'intitulé de colonne devant chaque valeur (data-label posé par le script du layout). */
+.table > :not(caption) > * > th,
+.table > :not(caption) > * > td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 0.5rem 0.625rem;
+}
+.table > :not(caption) > * > td .btn,
+.table > :not(caption) > * > td .badge,
+.table > :not(caption) > * > td code {
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+@media (max-width: 767.98px) {
+    .table.table-empilable > thead {
+        display: none;
+    }
+    .table.table-empilable,
+    .table.table-empilable > tbody,
+    .table.table-empilable > tbody > tr,
+    .table.table-empilable > tbody > tr > td {
+        display: block;
+        width: 100%;
+    }
+    .table.table-empilable > tbody > tr {
+        border-bottom: 1px solid var(--rh-paper-line, #dee2e6);
+        padding: 0.375rem 0;
+    }
+    .table.table-empilable > tbody > tr > td {
+        border: 0;
+        padding: 0.25rem 0.75rem;
+        text-align: left !important;
+    }
+    .table.table-empilable > tbody > tr > td[data-label]::before {
+        content: attr(data-label) " : ";
+        font-weight: 600;
+        color: var(--rh-muted, #6c757d);
+    }
+}

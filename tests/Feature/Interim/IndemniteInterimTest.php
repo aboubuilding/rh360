@@ -178,7 +178,7 @@ it('verse l\'indemnité dans le bulletin de la période ouverte, sans toucher au
     $saisies = SaisiePaie::where('periode_id', $periode->id)->where('salarie_id', $this->salarie->id)->where('source', 'interim')->get();
     expect($saisies)->toHaveCount(1);
     expect((int) $saisies->first()->montant)->toBe(32000);
-    expect($saisies->first()->observations)->toContain('CCIT, art. 13');
+    expect($saisies->first()->observations)->not->toContain('art.');
 
     $bulletin = BulletinPaie::where('periode_id', $periode->id)->where('salarie_id', $this->salarie->id)->sole();
     $lignes = $bulletin->lignes()->get();

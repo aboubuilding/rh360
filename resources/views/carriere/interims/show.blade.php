@@ -34,7 +34,7 @@
     <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
         Délai expiré le {{ $interim->date_limite->format('d/m/Y') }} sans décision : un reclassement ou un retour
-        doit être décidé (CCIT, art. 13). Cet intérim bloque la validation de la paie.
+        doit être décidé. Cet intérim bloque la validation de la paie.
     </div>
 @endif
 
@@ -116,7 +116,7 @@
 
 @if($interim->avantages->isNotEmpty())
     <div class="card mb-3">
-        <div class="card-header">Avantages du poste occupé (saisis à la main — CCIT, art. 13)</div>
+        <div class="card-header">Avantages du poste occupé (saisis à la main)</div>
         <div class="table-responsive">
             <table class="table table-sm mb-0">
                 <thead><tr><th>Rubrique</th><th class="text-end">Montant mensuel</th><th>Période</th><th>Accord</th></tr></thead>

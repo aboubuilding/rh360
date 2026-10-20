@@ -11,7 +11,7 @@
                 <div class="modal-body">
                     <div class="alert alert-info small">
                         Les avantages du poste occupé ne sont jamais calculés automatiquement : ils résultent d'un accord
-                        entre les parties (CCIT, art. 13).
+                        entre les parties.
                     </div>
                     <x-field name="rubrique_id" label="Rubrique de paie" type="select" required
                              :options="[null => '—'] + $rubriques->pluck('nom', 'id')->all()" />

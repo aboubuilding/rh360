@@ -95,7 +95,7 @@ it('RG-TT-01 : refuse une mission avec une agence sans agrément, suspendue ou d
 
     $erreurs = erreursMission(fn () => $this->service->creer(donneesMission()));
 
-    expect($erreurs['entreprise_interim_id'][0])->toContain('agrément valide du ministre chargé du travail')->toContain('art. 60 à 63');
+    expect($erreurs['entreprise_interim_id'][0])->toContain('agrément valide du ministre chargé du travail')->not->toContain('art.');
     expect(MissionInterim::count())->toBe(0);
 })->with([
     'sans numéro d\'agrément' => [['numero_agrement' => null, 'date_agrement' => null]],
@@ -156,8 +156,8 @@ it('RG-TT-05 / RG-TT-10 : refuse le remplacement de gréviste et affiche la sanc
     $erreurs = erreursMission(fn () => $this->service->creer(donneesMission(['type_motif' => TypeMotifMission::REMPLACEMENT_GREVISTE->value])));
 
     expect($erreurs['type_motif'][0])
-        ->toContain('Mission refusée : remplacement de gréviste interdit (Code du travail, art. 62)')
-        ->toContain('art. 356')
+        ->toContain('Mission refusée : remplacement de gréviste interdit')
+        ->not->toContain('art.')
         ->toContain('500 000 à 2 000 000 FCFA')
         ->toContain('1 000 000 à 5 000 000 FCFA')
         ->toContain('1 à 6 mois');
@@ -169,7 +169,7 @@ it('RG-TT-05 : refuse une mission sur un poste dont le titulaire est en grève s
 
     $erreurs = erreursMission(fn () => $this->service->creer(donneesMission()));
 
-    expect($erreurs['poste_id'][0])->toContain('gréviste')->toContain($titulaire->nom_complet)->toContain('art. 356');
+    expect($erreurs['poste_id'][0])->toContain('gréviste')->toContain($titulaire->nom_complet)->not->toContain('art.');
 });
 
 it('RG-TT-05 : refuse le remplacement d\'un salarié désigné en grève, et accepte hors période de grève', function () {
@@ -188,7 +188,7 @@ it('RG-TT-06 / RG-TT-10 : refuse une mission sur un poste à travaux particuliè
 
     $erreurs = erreursMission(fn () => $this->service->creer(donneesMission()));
 
-    expect($erreurs['poste_id'][0])->toContain('travaux particulièrement dangereux')->toContain('art. 356');
+    expect($erreurs['poste_id'][0])->toContain('travaux particulièrement dangereux')->not->toContain('art.');
 });
 
 // --- RG-TT-07 ---
@@ -238,7 +238,7 @@ it('RG-TT-09 : alerte sans bloquer si le salaire convenu est inférieur au minim
     $basse = $this->service->creer(donneesMission(['salaire_convenu' => 90000]));
     $conforme = $this->service->creer(donneesMission(['salaire_convenu' => 103500]));
 
-    expect($basse->alerte_salaire)->toContain('inférieur au minimum')->toContain('103 500 FCFA')->toContain('art. 155 ; CCIT, art. 28');
+    expect($basse->alerte_salaire)->toContain('inférieur au minimum')->toContain('103 500 FCFA')->not->toContain('art.');
     expect($basse->salaire_minimum_reference)->toBe(103500);
     expect($conforme->alerte_salaire)->toBeNull();
 });
@@ -267,7 +267,7 @@ it('refuse un nouveau contrat de type « Intérim » : l\'agence est le seul emp
     $validateur = Validator::make(['type_contrat' => TypeContrat::INTERIM->value], ['type_contrat' => [TypeContrat::regleHorsInterim()]]);
 
     expect($validateur->fails())->toBeTrue();
-    expect($validateur->errors()->first('type_contrat'))->toContain('mission d\'intérim')->toContain('art. 60 à 63');
+    expect($validateur->errors()->first('type_contrat'))->toContain('mission d\'intérim')->not->toContain('art.');
     expect(Validator::make(['type_contrat' => 'CDD'], ['type_contrat' => [TypeContrat::regleHorsInterim()]])->fails())->toBeFalse();
 });
 
@@ -291,7 +291,7 @@ it('enregistre une agence et une mission depuis les écrans et affiche les refus
 
     $this->get(route('carriere.interims.agences.index'))->assertOk()->assertSee('Lomé Travail Temporaire');
     $this->get(route('carriere.interims.missions.index'))->assertOk()->assertSee('KOFFI');
-    $this->get(route('carriere.interims.missions.create'))->assertOk()->assertSee('art. 356');
+    $this->get(route('carriere.interims.missions.create'))->assertOk()->assertSee('Sanction encourue')->assertDontSee('art. 356');
     $this->get(route('carriere.interims.missions.show', $mission))->assertOk()->assertSee('Checklist SST');
 
     $this->postJson(route('carriere.interims.missions.demarrer', $mission))->assertStatus(422);

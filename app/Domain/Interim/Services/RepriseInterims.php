@@ -74,7 +74,7 @@ class RepriseInterims
                 'Contrat '.$c->getRawOriginal('type_contrat').' ('.$c->getRawOriginal('statut').') du '.$c->date_debut?->format('d/m/Y'),
                 'Non repris',
                 'Intérimaire d\'agence enregistré comme salarié : il est compté dans l\'effectif et passe en paie '
-                .'(Code du travail, art. 60 à 63). À reprendre en mission d\'intérim (module B).',
+                .'. À reprendre en mission d\'intérim (module B).',
             ));
 
         return $rapport;
@@ -153,7 +153,7 @@ class RepriseInterims
 
         $anomalies = array_filter([
             $dureeHorsRegle,
-            $delaiExpire ? "Délai expiré le {$controle->dateLimite->format('d/m/Y')} sans décision de reclassement ou de retour (CCIT, art. 13)." : null,
+            $delaiExpire ? "Délai expiré le {$controle->dateLimite->format('d/m/Y')} sans décision de reclassement ou de retour." : null,
             'Titulaire remplacé non renseigné dans l\'ancien acte.',
         ]);
 
@@ -209,7 +209,7 @@ class RepriseInterims
 
         // Jamais clôturé automatiquement : un intérim en cours hors règle passe à régulariser.
         if ($statut === StatutInterim::A_REGULARISER) {
-            $this->service->passerARegulariser($interim, 'Intérim repris hors des règles de durée (CCIT, art. 13).');
+            $this->service->passerARegulariser($interim, 'Intérim repris hors des règles de durée.');
         }
 
         return $interim;

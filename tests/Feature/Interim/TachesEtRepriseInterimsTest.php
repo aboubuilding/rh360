@@ -176,7 +176,7 @@ it('RG-REM-06 : alerte à 6 mois d\'absence maladie, puis clôt l\'alerte au ret
 
     balayerAu('2026-09-01');
     expect($alerte()->en_cours)->toBeTrue();
-    expect($alerte()->message)->toContain('médecin-inspecteur du travail')->toContain('art. 65 c');
+    expect($alerte()->message)->toContain('médecin-inspecteur du travail')->not->toContain('art.');
 
     $absence->update(['fin_le' => '2026-09-10 00:00:00']);
     balayerAu('2026-09-11');

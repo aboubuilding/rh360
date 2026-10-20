@@ -69,7 +69,7 @@ class IndemniteInterimCalculator
         if ($minimum === null) {
             throw new IndemniteIncalculable(
                 "Barème introuvable : aucun salaire minimum pour la catégorie {$interim->categorieOccupee?->code}, "
-                .'échelon '.$this->parametres->get('echelon_reference').' (CCIT 2026, Annexe II).'
+                .'échelon '.$this->parametres->get('echelon_reference').'.'
             );
         }
 

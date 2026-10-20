@@ -112,7 +112,7 @@ it('RG-PMO-01 : alerte, sans bloquer, en cas de marge sur la refacturation', fun
     ]);
 
     expect($avecMarge->exists)->toBeTrue();
-    expect($avecMarge->alerte_marge)->toContain('Marge de 25 000 FCFA')->toContain('250 000 FCFA')->toContain('art. 8');
+    expect($avecMarge->alerte_marge)->toContain('Marge de 25 000 FCFA')->toContain('250 000 FCFA')->not->toContain('art.');
     expect($sansMarge->alerte_marge)->toBeNull();
     expect($sansMarge->baseRefacturable())->toBe(250000);
 });
@@ -127,7 +127,7 @@ it('RG-PMO-02 : refuse de démarrer le prêt tant que les trois pièces ne sont 
 
     expect($erreurs['pieces'][0])->toContain('Prêt refusé : pièces obligatoires manquantes')
         ->toContain('Convention de mise à disposition')->toContain('Avenant au contrat signé')
-        ->not->toContain('Accord écrit')->toContain('art. 8');
+        ->not->toContain('Accord écrit')->not->toContain('art.');
     expect($pret->fresh()->statut)->toBe(StatutPret::PROJET);
 });
 
@@ -228,7 +228,7 @@ it('RG-PMO-05 : bloque le retour sur un poste de catégorie inférieure', functi
 
     $erreurs = erreursPret(fn () => $this->service->retour($pret, today()->toDateString(), $inferieur->id));
 
-    expect($erreurs['poste_retour_id'][0])->toContain('catégorie inférieure au poste d\'origine')->toContain('art. 8');
+    expect($erreurs['poste_retour_id'][0])->toContain('catégorie inférieure au poste d\'origine')->not->toContain('art.');
     expect($pret->fresh()->statut)->toBe(StatutPret::EN_COURS);
 });
 

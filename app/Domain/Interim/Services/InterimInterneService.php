@@ -201,7 +201,7 @@ class InterimInterneService
             throw ValidationException::withMessages([
                 'date_fin_reelle' => 'Clôture refusée : le délai de l\'intérim a expiré le '
                     .$interim->date_limite->format('d/m/Y').'. Une décision de reclassement ou de retour '
-                    .'est obligatoire (CCIT, art. 13).',
+                    .'est obligatoire.',
             ]);
         }
 
@@ -327,7 +327,7 @@ class InterimInterneService
         if (! $position || $position->categorie_id !== $interim->categorie_occupee_id) {
             throw ValidationException::withMessages([
                 'position_cible_id' => 'Reclassement refusé : la nouvelle position doit relever de la catégorie occupée '
-                    .'pendant l\'intérim (CCIT, art. 13).',
+                    .'pendant l\'intérim.',
             ]);
         }
 
@@ -346,7 +346,7 @@ class InterimInterneService
         if ($nouveauSalaire === null || $nouveauSalaire < $minimum) {
             throw ValidationException::withMessages([
                 'nouveau_salaire_base' => 'Reclassement refusé : le nouveau salaire de base ('.number_format((int) $nouveauSalaire, 0, ',', ' ')
-                    .' FCFA) est inférieur au minimum de la catégorie ('.number_format($minimum, 0, ',', ' ').' FCFA) (CCIT, art. 13).',
+                    .' FCFA) est inférieur au minimum de la catégorie ('.number_format($minimum, 0, ',', ' ').' FCFA).',
             ]);
         }
 
@@ -378,7 +378,7 @@ class InterimInterneService
             'numero_mouvement' => $this->numeroteur->generer($interim->entreprise_id),
             'salarie_id' => $interim->salarie_id,
             'type_mouvement' => TypeMouvement::RECLASSEMENT->value,
-            'motif' => 'Reclassement à l\'issue de l\'intérim du poste '.$interim->posteOccupe?->intitule.' (CCIT, art. 13)',
+            'motif' => 'Reclassement à l\'issue de l\'intérim du poste '.$interim->posteOccupe?->intitule.'',
             'statut' => StatutMouvement::PROGRAMME->value,
             'date_proposition' => now(),
             'date_decision' => today(),

@@ -5,7 +5,7 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Décision de fin d'intérim (CCIT, art. 13)</h5>
+                    <h5 class="modal-title">Décision de fin d'intérim</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

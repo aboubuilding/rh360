@@ -13,7 +13,7 @@
 @section('contenu')
 <div class="alert alert-info">
     <i class="fas fa-info-circle"></i>
-    Intérim d'un poste de catégorie supérieure (CCIT, art. 13) : 2 mois au plus, sauf maladie ou accident,
+    Intérim d'un poste de catégorie supérieure : 2 mois au plus, sauf maladie ou accident,
     congé annuel ou de maternité, détention préventive, accident du travail ou maladie professionnelle du titulaire.
     La paie reste celle de la catégorie d'origine pendant les 2 premiers mois.
 </div>

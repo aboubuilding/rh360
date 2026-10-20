@@ -85,7 +85,7 @@ class PreparateurPaieReglesConnexes
                 'Maintien de salaire', 'Complément rétablissant le salaire maintenu (affectation à un emploi inférieur ou mutation pour grossesse).'),
                 $montant, self::SOURCE_MAINTIEN,
                 "{$maintien->motif->libelle()} : salaire maintenu ".number_format($maintien->salaire_base_maintenu, 0, ',', ' ')
-                .' − base '.number_format($base, 0, ',', ' ')." ({$jours}/{$joursBase} j) — {$maintien->motif->reference()}");
+                .' − base '.number_format($base, 0, ',', ' ')." ({$jours}/{$joursBase} j)");
         }
     }
 
@@ -108,15 +108,15 @@ class PreparateurPaieReglesConnexes
             $brut = $this->finCdd->dernierSalaireBrut($contrat, $periode);
             if ($brut === null) {
                 $rapport->anomalie($contrat->salarie_id, $contrat->id, "Indemnité de fin de contrat due (contrat {$contrat->reference}) mais aucun "
-                    .'bulletin antérieur ne donne le dernier salaire brut : à saisir manuellement (Code du travail, art. 54, 55).');
+                    .'bulletin antérieur ne donne le dernier salaire brut : à saisir manuellement.');
 
                 continue;
             }
 
             $this->saisir($periode, $rapport, $contrat->salarie_id, $this->rubrique($periode->entreprise_id, config('interim.rubrique_indemnite_fin_cdd'),
-                'Indemnité de fin de contrat', 'Un mois du dernier salaire brut après 4 ans consécutifs de CDD sans CDI (Code du travail, art. 54, 55).'),
+                'Indemnité de fin de contrat', 'Un mois du dernier salaire brut après 4 ans consécutifs de CDD sans CDI.'),
                 $brut, self::SOURCE_FIN_CDD,
-                "Contrat {$contrat->reference} : {$evaluation['raison']} Un mois du dernier salaire brut — Code du travail, art. 54, 55");
+                "Contrat {$contrat->reference} : {$evaluation['raison']} Un mois du dernier salaire brut");
         }
     }
 

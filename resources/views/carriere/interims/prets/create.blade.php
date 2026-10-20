@@ -14,7 +14,7 @@
 <div class="alert alert-info">
     <i class="fas fa-info-circle"></i>
     Avant le début du prêt, trois pièces sont obligatoires : l'accord écrit du salarié, la convention de mise à disposition
-    et l'avenant au contrat signé (Code du travail, art. 8). Le salarié peut refuser sans aucune conséquence.
+    et l'avenant au contrat signé. Le salarié peut refuser sans aucune conséquence.
 </div>
 
 <div class="card">

@@ -56,7 +56,7 @@ class ActionPretMainOeuvreRequest extends FormRequest
         return [
             'type_piece.required' => 'Le type de pièce est obligatoire.',
             'date_signature.required' => 'La date de signature est obligatoire.',
-            'fichier.required' => 'Le document signé est obligatoire (Code du travail, art. 8).',
+            'fichier.required' => 'Le document signé est obligatoire.',
             'fichier.mimes' => 'Le document doit être un fichier PDF, PNG ou JPEG.',
             'fichier.max' => 'Le document ne doit pas dépasser 8 Mo.',
             'date_reponse_salarie.required' => 'La date du refus est obligatoire.',

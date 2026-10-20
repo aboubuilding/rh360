@@ -44,7 +44,7 @@ class ControleEmploiInferieur
 
         if (! $mouvement->date_consultation_delegues || ! $mouvement->chemin_pv_consultation) {
             throw new \DomainException("Affectation refusée : l'affectation définitive à un poste inférieur pour nécessité de service "
-                .'exige la consultation préalable des délégués du personnel, avec sa date et le procès-verbal joint (règle RG-INF-02).');
+                .'exige la consultation préalable des délégués du personnel, avec sa date et le procès-verbal joint.');
         }
 
         return MotifMaintienRemuneration::AFFECTATION_DEFINITIVE_INFERIEURE;
@@ -105,7 +105,7 @@ class ControleEmploiInferieur
             if ($maintenue && $maintenue->referentiel_id === $nouvelle->categorie->referentiel_id
                 && $nouvelle->categorie->ordre < $maintenue->ordre) {
                 throw new \DomainException("Mouvement refusé : le classement est maintenu pendant la {$maintien->motif->libelle()} "
-                    ."({$maintenue->libelle}) ({$maintien->motif->reference()}).");
+                    ."({$maintenue->libelle}).");
             }
         }
     }

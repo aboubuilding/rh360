@@ -113,7 +113,7 @@ it('RG-INT-01 : refuse un poste de catégorie égale', function () {
 
     expect($erreurs['poste_occupe_id'][0])
         ->toContain('strictement supérieure')
-        ->toContain('CCIT, art. 13');
+        ->not->toContain('art.');
     expect(InterimInterne::count())->toBe(0);
 });
 
@@ -162,7 +162,7 @@ it('RG-INT-03 : refuse une fin au-delà de 2 mois sans motif éligible', functio
     expect($erreurs['date_fin_prevue'][0])
         ->toContain('au plus tard le 18/11/2026')
         ->toContain('ne permet pas de prolongation')
-        ->toContain('CCIT, art. 13');
+        ->not->toContain('art.');
 });
 
 it('RG-INT-03 : cumule les intérims successifs sur le même poste et le même titulaire', function () {
@@ -241,7 +241,7 @@ it('RG-INT-05 : plafonne la maladie à 6 mois (Code art. 65 c ; CCIT art. 14)', 
         'poste_occupe_id' => $autrePoste->id,
         'date_fin_prevue' => '2027-03-20',
     ])));
-    expect($erreurs['date_fin_prevue'][0])->toContain('Code du travail, art. 65 c ; CCIT, art. 14');
+    expect($erreurs['date_fin_prevue'][0])->not->toContain('art.');
 });
 
 it('RG-INT-05 : fait courir le délai maladie depuis le début de l\'absence du titulaire', function () {
@@ -262,7 +262,7 @@ it('RG-INT-05 : plafonne la détention préventive à 6 mois (Code art. 65 h)', 
         'date_fin_prevue' => '2027-03-20',
     ])));
 
-    expect($erreurs['date_fin_prevue'][0])->toContain('Code du travail, art. 65 h');
+    expect($erreurs['date_fin_prevue'][0])->not->toContain('art.');
 });
 
 it('RG-INT-05 : exige la fin du congé du titulaire et la retient comme plafond', function () {
@@ -397,7 +397,7 @@ it('RG-INT-08 : refuse un reclassement sous le minimum de la catégorie', functi
         PositionClassification::where('code', 'B1-A')->value('id'), 139999,
     ));
 
-    expect($erreurs['nouveau_salaire_base'][0])->toContain('140 000 FCFA')->toContain('CCIT, art. 13');
+    expect($erreurs['nouveau_salaire_base'][0])->toContain('140 000 FCFA')->not->toContain('art.');
     expect($interim->fresh()->statut)->toBe(StatutInterim::EN_COURS);
 });
 

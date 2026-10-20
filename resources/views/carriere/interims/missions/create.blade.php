@@ -13,8 +13,8 @@
 @section('contenu')
 <div class="alert alert-warning">
     <i class="fas fa-exclamation-triangle"></i>
-    Interdits : le remplacement d'un salarié en grève et les travaux particulièrement dangereux (Code du travail, art. 62).
-    Sanction encourue (art. 356) : amende de 500 000 à 2 000 000 FCFA ; en récidive, de 1 000 000 à 5 000 000 FCFA
+    Interdits : le remplacement d'un salarié en grève et les travaux particulièrement dangereux.
+    Sanction encourue : amende de 500 000 à 2 000 000 FCFA ; en récidive, de 1 000 000 à 5 000 000 FCFA
     et/ou emprisonnement de 1 à 6 mois.
 </div>
 

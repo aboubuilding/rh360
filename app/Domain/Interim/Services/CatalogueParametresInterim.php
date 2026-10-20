@@ -78,7 +78,7 @@ class CatalogueParametresInterim
             ],
             'referentiel_bareme_id' => [
                 'groupe' => 'Paie',
-                'libelle' => 'Référentiel du barème des salaires minimums (Annexe II CCIT 2026)',
+                'libelle' => 'Référentiel du barème des salaires minimums',
                 'type' => 'referentiel',
                 'reference' => 'CCIT 2026, Annexe II',
             ],

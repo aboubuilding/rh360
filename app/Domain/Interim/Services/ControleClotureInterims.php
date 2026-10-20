@@ -45,7 +45,7 @@ class ControleClotureInterims
 
         throw new \DomainException(
             "Validation de la paie bloquée : {$bloquants->count()} intérim(s) à régulariser sans décision de "
-            ."reclassement ou de retour (CCIT, art. 13) — {$liste}."
+            ."reclassement ou de retour — {$liste}."
         );
     }
 }

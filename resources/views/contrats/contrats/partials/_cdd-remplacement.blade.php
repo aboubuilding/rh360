@@ -2,7 +2,7 @@
 @if($contrat->type_contrat === \App\Domain\Contrats\Enums\TypeContrat::CDD->value)
     @php($finCdd = app(\App\Domain\Contrats\Services\IndemniteFinCddCalculator::class)->evaluer($contrat))
     <div class="card mb-3">
-        <div class="card-header">CDD — motif de recours et terme (Code du travail, art. 48, 49, 54, 55)</div>
+        <div class="card-header">CDD — motif de recours et terme</div>
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-4">Motif de recours</dt><dd class="col-sm-8">{{ $contrat->motif_recours?->libelle() ?? '—' }}</dd>
@@ -13,7 +13,7 @@
                     <dt class="col-sm-4">Journalier</dt><dd class="col-sm-8">Payé en fin de journée (contrat écrit non obligatoire)</dd>
                 @endif
                 @if($contrat->mention_caractere_provisoire)
-                    <dt class="col-sm-4">Caractère provisoire</dt><dd class="col-sm-8">{{ $contrat->mention_caractere_provisoire }} <small class="text-muted">(CCIT, art. 16)</small></dd>
+                    <dt class="col-sm-4">Caractère provisoire</dt><dd class="col-sm-8">{{ $contrat->mention_caractere_provisoire }}</dd>
                 @endif
                 <dt class="col-sm-4">Indemnité de fin de contrat</dt>
                 <dd class="col-sm-8">

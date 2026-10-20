@@ -62,7 +62,7 @@ class ValidateurInterimInterne
         if (! $occupee) {
             $controle->erreur('poste_occupe_id',
                 "Intérim refusé : le poste « {$poste->intitule} » n'est rattaché à aucune catégorie de classification, "
-                .'la règle de la catégorie supérieure ne peut pas être vérifiée (CCIT, art. 13).');
+                .'la règle de la catégorie supérieure ne peut pas être vérifiée.');
 
             return;
         }
@@ -71,7 +71,7 @@ class ValidateurInterimInterne
         if (! $origine) {
             $controle->erreur('salarie_id',
                 'Intérim refusé : la catégorie du salarié est introuvable dans le référentiel du poste occupé, '
-                .'la règle de la catégorie supérieure ne peut pas être vérifiée (CCIT, art. 13).');
+                .'la règle de la catégorie supérieure ne peut pas être vérifiée.');
 
             return;
         }
@@ -82,7 +82,7 @@ class ValidateurInterimInterne
         if (! $this->comparateur->estStrictementSuperieure($occupee, $origine)) {
             $controle->erreur('poste_occupe_id',
                 "Intérim refusé : la catégorie du poste occupé ({$occupee->libelle}) doit être strictement supérieure "
-                ."à celle du salarié ({$origine->libelle}) (CCIT, art. 13).");
+                ."à celle du salarié ({$origine->libelle}).");
         }
     }
 
@@ -120,7 +120,7 @@ class ValidateurInterimInterne
                 $controle->erreur('date_fin_prevue',
                     'Intérim refusé : la durée maximale est de '.$this->parametres->get('duree_max_interim_mois')
                     ." mois{$mentionCumul}, soit une fin au plus tard le {$plafondNormal->format('d/m/Y')}. "
-                    ."Le motif « {$motif->libelle()} » ne permet pas de prolongation (CCIT, art. 13).");
+                    ."Le motif « {$motif->libelle()} » ne permet pas de prolongation.");
             }
 
             return;
@@ -132,7 +132,7 @@ class ValidateurInterimInterne
 
         if ($plafondLegal === null && $delai === 'fin_conge') {
             $controle->erreur('date_fin_motif',
-                'La date de fin du congé du titulaire est obligatoire pour fixer le plafond de l\'intérim (CCIT, art. 13).');
+                'La date de fin du congé du titulaire est obligatoire pour fixer le plafond de l\'intérim.');
 
             return;
         }
@@ -150,7 +150,7 @@ class ValidateurInterimInterne
         if ($finPrevue->gt($controle->dateLimite)) {
             $controle->erreur('date_fin_prevue',
                 "Intérim refusé : la fin prévue dépasse le délai légal du motif « {$motif->libelle()} », "
-                ."soit au plus tard le {$controle->dateLimite->format('d/m/Y')} ({$motif->referenceDelaiLegal()}).");
+                ."soit au plus tard le {$controle->dateLimite->format('d/m/Y')}.");
         }
     }
 }

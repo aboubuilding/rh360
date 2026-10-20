@@ -38,7 +38,7 @@ class ValidateurCddRemplacement
 
         // RG-REM-01 — le titulaire remplacé est obligatoire sur un CDD de remplacement.
         if ($motif?->estRemplacement() && ! $titulaireId) {
-            $erreurs['titulaire_remplace_id'][] = 'Le salarié remplacé est obligatoire sur un CDD de remplacement (Code du travail, art. 49 a).';
+            $erreurs['titulaire_remplace_id'][] = 'Le salarié remplacé est obligatoire sur un CDD de remplacement.';
         }
         if ($titulaireId && isset($donnees['salarie_id']) && (int) $titulaireId === (int) $donnees['salarie_id']) {
             $erreurs['titulaire_remplace_id'][] = 'Le salarié remplacé ne peut pas être le titulaire du contrat.';
@@ -46,11 +46,11 @@ class ValidateurCddRemplacement
 
         // RG-REM-02 — terme fixé par une date, ou par un événement pour un CDD de remplacement.
         if ($terme && ! $motif?->estRemplacement()) {
-            $erreurs['terme_evenement'][] = 'Un terme fixé par un événement n\'est possible que pour un CDD de remplacement (Code du travail, art. 48, 49).';
+            $erreurs['terme_evenement'][] = 'Un terme fixé par un événement n\'est possible que pour un CDD de remplacement.';
         }
         if (! $fin && ! $terme) {
             $erreurs['date_fin'][] = 'Un CDD a un terme : une date de fin, ou, pour un remplacement, le retour du titulaire ou la rupture '
-                .'de son contrat (Code du travail, art. 48, 49).';
+                .'de son contrat.';
         }
 
         // RG-REM-03 — durée initiale ≤ 2 ans ; durée totale, renouvellements compris, ≤ 4 ans.
@@ -62,11 +62,11 @@ class ValidateurCddRemplacement
 
             if (! $parent && $fin->gt($limite = $this->delais->finDuree($debut, $initiale))) {
                 $erreurs['date_fin'][] = 'La durée initiale d\'un CDD est limitée à '.$this->duree($initiale)
-                    .", soit une fin au plus tard le {$limite->format('d/m/Y')} (Code du travail, art. 48).";
+                    .", soit une fin au plus tard le {$limite->format('d/m/Y')}.";
             }
             if ($fin->gt($limite = $this->delais->finDuree($debutChaine, $totale))) {
                 $erreurs['date_fin'][] = 'La durée totale d\'un CDD, renouvellements compris, est limitée à '.$this->duree($totale)
-                    .", soit une fin au plus tard le {$limite->format('d/m/Y')} (Code du travail, art. 48).";
+                    .", soit une fin au plus tard le {$limite->format('d/m/Y')}.";
             }
         }
 
@@ -74,7 +74,7 @@ class ValidateurCddRemplacement
         if ($motif?->estRemplacement() && $titulaireId && $this->titulaireMalade((int) $titulaireId, $debut)
             && blank($donnees['mention_caractere_provisoire'] ?? null)) {
             $erreurs['mention_caractere_provisoire'][] = 'Le salarié recruté pour remplacer un salarié malade doit être informé par écrit '
-                .'du caractère provisoire de son emploi ; cette mention figure sur la lettre d\'engagement (CCIT, art. 16).';
+                .'du caractère provisoire de son emploi ; cette mention figure sur la lettre d\'engagement.';
         }
 
         return $erreurs;

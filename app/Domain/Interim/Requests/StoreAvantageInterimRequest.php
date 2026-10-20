@@ -30,8 +30,8 @@ class StoreAvantageInterimRequest extends FormRequest
             'rubrique_id.required' => 'La rubrique de paie est obligatoire.',
             'montant_mensuel.required' => 'Le montant mensuel est obligatoire.',
             'montant_mensuel.integer' => 'Le montant est un entier en FCFA.',
-            'reference_accord.required' => 'La référence de l\'accord entre les parties est obligatoire (CCIT, art. 13).',
-            'justificatif.required' => 'Le justificatif de l\'accord est obligatoire (CCIT, art. 13).',
+            'reference_accord.required' => 'La référence de l\'accord entre les parties est obligatoire.',
+            'justificatif.required' => 'Le justificatif de l\'accord est obligatoire.',
             'justificatif.mimes' => 'Le justificatif doit être un fichier PDF, PNG ou JPEG.',
             'justificatif.max' => 'Le justificatif ne doit pas dépasser 8 Mo.',
         ];

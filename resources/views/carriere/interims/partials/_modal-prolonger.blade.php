@@ -11,7 +11,7 @@
                 <div class="modal-body">
                     <p class="mb-2">
                         Fin prévue actuelle : <strong>{{ $interim->date_fin_prevue->format('d/m/Y') }}</strong><br>
-                        Motif : <strong>{{ $interim->motif->libelle() }}</strong> ({{ $interim->motif->referenceDelaiLegal() }})
+                        Motif : <strong>{{ $interim->motif->libelle() }}</strong> — fin au plus tard le <strong>{{ $interim->date_limite->format('d/m/Y') }}</strong>
                     </p>
                     <x-field name="date_fin_prevue" label="Nouvelle date de fin prévue" type="date" required
                              :value="$interim->date_fin_prevue->copy()->addMonth()->format('Y-m-d')" />

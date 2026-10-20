@@ -39,7 +39,7 @@
                 <div class="col-md-6">
                     <x-field name="categorie_classification_id" label="Catégorie de classification" type="select"
                              :options="[null => '—'] + $categories" :value="$poste->categorie_classification_id"
-                             help="Sert au contrôle des intérims (CCIT, art. 13)." />
+                             help="Sert au contrôle des intérims." />
                 </div>
                 <div class="col-md-6">
                     <x-field name="travaux_dangereux" label="Travaux particulièrement dangereux (intérim d'agence interdit)" type="checkbox"

@@ -20,7 +20,7 @@
 <div class="alert alert-info">
     <i class="fas fa-info-circle"></i>
     Les intérimaires sont salariés de l'agence : ils ne font pas partie de l'effectif et n'ont ni paie ni cotisations
-    dans l'application (Code du travail, art. 60 à 63).
+    dans l'application.
 </div>
 
 <div class="card mb-3">

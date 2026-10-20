@@ -56,7 +56,7 @@ class ParametreInterimController extends Controller
 
         $this->parametres->reinitialiser();
 
-        return $this->repondre($request, 'Valeurs des textes rétablies.');
+        return $this->repondre($request, 'Valeurs par défaut rétablies.');
     }
 
     private function repondre(Request $request, string $message)

@@ -62,7 +62,7 @@
         <div class="col-md-12">
             <x-field name="mention_caractere_provisoire" label="Mention du caractère provisoire de l'emploi (lettre d'engagement)" type="textarea"
                      :value="$contrat?->mention_caractere_provisoire"
-                     help="Obligatoire en cas de remplacement d'un salarié malade (CCIT, art. 16)." />
+                     help="Obligatoire en cas de remplacement d'un salarié malade." />
         </div>
     </div>
 </fieldset>

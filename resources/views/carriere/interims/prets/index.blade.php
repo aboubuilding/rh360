@@ -20,7 +20,7 @@
 <div class="alert alert-info">
     <i class="fas fa-info-circle"></i>
     Pendant le prêt, le contrat n'est ni rompu ni suspendu : le salarié reste dans l'effectif et la paie de l'entreprise,
-    avec ses avantages conventionnels et son ancienneté. Aucune marge n'est permise sur la refacturation (Code du travail, art. 8).
+    avec ses avantages conventionnels et son ancienneté. Aucune marge n'est permise sur la refacturation.
 </div>
 
 <div class="card mb-3">

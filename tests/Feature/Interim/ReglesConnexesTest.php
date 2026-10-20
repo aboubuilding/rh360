@@ -137,7 +137,7 @@ it('RG-REM-02 : alerte quand le titulaire n\'est plus absent', function () {
 it('RG-REM-03 : limite la durée initiale à 2 ans et la durée totale à 4 ans', function () {
     expect($this->validateur->controler(cdd(['date_fin' => '2028-10-31'])))->toBe([]);
     expect($this->validateur->controler(cdd(['date_fin' => '2028-11-01']))['date_fin'][0])
-        ->toContain('durée initiale d\'un CDD est limitée à 2 ans')->toContain('31/10/2028')->toContain('art. 48');
+        ->toContain('durée initiale d\'un CDD est limitée à 2 ans')->toContain('31/10/2028')->not->toContain('art.');
 
     $initial = cddSigne('2026-11-01', '2028-10-31');
     expect($this->validateur->controler(cdd(['date_debut' => '2028-11-01', 'date_fin' => '2030-10-31']), $initial))->toBe([]);
@@ -200,7 +200,7 @@ it('RG-REM-04 : verse un mois du dernier salaire brut avec le dernier salaire', 
 
     $saisie = SaisiePaie::where('periode_id', $periode->id)->where('source', 'fin_cdd')->sole();
     expect((int) $saisie->montant)->toBe(312500);
-    expect($saisie->observations)->toContain('art. 54, 55');
+    expect($saisie->observations)->not->toContain('art.');
     expect($rapport->anomalies)->toBe([]);
 });
 
@@ -233,7 +233,7 @@ it('RG-REM-05 : exige la mention du caractère provisoire pour remplacer un sala
         'type_conge_id' => TypeConge::where('code', 'MAL')->value('id'), 'debut_le' => '2026-10-01 00:00:00']);
 
     expect($this->validateur->controler(cdd())['mention_caractere_provisoire'][0])
-        ->toContain('caractère provisoire')->toContain('CCIT, art. 16');
+        ->toContain('caractère provisoire')->not->toContain('art.');
     expect($this->validateur->controler(cdd(['mention_caractere_provisoire' => 'Emploi provisoire : remplacement de M. X, absent pour maladie.'])))->toBe([]);
 });
 

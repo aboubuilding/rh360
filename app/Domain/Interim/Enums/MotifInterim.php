@@ -48,16 +48,6 @@ enum MotifInterim: string
         };
     }
 
-    // Texte cité dans les messages de refus liés au délai légal du motif.
-    public function referenceDelaiLegal(): string
-    {
-        return match ($this) {
-            self::MALADIE_ACCIDENT => 'Code du travail, art. 65 c ; CCIT, art. 14',
-            self::DETENTION_PREVENTIVE => 'Code du travail, art. 65 h',
-            default => 'CCIT, art. 13',
-        };
-    }
-
     public static function options(): array
     {
         return collect(self::cases())->mapWithKeys(fn ($e) => [$e->value => $e->libelle()])->all();
