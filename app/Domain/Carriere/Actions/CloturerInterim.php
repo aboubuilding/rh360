@@ -8,6 +8,10 @@ use App\Domain\Carriere\Services\CircuitMouvement;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @deprecated Intérims antérieurs à la refonte, non repris dans interims_internes.
+ *             Utiliser App\Domain\Interim\Services\InterimInterneService.
+ */
 class CloturerInterim
 {
     public function __construct(private CircuitMouvement $circuit) {}
@@ -24,16 +28,8 @@ class CloturerInterim
                 'motif_cloture' => $motif,
             ]);
 
-            // Le poste permanent reprend son occupant habituel : on ferme
-            // l'affectation temporaire en cours et on en recrée une sur le
-            // poste permanent s'il y en avait un.
-            \App\Domain\Personnel\Models\Affectation::query()
-                ->where('salarie_id', $interim->salarie_id)
-                ->where('en_cours', true)
-                ->update([
-                    'en_cours' => false,
-                    'date_fin' => Carbon::parse($dateFinReelle),
-                ]);
+            // RG-INT-08 — L'intérim ne crée pas d'affectation (AppliqueurMouvement) : l'affectation
+            // en cours est le poste permanent du salarié, qu'il retrouve. Elle n'est donc plus fermée.
 
             return $this->circuit->transitionner(
                 $interim,

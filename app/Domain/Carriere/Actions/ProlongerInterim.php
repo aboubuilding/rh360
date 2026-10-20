@@ -2,10 +2,15 @@
 
 namespace App\Domain\Carriere\Actions;
 
+use App\Domain\Administration\Services\ServiceAudit;
 use App\Domain\Carriere\Models\MouvementCarriere;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @deprecated Intérims antérieurs à la refonte, non repris dans interims_internes.
+ *             Utiliser App\Domain\Interim\Services\InterimInterneService.
+ */
 class ProlongerInterim
 {
     public function executer(MouvementCarriere $interim, string $nouvelleDateFin, ?string $motif = null): MouvementCarriere
@@ -30,7 +35,7 @@ class ProlongerInterim
                 'date_fin_prevue' => $nouvelleFin,
             ]);
 
-            app(\App\Domain\Administration\Services\ServiceAudit::class)->tracer(
+            app(ServiceAudit::class)->tracer(
                 'carriere.interim.prolonge',
                 $interim,
                 [

@@ -64,4 +64,7 @@ Route::middleware('auth')->prefix('carriere')->name('carriere.')->group(function
     Route::get('interims/{interim}', [InterimController::class, 'show'])->name('interims.show');
     Route::post('interims/{interim}/prolonger', [InterimController::class, 'prolonger'])->name('interims.prolonger');
     Route::post('interims/{interim}/cloturer', [InterimController::class, 'cloturer'])->name('interims.cloturer');
+    Route::post('interims/{interim}/decider', [InterimController::class, 'decider'])->name('interims.decider');
+    Route::post('interims/{interim}/avantages', [InterimController::class, 'ajouterAvantage'])->name('interims.avantages.store');
+    Route::get('interims/{interim}/decisions/{decision}/piece', [InterimController::class, 'piece'])->name('interims.piece');
 });

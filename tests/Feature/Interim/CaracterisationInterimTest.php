@@ -2,9 +2,9 @@
 
 /*
 | Tests de caractérisation (lot 0 de la refonte des intérims) : ils figent le
-| comportement actuel que la refonte conserve. La fermeture de l'affectation
-| permanente à la clôture (CloturerInterim) n'est volontairement pas figée :
-| elle contredit RG-INT-08 et sera corrigée.
+| comportement actuel que la refonte conserve, sur les actions héritées
+| (ProlongerInterim, CloturerInterim) qui restent disponibles pour les intérims
+| non repris.
 */
 
 use App\Domain\Administration\Models\Utilisateur;
@@ -17,6 +17,7 @@ use App\Domain\Organisation\Models\Poste;
 use App\Domain\Paie\Models\BulletinPaie;
 use App\Domain\Paie\Models\PeriodePaie;
 use App\Domain\Paie\Services\MoteurPaie;
+use App\Domain\Personnel\Models\Affectation;
 use App\Domain\Personnel\Models\Salarie;
 
 beforeEach(function () {
@@ -38,24 +39,11 @@ function creerInterimEffectif(array $attributs = []): MouvementCarriere
     ], $attributs));
 }
 
-it('crée un intérim comme mouvement de carrière de type intérim', function () {
-    $this->post(route('carriere.interims.store'), [
-        'salarie_id' => $this->salarie->id,
-        'type_mouvement' => TypeMouvement::INTERIM->value,
-        'poste_cible_id' => $this->poste->id,
-        'date_effet' => now()->format('Y-m-d'),
-        'date_fin_prevue' => now()->addMonth()->format('Y-m-d'),
-        'motif' => 'Caractérisation',
-    ])->assertRedirect();
-
-    $interim = MouvementCarriere::where('motif', 'Caractérisation')->sole();
-    expect($interim->type_mouvement)->toBe(TypeMouvement::INTERIM);
-    expect($interim->salarie_id)->toBe($this->salarie->id);
-    expect($interim->poste_cible_id)->toBe($this->poste->id);
-});
-
-it('ne liste que les intérims dans le registre des intérims', function () {
-    $interim = creerInterimEffectif(['motif' => 'Intérim listé']);
+// Lot 2 : la création, le registre et la fiche passent par InterimInterne. Le comportement
+// conservé est que la création produit toujours un mouvement de carrière de type intérim
+// (couvert par InterimInterneReglesTest, RG-INT-01) et que les intérims antérieurs restent visibles.
+it('affiche les intérims antérieurs à la refonte, non repris, dans le registre', function () {
+    $interim = creerInterimEffectif(['motif' => 'Intérim hérité']);
     MouvementCarriere::factory()->create([
         'entreprise_id' => 1,
         'salarie_id' => $this->salarie->id,
@@ -65,18 +53,8 @@ it('ne liste que les intérims dans le registre des intérims', function () {
 
     $this->get(route('carriere.interims.index'))
         ->assertOk()
-        ->assertViewHas('interims', fn ($liste) => $liste->contains('id', $interim->id)
+        ->assertViewHas('nonRepris', fn ($liste) => $liste->contains('id', $interim->id)
             && $liste->every(fn ($m) => $m->type_mouvement === TypeMouvement::INTERIM));
-});
-
-it('refuse d\'afficher un mouvement qui n\'est pas un intérim', function () {
-    $affectation = MouvementCarriere::factory()->create([
-        'entreprise_id' => 1,
-        'salarie_id' => $this->salarie->id,
-        'type_mouvement' => TypeMouvement::AFFECTATION->value,
-    ]);
-
-    $this->get(route('carriere.interims.show', $affectation))->assertNotFound();
 });
 
 // Seul un intérim non encore effectif est prolongeable aujourd'hui (EFFECTIF est un statut
@@ -145,4 +123,15 @@ it('n\'a aucun effet sur le bulletin pendant un intérim de moins de deux mois',
     $moteur->calculer($periode);
 
     expect($brutDe())->toBe($brutSansInterim);
+});
+
+// RG-INT-08 — corrigé au lot 2 : la clôture héritée ne ferme plus le poste permanent.
+it('conserve l\'affectation permanente à la clôture d\'un intérim hérité', function () {
+    $affectation = Affectation::where('salarie_id', $this->salarie->id)->where('en_cours', true)->sole();
+    $interim = creerInterimEffectif();
+
+    app(CloturerInterim::class)->executer($interim, now()->format('Y-m-d'), 'Retour du titulaire');
+
+    expect($affectation->fresh()->en_cours)->toBeTrue();
+    expect($affectation->fresh()->date_fin)->toBeNull();
 });
