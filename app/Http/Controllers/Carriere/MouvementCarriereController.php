@@ -90,7 +90,7 @@ class MouvementCarriereController extends Controller
     {
         $this->authorize('create', MouvementCarriere::class);
 
-        $mouvement = $action->executer($request->validated());
+        $mouvement = $action->executer($this->donneesAvecPv($request));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -136,7 +136,7 @@ class MouvementCarriereController extends Controller
     {
         $this->authorize('update', $mouvement);
 
-        $action->executer($mouvement, $request->validated());
+        $action->executer($mouvement, $this->donneesAvecPv($request));
 
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Mouvement mis à jour.']);
@@ -282,5 +282,19 @@ class MouvementCarriereController extends Controller
             return response()->json(['message' => 'Mouvement annulé.']);
         }
         return back()->with('success', 'Mouvement annulé.');
+    }
+
+    /**
+     * RG-INF-02 — le procès-verbal de consultation des délégués est stocké avec le mouvement.
+     */
+    private function donneesAvecPv(StoreMouvementRequest $request): array
+    {
+        $donnees = $request->safe()->except('pv_consultation');
+
+        if ($request->hasFile('pv_consultation')) {
+            $donnees['chemin_pv_consultation'] = $request->file('pv_consultation')->store('carriere/pv-consultation', 'local');
+        }
+
+        return $donnees;
     }
 }

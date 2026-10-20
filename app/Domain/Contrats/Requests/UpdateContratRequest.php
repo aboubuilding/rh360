@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 
 class UpdateContratRequest extends FormRequest
 {
+    use ValideCddRemplacement;
+
     public function authorize(): bool
     {
         return $this->user()->peut('contrats.manage');
@@ -24,14 +26,25 @@ class UpdateContratRequest extends FormRequest
                     ->where('entreprise_id', $entrepriseId)
                     ->ignore($this->route('contrat')?->id),
             ],
-            'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value'))],
+            'type_contrat' => ['required', Rule::in(array_column(TypeContrat::cases(), 'value')), TypeContrat::regleHorsInterim()],
             'date_debut' => ['required', 'date'],
             'date_fin' => ['nullable', 'date', 'after:date_debut'],
             'poste_id' => ['required', Rule::exists('postes', 'id')->where('entreprise_id', $entrepriseId)],
             'position_classification_id' => ['required', 'exists:positions_classification,id'],
             'conditions' => ['nullable', 'array'],
-        ];
+        ] + $this->reglesCdd();
     }
+
+    protected function contratParent(): ?\App\Domain\Contrats\Models\Contrat
+    {
+        return $this->route('contrat')?->parent;
+    }
+
+    protected function salarieConcerne(): ?int
+    {
+        return $this->route('contrat')?->salarie_id;
+    }
+
 
     public function messages(): array
     {

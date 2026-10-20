@@ -27,7 +27,8 @@
             </div>
             <div class="col-md-6">
                 <x-field name="sous_type_mouvement" label="Sous-type (optionnel)"
-                         :value="$mouvement?->sous_type_mouvement" />
+                         :value="$mouvement?->sous_type_mouvement"
+                         help="« mutation_etat_grossesse » : mutation d'une salariée enceinte en raison de son état, salaire antérieur maintenu." />
             </div>
             <div class="col-md-6">
                 <x-field name="date_eligibilite" label="Date d'éligibilité" type="date"
@@ -114,6 +115,14 @@
             <div class="col-md-6">
                 <x-field name="date_acte" label="Date de l'acte" type="date"
                          :value="$mouvement?->date_acte?->format('Y-m-d')" />
+            </div>
+            <div class="col-md-6">
+                <x-field name="date_consultation_delegues" label="Consultation des délégués du personnel le" type="date"
+                         :value="$mouvement?->date_consultation_delegues?->format('Y-m-d')"
+                         help="Obligatoire pour une affectation définitive à un poste inférieur." />
+            </div>
+            <div class="col-md-6">
+                <x-field name="pv_consultation" label="Procès-verbal de consultation" type="file" />
             </div>
         </div>
     </div>

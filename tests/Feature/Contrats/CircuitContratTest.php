@@ -139,6 +139,8 @@ describe('contrat signé', function () {
             'reference' => 'MODIF-APRES-SIGNATURE',
             'type_contrat' => $this->contrat->type_contrat,
             'date_debut' => now()->format('Y-m-d'),
+            // Un CDD a un terme (RG-REM-02) : sans lui, la validation échouerait avant le contrôle d'accès.
+            'date_fin' => now()->addYear()->format('Y-m-d'),
             'poste_id' => $this->contrat->poste_id,
             'position_classification_id' => $this->contrat->position_classification_id,
         ])->assertForbidden();
@@ -160,6 +162,7 @@ describe('contrat signé', function () {
             'reference' => 'AVN-2026-0001',
             'type_contrat' => $this->contrat->type_contrat,
             'date_debut' => now()->addMonth()->format('Y-m-d'),
+            'date_fin' => now()->addYear()->format('Y-m-d'), // RG-REM-02 : un CDD a un terme
             'poste_id' => $this->contrat->poste_id,
             'position_classification_id' => $this->contrat->position_classification_id,
         ])->assertRedirect();
@@ -180,6 +183,7 @@ it('refuse un avenant sur un contrat non signé', function () {
         'reference' => 'AVN-INTERDIT',
         'type_contrat' => $this->contrat->type_contrat,
         'date_debut' => now()->format('Y-m-d'),
+        'date_fin' => now()->addYear()->format('Y-m-d'), // RG-REM-02 : un CDD a un terme
         'poste_id' => $this->contrat->poste_id,
         'position_classification_id' => $this->contrat->position_classification_id,
     ])->assertForbidden();

@@ -2,7 +2,10 @@
 
 namespace App\Domain\Contrats\Models;
 
+use App\Domain\Contrats\Enums\MotifFinContrat;
+use App\Domain\Contrats\Enums\MotifRecoursCdd;
 use App\Domain\Contrats\Enums\StatutContrat;
+use App\Domain\Contrats\Enums\TermeEvenementCdd;
 use App\Domain\Contrats\Enums\TypeContrat;
 use App\Domain\Personnel\Models\Salarie;
 use App\Domain\Organisation\Models\Poste;
@@ -27,6 +30,9 @@ class Contrat extends Model
         'date_debut', 'date_fin', 'poste_id', 'position_classification_id',
         'conditions', 'regle_figee', 'date_signature', 'reference_signee',
         'revision', 'cree_par', 'etat',
+        // RG-REM-01 à 05 — CDD de remplacement
+        'motif_recours', 'titulaire_remplace_id', 'terme_evenement', 'journalier_paye_fin_journee',
+        'mention_caractere_provisoire', 'motif_fin', 'refus_cdi_equivalent_le',
     ];
 
     protected function casts(): array
@@ -35,6 +41,11 @@ class Contrat extends Model
             'date_debut' => 'date',
             'date_fin' => 'date',
             'date_signature' => 'date',
+            'motif_recours' => MotifRecoursCdd::class,
+            'terme_evenement' => TermeEvenementCdd::class,
+            'motif_fin' => MotifFinContrat::class,
+            'journalier_paye_fin_journee' => 'boolean',
+            'refus_cdi_equivalent_le' => 'date',
             'conditions' => 'array',
             'regle_figee' => 'array',
             'statut' => StatutContrat::class,
@@ -52,6 +63,12 @@ class Contrat extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Contrat::class, 'parent_id');
+    }
+
+    // RG-REM-01 — salarié remplacé par un CDD de remplacement.
+    public function titulaireRemplace(): BelongsTo
+    {
+        return $this->belongsTo(Salarie::class, 'titulaire_remplace_id');
     }
 
     public function avenants(): HasMany

@@ -13,7 +13,7 @@
 @section('contenu')
 <div class="card">
     <div class="card-body">
-        <form id="form-mouvement" method="POST" action="{{ route('carriere.mouvements.store') }}">
+        <form id="form-mouvement" enctype="multipart/form-data" method="POST" action="{{ route('carriere.mouvements.store') }}">
             @csrf
 
             @include('carriere.mouvements._form')
@@ -45,7 +45,9 @@ $(function () {
         $.ajax({
             url: $form.attr('action'),
             method: 'POST',
-            data: $form.serialize(),
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         })
         .done(function (r) {

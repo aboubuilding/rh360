@@ -80,6 +80,17 @@ return [
     // RG-TT-07 — Alerte si la checklist SST n'est pas validée N jours avant le début d'une mission.
     'alerte_sst_jours_avant_mission' => 7,
 
+    // RG-REM-03 — CDD : durée initiale ≤ 2 ans, durée totale renouvellements compris ≤ 4 ans (Code art. 48).
+    'cdd_duree_initiale_max_mois' => 24,
+    'cdd_duree_totale_max_mois' => 48,
+
+    // RG-REM-04 — Indemnité de fin de contrat après 4 ans consécutifs de CDD sans CDI (Code art. 54, 55).
+    'cdd_anciennete_indemnite_mois' => 48,
+    'rubrique_indemnite_fin_cdd' => 'IND-FIN-CDD',
+
+    // RG-INF-01 à 03 — Rubrique du complément de maintien de salaire.
+    'rubrique_maintien_salaire' => 'MAINTIEN-SAL',
+
     // RG-PMO-02 — Alerte si les pièces d'un prêt ne sont pas réunies N jours avant son début.
     'alerte_pieces_pret_jours' => 7,
 ];

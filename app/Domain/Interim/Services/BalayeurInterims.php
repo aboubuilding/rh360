@@ -3,12 +3,16 @@
 namespace App\Domain\Interim\Services;
 
 use App\Domain\Conges\Models\Absence;
+use App\Domain\Contrats\Enums\StatutContrat;
+use App\Domain\Contrats\Enums\TypeContrat;
+use App\Domain\Contrats\Models\Contrat;
 use App\Domain\Interim\Enums\StatutInterim;
 use App\Domain\Interim\Enums\StatutPret;
 use App\Domain\Interim\Models\AlerteInterim;
 use App\Domain\Interim\Models\InterimInterne;
 use App\Domain\Interim\Models\MissionInterim;
 use App\Domain\Interim\Models\PretMainOeuvre;
+use App\Domain\Personnel\Enums\StatutEmploi;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -56,8 +60,50 @@ class BalayeurInterims
         $bilan['alertes'] += $this->alertesMaladieTitulaire($entrepriseId, $aujourdhui);
         $this->alertesSstMissions($entrepriseId, $aujourdhui, $bilan);
         $this->alertesPrets($entrepriseId, $aujourdhui, $bilan);
+        $this->alertesTermeCdd($entrepriseId, $aujourdhui, $bilan);
 
         return $bilan;
+    }
+
+    /**
+     * RG-REM-02 — CDD de remplacement à terme fixé par un événement : alerte quand le titulaire
+     * est revenu (plus d'absence en cours) ou que son contrat a pris fin.
+     *
+     * @param  array{alertes:int, a_regulariser:int}  $bilan
+     */
+    private function alertesTermeCdd(int $entrepriseId, Carbon $aujourdhui, array &$bilan): void
+    {
+        $contrats = Contrat::withoutGlobalScopes()
+            ->where('entreprise_id', $entrepriseId)
+            ->where('type_contrat', TypeContrat::CDD->value)
+            ->where('statut', StatutContrat::SIGNE->value)
+            ->whereNotNull('terme_evenement')
+            ->whereNotNull('titulaire_remplace_id')
+            ->where('date_debut', '<=', $aujourdhui)
+            ->with(['salarie', 'titulaireRemplace' => fn ($q) => $q->withoutGlobalScopes()])
+            ->get();
+
+        foreach ($contrats as $contrat) {
+            $titulaire = $contrat->titulaireRemplace;
+            $absent = Absence::withoutGlobalScopes()->where('salarie_id', $contrat->titulaire_remplace_id)
+                ->where('debut_le', '<=', $aujourdhui->copy()->endOfDay())
+                ->where(fn ($q) => $q->whereNull('fin_le')->orWhere('fin_le', '>=', $aujourdhui))
+                ->exists();
+            $sorti = $titulaire && (! $titulaire->actif || $titulaire->statut_emploi !== StatutEmploi::ACTIF);
+            $termine = $contrat->date_fin && $contrat->date_fin->lt($aujourdhui);
+
+            if (! $termine && ($sorti || ! $absent)) {
+                $evenement = $sorti ? 'le contrat du titulaire a pris fin' : 'le titulaire n\'est plus absent';
+                $this->alerter($contrat, 'terme_cdd', 'warning',
+                    "Terme du CDD {$contrat->reference} à vérifier",
+                    "{$contrat->salarie?->nom_complet} remplace {$titulaire?->nom_complet} : {$evenement}. Le terme du CDD fixé par "
+                    ."« {$contrat->terme_evenement->libelle()} » est peut-être atteint (Code du travail, art. 48, 49).",
+                    $aujourdhui, $bilan);
+            } else {
+                AlerteInterim::withoutGlobalScopes()->where('objet_type', $contrat->getMorphClass())->where('objet_id', $contrat->id)
+                    ->where('cle', 'terme_cdd')->where('en_cours', true)->update(['en_cours' => false, 'cloture_le' => now()]);
+            }
+        }
     }
 
     /**

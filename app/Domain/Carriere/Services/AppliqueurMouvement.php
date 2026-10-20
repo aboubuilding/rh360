@@ -8,6 +8,7 @@ use App\Domain\Carriere\Enums\TypeSourceSituation;
 use App\Domain\Carriere\Models\MouvementCarriere;
 use App\Domain\Carriere\Models\SituationCarriere;
 use App\Domain\Classification\Models\PositionClassification;
+use App\Domain\Interim\Services\ControleEmploiInferieur;
 use App\Domain\Personnel\Models\Affectation;
 use Illuminate\Support\Facades\DB;
 
@@ -81,6 +82,10 @@ class AppliqueurMouvement
             );
         }
 
+        // RG-INF-01 à 03 — emploi inférieur ou mutation pour grossesse : contrôle et maintien de rémunération.
+        $controleInferieur = app(ControleEmploiInferieur::class);
+        $motifMaintien = $controleInferieur->qualifier($mouvement, $courante);
+
         // Fermer l'affectation en cours
         Affectation::query()
             ->where('salarie_id', $mouvement->salarie_id)
@@ -99,6 +104,8 @@ class AppliqueurMouvement
             'en_cours' => true,
             'etat' => 1,
         ]);
+
+        $controleInferieur->ouvrirMaintien($mouvement, $motifMaintien);
 
         // Mettre à jour le lieu d'affectation sur la fiche salarié (s'il change)
         if ($mouvement->lieu_affectation_cible) {
@@ -136,6 +143,9 @@ class AppliqueurMouvement
             ? PositionClassification::find($situation->position_classification_id)
             : null;
         $nouvelle = PositionClassification::find($nouvellePosition);
+
+        // RG-INF-01 / RG-INF-02 — classement maintenu pendant une affectation à un emploi inférieur.
+        app(ControleEmploiInferieur::class)->verifierClassement($mouvement, $nouvelle);
 
         // Seules les dimensions qui changent prennent la date d'effet de l'acte :
         // un avancement d'échelon ne remet pas à zéro l'ancienneté de catégorie ou de classe.

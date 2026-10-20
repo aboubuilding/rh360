@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 
 class StoreAvenantRequest extends FormRequest
 {
+    use ValideCddRemplacement;
+
     public function authorize(): bool
     {
         return $this->user()->peut('contrats.manage');
@@ -28,8 +30,20 @@ class StoreAvenantRequest extends FormRequest
             'poste_id' => ['required', Rule::exists('postes', 'id')->where('entreprise_id', $entrepriseId)],
             'position_classification_id' => ['required', 'exists:positions_classification,id'],
             'conditions' => ['nullable', 'array'],
-        ];
+        ] + $this->reglesCdd();
     }
+
+    // L'avenant renouvelle le contrat d'origine : la durée totale court depuis le premier contrat.
+    protected function contratParent(): ?\App\Domain\Contrats\Models\Contrat
+    {
+        return $this->route('contrat');
+    }
+
+    protected function salarieConcerne(): ?int
+    {
+        return $this->route('contrat')?->salarie_id;
+    }
+
 
     public function messages(): array
     {

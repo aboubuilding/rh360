@@ -133,6 +133,7 @@
 <div class="tab-content">
     <div class="tab-pane fade show active" id="tab-identite">
         @include('contrats.contrats.partials._identite')
+        @include('contrats.contrats.partials._cdd-remplacement')
     </div>
     <div class="tab-pane fade" id="tab-conditions">
         @include('contrats.contrats.partials._conditions')

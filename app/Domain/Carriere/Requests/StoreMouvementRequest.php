@@ -40,6 +40,10 @@ class StoreMouvementRequest extends FormRequest
             'date_fin_prevue' => ['nullable', 'date', 'after:date_effet'],
 
             'reference_acte' => ['nullable', 'string', 'max:255'],
+
+            // RG-INF-02 — affectation définitive à un poste inférieur : consultation des délégués du personnel
+            'date_consultation_delegues' => ['nullable', 'date'],
+            'pv_consultation' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:8192'],
             'type_source' => ['nullable', 'string', 'max:120'],
             'reference_source' => ['nullable', 'string', 'max:255'],
         ];

@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 
 class StoreContratRequest extends FormRequest
 {
+    use ValideCddRemplacement;
+
     public function authorize(): bool
     {
         return $this->user()->peut('contrats.manage');
@@ -33,8 +35,19 @@ class StoreContratRequest extends FormRequest
             'position_classification_id' => ['required', 'exists:positions_classification,id'],
             'conditions' => ['nullable', 'array'],
             'regle_figee' => ['nullable', 'array'],
-        ];
+        ] + $this->reglesCdd();
     }
+
+    protected function contratParent(): ?\App\Domain\Contrats\Models\Contrat
+    {
+        return null;
+    }
+
+    protected function salarieConcerne(): ?int
+    {
+        return $this->integer('salarie_id') ?: null;
+    }
+
 
     public function messages(): array
     {

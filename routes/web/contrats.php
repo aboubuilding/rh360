@@ -73,6 +73,9 @@ Route::middleware('auth')->prefix('contrats')->name('contrats.')->group(function
         ->name('contrats.annuler');
     Route::post('{contrat}/signer', [ContratController::class, 'signer'])
         ->name('contrats.signer');
+    // RG-REM-04 — motif de fin et refus d'un CDI équivalent (indemnité de fin de contrat)
+    Route::post('{contrat}/fin-cdd', \App\Http\Controllers\Contrats\FinCddController::class)
+        ->name('contrats.fin-cdd');
 
     // Pièces
     Route::post('{contrat}/pieces', [PieceContratController::class, 'store'])

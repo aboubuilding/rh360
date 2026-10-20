@@ -134,6 +134,24 @@ class CatalogueParametresInterim
                 'type' => 'entier', 'min' => 1,
                 'reference' => self::NON_TRANCHE,
             ],
+            'cdd_duree_initiale_max_mois' => [
+                'groupe' => 'CDD de remplacement',
+                'libelle' => 'Durée initiale maximale d\'un CDD (mois)',
+                'type' => 'entier', 'min' => 1,
+                'reference' => 'Code du travail, art. 48',
+            ],
+            'cdd_duree_totale_max_mois' => [
+                'groupe' => 'CDD de remplacement',
+                'libelle' => 'Durée totale maximale d\'un CDD, renouvellements compris (mois)',
+                'type' => 'entier', 'min' => 1,
+                'reference' => 'Code du travail, art. 48',
+            ],
+            'cdd_anciennete_indemnite_mois' => [
+                'groupe' => 'CDD de remplacement',
+                'libelle' => 'CDD consécutifs ouvrant droit à l\'indemnité de fin de contrat (mois)',
+                'type' => 'entier', 'min' => 1,
+                'reference' => 'Code du travail, art. 54, 55',
+            ],
             'alerte_pieces_pret_jours' => [
                 'groupe' => 'Prêt de main-d\'œuvre',
                 'libelle' => 'Alerte si les trois pièces ne sont pas réunies avant le début du prêt (jours)',
