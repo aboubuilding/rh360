@@ -64,16 +64,20 @@ class MoteurPaie
         }
 
         return DB::transaction(function () use ($periode) {
+            // Les anomalies sont celles du dernier calcul.
+            AnomaliePaie::pourEntreprise($periode->entreprise_id)->where('periode_id', $periode->id)->delete();
+
             // RG-INT-06 / RG-INT-07 — indemnité et avantages d'intérim, recalculés en saisies de la période.
             $rapportInterims = app(PreparateurPaieInterims::class)->preparer($periode);
             // RG-INF-01 à 03 / RG-REM-04 — maintien de salaire et indemnité de fin de CDD.
             $rapportConnexes = app(PreparateurPaieReglesConnexes::class)->preparer($periode);
+            // Absences du mois : neutralisations du salaire, allocation de congé, maintiens maladie et maternité.
+            foreach (app(PreparateurPaieAbsences::class)->preparer($periode) as $anomalie) {
+                AnomaliePaie::create($anomalie + ['entreprise_id' => $periode->entreprise_id, 'periode_id' => $periode->id, 'gravite' => AnomaliePaie::ALERTE, 'code' => 'absence']);
+            }
 
             $dateFinPeriode = Carbon::createFromDate($periode->annee, $periode->mois, 1)->endOfMonth()->startOfDay();
             $this->rubriques = RubriquePaie::pourEntreprise($periode->entreprise_id)->pluck('id', 'code')->all();
-
-            // Les anomalies sont celles du dernier calcul.
-            AnomaliePaie::pourEntreprise($periode->entreprise_id)->where('periode_id', $periode->id)->delete();
 
             $salaries = Salarie::where('entreprise_id', $periode->entreprise_id)
                 ->where('actif', true)

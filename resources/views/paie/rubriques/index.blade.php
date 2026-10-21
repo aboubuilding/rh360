@@ -48,7 +48,7 @@
                 <tr>
                     <th>Code</th>
                     <th>Nom</th>
-                    <th>Nature</th>
+                    <th>Effet sur le salaire</th>
                     <th>Récurrence</th>
                     <th class="text-end">Taux</th>
                     <th class="text-end">Montant déf.</th>
@@ -63,9 +63,12 @@
                         <td><code>{{ $r->code }}</code></td>
                         <td><strong>{{ $r->nom }}</strong></td>
                         <td>
-                            <span class="badge bg-{{ $r->nature?->couleur() ?? 'secondary' }}">
-                                {{ $r->nature?->libelle() }}
-                            </span>
+                            @php $effet = $r->effetSalaire(); @endphp
+                            <span class="badge bg-{{ $effet['couleur'] }} fs-6" aria-hidden="true">{{ $effet['signe'] }}</span>
+                            <span class="small">{{ $effet['libelle'] }}</span>
+                            @if($r->type_retenue)
+                                <div class="small text-muted">{{ $r->type_retenue->libelle() }}</div>
+                            @endif
                         </td>
                         <td>{{ $r->recurrence?->libelle() }}</td>
                         <td class="text-end">{{ number_format($r->taux, 2) }} %</td>
@@ -99,6 +102,8 @@
                                                         'nom' => $r->nom,
                                                         'description' => $r->description,
                                                         'nature' => $r->nature?->value,
+                                                        'effet' => $r->effet(),
+                                                        'type_retenue' => $r->type_retenue?->value,
                                                         'recurrence' => $r->recurrence?->value,
                                                         'mode_calcul' => $r->mode_calcul?->value,
                                                         'taux' => $r->taux,

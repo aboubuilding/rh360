@@ -15,13 +15,16 @@ class ParametreLegalPaie extends Model
 
     protected $table = 'parametres_legaux_paie';
 
-    public const LIBELLES = ['smig' => 'SMIG mensuel (FCFA)'];
+    public const LIBELLES = [
+        'smig' => 'SMIG mensuel (FCFA)',
+        'quotite_saisissable' => 'Quotité saisissable et cessible (tranches)',
+    ];
 
-    protected $fillable = ['entreprise_id', 'cle', 'valeur', 'debut_effet', 'commentaire'];
+    protected $fillable = ['entreprise_id', 'cle', 'valeur', 'valeur_json', 'debut_effet', 'commentaire'];
 
     protected function casts(): array
     {
-        return ['valeur' => 'decimal:4', 'debut_effet' => 'date'];
+        return ['valeur' => 'decimal:4', 'valeur_json' => 'array', 'debut_effet' => 'date'];
     }
 
     // Valeur en vigueur à une date : la version la plus récente dont l'effet a commencé.
@@ -34,5 +37,15 @@ class ParametreLegalPaie extends Model
             ->value('valeur');
 
         return $valeur === null ? null : (float) $valeur;
+    }
+
+    /** @return array<int, mixed>|null valeur structurée en vigueur à une date (barème…) */
+    public static function valeurJson(int $entrepriseId, string $cle, CarbonInterface $date): ?array
+    {
+        return static::pourEntreprise($entrepriseId)
+            ->where('cle', $cle)
+            ->where('debut_effet', '<=', $date->toDateString())
+            ->orderByDesc('debut_effet')
+            ->first()?->valeur_json;
     }
 }

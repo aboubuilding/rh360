@@ -12,6 +12,17 @@ class StoreModelePaieRequest extends FormRequest
         return $this->user()->peut('paie.manage');
     }
 
+    // Les lignes laissées vides (aucune rubrique choisie) sont ignorées.
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'rubriques' => collect($this->input('rubriques', []))
+                ->filter(fn ($l) => is_array($l) && ! empty($l['rubrique_id']))
+                ->values()
+                ->all(),
+        ]);
+    }
+
     public function rules(): array
     {
         $modeleId = $this->route('modele')?->id;
@@ -26,7 +37,8 @@ class StoreModelePaieRequest extends FormRequest
             'nom' => ['required', 'string', 'max:255'],
             'actif' => ['boolean'],
             'rubriques' => ['nullable', 'array'],
-            'rubriques.*.rubrique_id' => ['required', 'exists:rubriques_paie,id'],
+            // Une rubrique ne figure qu'une fois dans un modèle.
+            'rubriques.*.rubrique_id' => ['required', 'distinct', Rule::exists('rubriques_paie', 'id')->where('entreprise_id', $this->user()->entreprise_id)],
             'rubriques.*.montant_defaut' => ['nullable', 'numeric', 'min:0'],
             'rubriques.*.obligatoire' => ['boolean'],
             'rubriques.*.ordre' => ['nullable', 'integer', 'min:0'],
@@ -43,6 +55,7 @@ class StoreModelePaieRequest extends FormRequest
             'nom.max' => 'Le nom ne doit pas dépasser 255 caractères.',
             'rubriques.*.rubrique_id.required' => 'La rubrique est obligatoire.',
             'rubriques.*.rubrique_id.exists' => 'Une rubrique sélectionnée n\'existe pas.',
+            'rubriques.*.rubrique_id.distinct' => 'Cette rubrique figure déjà dans le modèle.',
             'rubriques.*.montant_defaut.numeric' => 'Le montant par défaut doit être un nombre.',
             'rubriques.*.ordre.integer' => 'L\'ordre doit être un entier.',
         ];

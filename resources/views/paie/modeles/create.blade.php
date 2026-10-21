@@ -42,7 +42,7 @@
                         <select name="rubriques[0][rubrique_id]" class="form-select">
                             <option value="">— Choisir —</option>
                             @foreach($rubriques as $r)
-                                <option value="{{ $r->id }}">{{ $r->code }} — {{ $r->nom }}</option>
+                                <option value="{{ $r->id }}">({{ $r->effetSalaire()['signe'] }}) {{ $r->code }} — {{ $r->nom }}</option>
                             @endforeach
                         </select>
                     </div>

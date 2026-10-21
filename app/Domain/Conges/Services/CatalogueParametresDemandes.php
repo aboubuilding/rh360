@@ -104,6 +104,13 @@ class CatalogueParametresDemandes
                 'reference' => 'Code art. 202 ; CCIT art. 49 c',
             ],
 
+            'conge_comparaison_maintien' => [
+                'groupe' => 'Congé payé',
+                'libelle' => 'Verser au moins le salaire maintenu si l\'allocation de congé lui est inférieure',
+                'type' => 'booleen',
+                'reference' => 'Code art. 202',
+            ],
+
             // --- Permissions exceptionnelles ---
             'permissions_plafond_annuel' => [
                 'groupe' => 'Permissions exceptionnelles',

@@ -180,3 +180,34 @@ it('ne recalcule pas une période validée, dont les bulletins restent télécha
         ->assertRedirect(route('paie.generation.index', ['periode' => $this->periode->id]))->assertSessionHas('error');
     $this->get(route('paie.generation.telecharger', $this->periode))->assertOk();
 });
+
+// --- Modification d'un modèle existant ---
+
+it('modifie un modèle existant : rubriques ajoutées, retirées et montants changés', function () {
+    $this->get(route('paie.modeles.edit', $this->modeleA))->assertOk()
+        ->assertSee('Enregistrer les modifications')->assertSee($this->modeleA->nom)->assertSee('name="_method" value="PUT"', false);
+
+    $lignes = [
+        // Logement conservé avec un nouveau montant, prime de rendement ajoutée, transport retiré ; ligne vide ignorée.
+        ['rubrique_id' => ($this->rubrique)('PRIME-LOGT')->id, 'montant_defaut' => 35000, 'ordre' => 10],
+        ['rubrique_id' => ($this->rubrique)('PRIME-REND')->id, 'montant_defaut' => 5000, 'ordre' => 20],
+        ['rubrique_id' => '', 'montant_defaut' => 0, 'ordre' => 30],
+    ];
+    $this->putJson(route('paie.modeles.update', $this->modeleA), [
+        'nom' => 'Modèle remanié', 'categorie_id' => $this->categorieA, 'actif' => 1, 'rubriques' => $lignes,
+    ])->assertOk();
+
+    $modele = $this->modeleA->fresh('rubriques.rubrique');
+    expect($modele->nom)->toBe('Modèle remanié');
+    expect($modele->rubriques->mapWithKeys(fn ($l) => [$l->rubrique->code => (float) $l->montant_defaut])->sortKeys()->all())
+        ->toBe(['PRIME-LOGT' => 35000.0, 'PRIME-REND' => 5000.0]);
+
+    ($this->calculer)();
+    expect((float) ($this->montant)($this->a, 'PRIME-LOGT'))->toBe(35000.0);
+
+    // Une rubrique en double est refusée.
+    $this->putJson(route('paie.modeles.update', $this->modeleA), [
+        'nom' => 'Modèle remanié', 'categorie_id' => $this->categorieA, 'actif' => 1,
+        'rubriques' => [$lignes[0], $lignes[0]],
+    ])->assertStatus(422)->assertJsonValidationErrors(['rubriques.1.rubrique_id']);
+});

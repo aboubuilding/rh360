@@ -45,6 +45,9 @@ return [
     // Allocation de congé : rubriques exclues de la rémunération de référence (primes de
     // rendement et remboursements de frais, Code art. 202 ; CCIT art. 49 c).
     'conge_allocation_rubriques_exclues' => 'PRIME-REND,PRIME-TRANSP',
+    // L'allocation de congé n'est jamais inférieure au maintien du salaire des jours de congé
+    // (Code art. 202 : « sauf dispositions plus favorables »).
+    'conge_comparaison_maintien' => true,
 
     // --- Permissions exceptionnelles (CCIT art. 50 ; Code art. 200) ---
     // Plafond annuel des permissions non déductibles : aucun selon la CCIT (le Code en fixe 10).

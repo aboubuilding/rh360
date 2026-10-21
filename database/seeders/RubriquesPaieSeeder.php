@@ -193,6 +193,12 @@ class RubriquesPaieSeeder extends Seeder
             ],
         ];
 
+        // Cas de retenue autorisé par la loi (Code art. 173), pour chaque retenue et cotisation.
+        $typesRetenue = ['CNSS' => 'obligatoire', 'AMU' => 'obligatoire', 'IRPP' => 'obligatoire', 'AVANCE' => 'acompte', 'PRET' => 'cession'];
+        foreach ($rubriques as $i => $r) {
+            $rubriques[$i]['type_retenue'] = $typesRetenue[$r['code']] ?? null;
+        }
+
         foreach ($rubriques as $r) {
             RubriquePaie::updateOrCreate(
                 ['entreprise_id' => $entrepriseId, 'code' => $r['code']],
@@ -202,6 +208,9 @@ class RubriquesPaieSeeder extends Seeder
                 ])
             );
         }
+
+        // Rubriques des absences (congé payé, maladie, maternité, absences non rémunérées).
+        \App\Domain\Paie\Services\PreparateurPaieAbsences::installerRubriques($entrepriseId);
 
         $this->command->info(count($rubriques) . ' rubriques de paie créées.');
     }

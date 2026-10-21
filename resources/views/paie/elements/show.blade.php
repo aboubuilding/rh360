@@ -138,7 +138,7 @@
                     <form method="POST" action="{{ route('paie.elements.store', $salarie) }}">
                         @csrf
                         <x-field name="rubrique_id" label="Rubrique" type="select" required
-                                 :options="[null => '—'] + $rubriques->mapWithKeys(fn ($r) => [$r->id => $r->nom.' ('.$r->code.')'])->all()" />
+                                 :options="[null => '—'] + $rubriques->mapWithKeys(fn ($r) => [$r->id => '('.$r->effetSalaire()['signe'].') '.$r->nom.' ('.$r->code.')'])->all()" />
                         <x-field name="montant" label="Montant mensuel (FCFA)" type="number" />
                         <div class="row g-2">
                             <div class="col-6"><x-field name="debut" label="Du" type="date" /></div>

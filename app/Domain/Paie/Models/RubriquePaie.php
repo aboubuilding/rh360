@@ -21,7 +21,7 @@ class RubriquePaie extends Model
 
     protected $fillable = [
         'entreprise_id', 'code', 'nom', 'description',
-        'nature', 'recurrence', 'mode_calcul',
+        'nature', 'type_retenue', 'recurrence', 'mode_calcul',
         'taux', 'montant_defaut',
         'imposable', 'traitement_fiscal', 'pourcentage_imposable',
         'methode_evaluation', 'justificatif_requis', 'reference_fiscale',
@@ -40,6 +40,7 @@ class RubriquePaie extends Model
             'est_frais' => 'boolean',
             'actif' => 'boolean',
             'nature' => NatureRubrique::class,
+            'type_retenue' => \App\Domain\Paie\Enums\TypeRetenue::class,
             'recurrence' => RecurrenceRubrique::class,
             'mode_calcul' => ModeCalculRubrique::class,
             'traitement_fiscal' => TraitementFiscal::class,
@@ -108,5 +109,34 @@ class RubriquePaie extends Model
     public function estVariable(): bool
     {
         return $this->recurrence === RecurrenceRubrique::VARIABLE;
+    }
+
+    // Rubriques qui neutralisent le salaire de jours non payés ou remplacés (montant négatif sur le brut).
+    public const NEUTRALISATIONS = ['ABS-RET', 'CONGE-RET', 'MAL-RET', 'MAT-RET'];
+
+    /**
+     * Effet de la rubrique sur le salaire, affiché avant de l'ajouter à un modèle ou à un bulletin.
+     *
+     * @return array{signe: string, libelle: string, couleur: string}
+     */
+    public function effetSalaire(): array
+    {
+        return match (true) {
+            in_array($this->code, self::NEUTRALISATIONS, true) => ['signe' => '−', 'libelle' => 'Retranche du salaire brut (jours non payés ou remplacés)', 'couleur' => 'danger'],
+            $this->nature === NatureRubrique::GAIN && $this->est_frais => ['signe' => '+', 'libelle' => 'Ajoutée au net à payer, hors brut et hors cotisations (remboursement de frais)', 'couleur' => 'info'],
+            $this->nature === NatureRubrique::GAIN => ['signe' => '+', 'libelle' => 'Ajoute au salaire brut', 'couleur' => 'success'],
+            $this->nature === NatureRubrique::COTISATION => ['signe' => '−', 'libelle' => 'Retranche du salaire (cotisation salariale)', 'couleur' => 'warning'],
+            $this->nature === NatureRubrique::COTISATION_PATRONALE => ['signe' => '0', 'libelle' => 'À la charge de l\'employeur, ne change pas le salaire', 'couleur' => 'secondary'],
+            default => ['signe' => '−', 'libelle' => 'Retranche du net à payer (retenue)', 'couleur' => 'danger'],
+        };
+    }
+
+    // « Effet » du formulaire : gain, remboursement de frais, retenue ou cotisation.
+    public function effet(): string
+    {
+        return match (true) {
+            $this->nature === NatureRubrique::GAIN && $this->est_frais => 'frais',
+            default => $this->nature?->value ?? 'gain',
+        };
     }
 }

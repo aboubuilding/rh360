@@ -24,9 +24,20 @@
                             <x-field name="description" label="Description" type="textarea" rows="2" />
                         </div>
 
-                        <div class="col-md-4">
-                            <x-field name="nature" label="Nature" type="select" required
-                                     :options="\App\Domain\Paie\Enums\NatureRubrique::options()" />
+                        {{-- Effet sur le salaire : connu avant d'ajouter la rubrique à un modèle ou à un bulletin. --}}
+                        <div class="col-md-8">
+                            <x-field name="effet" label="Effet sur le salaire" type="select" required
+                                     :options="[
+                                         'gain' => '➕ Gain : ajoute au salaire brut',
+                                         'frais' => '➕ Remboursement de frais : ajouté au net, hors brut et hors cotisations',
+                                         'retenue' => '➖ Retenue : retranchée du net à payer',
+                                         'cotisation' => '➖ Cotisation salariale : retranchée du salaire',
+                                     ]" />
+                            <div class="small mt-n2 mb-2" id="aide-effet"></div>
+                        </div>
+                        <div class="col-md-4 js-champ-type-retenue">
+                            <x-field name="type_retenue" label="Cas de retenue autorisé" type="select"
+                                     :options="[null => '—'] + \App\Domain\Paie\Enums\TypeRetenue::options()" />
                         </div>
                         <div class="col-md-4">
                             <x-field name="recurrence" label="Récurrence" type="select" required
@@ -85,3 +96,25 @@
         </form>
     </div>
 </div>
+
+@push('js')
+<script>
+$(function () {
+    const aides = {
+        gain: ['text-success', 'Le montant s\'ajoute au salaire brut : il entre dans les cotisations et l\'impôt selon les cases cochées.'],
+        frais: ['text-info', 'Le montant est versé avec le salaire mais reste hors du brut, des cotisations, de l\'impôt et de l\'allocation de congé.'],
+        retenue: ['text-danger', 'Le montant est retranché du net à payer. Seuls les cas prévus par la loi sont admis : choisissez-en un.'],
+        cotisation: ['text-warning', 'Le montant est retranché du salaire au titre d\'une cotisation salariale.'],
+    };
+    function majEffet() {
+        const effet = $('#form-rubrique [name="effet"]').val();
+        const [classe, texte] = aides[effet] || ['', ''];
+        $('#aide-effet').attr('class', 'small mt-n2 mb-2 ' + classe).text(texte);
+        $('.js-champ-type-retenue').toggle(effet === 'retenue');
+    }
+    $(document).on('change', '#form-rubrique [name="effet"]', majEffet);
+    $(document).on('shown.bs.modal', '#modal-rubrique', majEffet);
+    majEffet();
+});
+</script>
+@endpush

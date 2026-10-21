@@ -16,6 +16,19 @@ class StoreRubriquePaieRequest extends FormRequest
         return $this->user()->peut('paie.manage');
     }
 
+    // « Effet sur le salaire » : gain, remboursement de frais, retenue ou cotisation.
+    protected function prepareForValidation(): void
+    {
+        $effet = $this->input('effet');
+        if ($effet) {
+            $this->merge([
+                'nature' => $effet === 'frais' ? NatureRubrique::GAIN->value : $effet,
+                'est_frais' => $effet === 'frais',
+                'type_retenue' => $effet === 'retenue' ? $this->input('type_retenue') : null,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $rubriqueId = $this->route('rubrique')?->id;
@@ -29,7 +42,11 @@ class StoreRubriquePaieRequest extends FormRequest
             ],
             'nom' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'effet' => ['required', Rule::in(['gain', 'frais', 'retenue', 'cotisation'])],
             'nature' => ['required', Rule::in(array_column(NatureRubrique::cases(), 'value'))],
+            'est_frais' => ['boolean'],
+            // Une retenue n'est admise que dans les cas prévus par la loi (Code art. 173 et 175).
+            'type_retenue' => ['nullable', 'required_if:nature,retenue', Rule::enum(\App\Domain\Paie\Enums\TypeRetenue::class)],
             'recurrence' => ['required', Rule::in(array_column(RecurrenceRubrique::cases(), 'value'))],
             'mode_calcul' => ['required', Rule::in(array_column(ModeCalculRubrique::cases(), 'value'))],
             'taux' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -53,6 +70,8 @@ class StoreRubriquePaieRequest extends FormRequest
             'code.max' => 'Le code ne doit pas dépasser 80 caractères.',
             'nom.required' => 'Le nom est obligatoire.',
             'nom.max' => 'Le nom ne doit pas dépasser 255 caractères.',
+            'effet.required' => 'Précisez l\'effet de la rubrique sur le salaire.',
+            'type_retenue.required_if' => 'Une retenue doit correspondre à un cas prévu par la loi : choisissez-le.',
             'nature.required' => 'La nature est obligatoire.',
             'nature.in' => 'La nature sélectionnée est invalide.',
             'recurrence.required' => 'La récurrence est obligatoire.',
