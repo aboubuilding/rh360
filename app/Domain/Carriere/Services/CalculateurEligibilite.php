@@ -109,6 +109,9 @@ class CalculateurEligibilite
             'salarie' => $salarie,
             'position_actuelle_libelle' => $position->libelleComplet(),
             'categorie_suivante' => $horsCategorie ? null : $categorieSuivante->libelle,
+            // Catégorie cible : la suivante, ou le hors catégorie de la classe s'il existe.
+            'categorie_cible_id' => $categorieSuivante?->id,
+            'position_actuelle_id' => $position->id,
             'hors_categorie' => $horsCategorie,
             'date_reference' => Carbon::parse($reference)->format('Y-m-d'),
             'ouverture' => $ouverture->format('Y-m-d'),

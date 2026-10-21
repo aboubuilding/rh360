@@ -22,6 +22,8 @@ class MouvementCarriereFactory extends Factory
             'type_mouvement' => TypeMouvement::AFFECTATION->value,
             'statut' => StatutMouvement::BROUILLON->value,
             'date_proposition' => now(),
+            // Notification écrite préalable à la prise d'effet (CCIT art. 12 ; Code art. 71).
+            'date_notification' => now(),
             'type_source' => 'manual',
             'cree_par' => 1,
             'etat' => 1,

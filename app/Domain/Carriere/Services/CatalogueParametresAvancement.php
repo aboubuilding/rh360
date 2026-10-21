@@ -42,6 +42,13 @@ class CatalogueParametresAvancement
                 'reference' => 'CCIT art. 10, 40',
             ],
 
+            'exiger_notification_prealable' => [
+                'groupe' => 'Avancement d\'échelon',
+                'libelle' => 'Refuser la prise d\'effet d\'un acte non notifié par écrit au salarié',
+                'type' => 'booleen',
+                'reference' => 'CCIT art. 12 ; Code art. 71',
+            ],
+
             // --- Avancement de catégorie et de classe ---
             'fenetre_categorie_attente_mois' => [
                 'groupe' => 'Avancement de catégorie et de classe',

@@ -9,6 +9,8 @@ use App\Domain\Carriere\Models\MouvementCarriere;
 use App\Domain\Carriere\Models\SituationCarriere;
 use App\Domain\Classification\Models\PositionClassification;
 use App\Domain\Interim\Services\ControleEmploiInferieur;
+use App\Domain\Carriere\Services\ControleAvancement;
+use App\Domain\Carriere\Services\ParametresAvancement;
 use App\Domain\Personnel\Models\Affectation;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +31,9 @@ class AppliqueurMouvement
                 "Le mouvement {$mouvement->numero_mouvement} n'est pas prêt à être appliqué."
             );
         }
+
+        // Notification écrite préalable à la prise d'effet.
+        app(ControleAvancement::class)->verifierNotification($mouvement);
 
         return DB::transaction(function () use ($mouvement) {
             // 1. Capturer l'état AVANT
@@ -147,6 +152,10 @@ class AppliqueurMouvement
         // RG-INF-01 / RG-INF-02 — classement maintenu pendant une affectation à un emploi inférieur.
         app(ControleEmploiInferieur::class)->verifierClassement($mouvement, $nouvelle);
 
+        // Pas de saut d'échelon ni de catégorie, pas de baisse, changement de classe motivé, fenêtre de catégorie.
+        $controle = app(ControleAvancement::class);
+        $controle->verifierPosition($mouvement, $ancienne, $nouvelle);
+
         // Seules les dimensions qui changent prennent la date d'effet de l'acte :
         // un avancement d'échelon ne remet pas à zéro l'ancienneté de catégorie ou de classe.
         $dates = [];
@@ -156,7 +165,9 @@ class AppliqueurMouvement
         if (! $ancienne || $ancienne->classe_id !== $nouvelle?->classe_id) {
             $dates['date_effet_classe'] = $mouvement->date_effet;
         }
-        if (! $ancienne || $ancienne->echelon_id !== $nouvelle?->echelon_id) {
+        if (! $ancienne || $ancienne->echelon_id !== $nouvelle?->echelon_id
+            || (isset($dates['date_effet_categorie']) && app(ParametresAvancement::class)->get('reinitialiser_anciennete_echelon'))) {
+            // Après un changement de catégorie ou de classe, l'ancienneté d'échelon repart de zéro (paramètre).
             $dates['date_effet_echelon'] = $mouvement->date_effet;
         }
         if ($dates) {
@@ -172,6 +183,9 @@ class AppliqueurMouvement
             'enregistre_par' => auth()->id(),
             'enregistre_le' => now(),
         ]);
+
+        // Salaire de base au moins égal au minimum de la nouvelle position, jamais baissé.
+        $controle->alignerSalaireMinimum($mouvement, $nouvelle);
     }
 
     /**

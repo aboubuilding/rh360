@@ -26,7 +26,8 @@ class GenerateurInstantane
      */
     public function enregistrer(MouvementCarriere $mouvement, array $avant, array $apres): InstantaneCarriere
     {
-        return InstantaneCarriere::updateOrCreate(
+        // Historique de carrière immuable : un instantané est écrit une seule fois.
+        return InstantaneCarriere::firstOrCreate(
             ['mouvement_id' => $mouvement->id],
             [
                 'entreprise_id' => $mouvement->entreprise_id,

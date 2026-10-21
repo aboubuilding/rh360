@@ -23,6 +23,10 @@ return [
     // Périodes déduites de l'ancienneté d'échelon : celles de l'ancienneté utile (« idem_prime ») ou aucune.
     'periodes_avancement' => 'idem_prime',
 
+    // Toute modification d'un élément du contrat est notifiée par écrit avant sa prise d'effet
+    // (CCIT art. 12 ; Code art. 71) : la prise d'effet d'un acte non notifié est refusée.
+    'exiger_notification_prealable' => true,
+
     // --- Avancement de catégorie (CCIT art. 33) ---
     // Fenêtre : au moins 1 an et au plus 2 ans après 2 ans d'ancienneté dans le dernier échelon.
     'fenetre_categorie_attente_mois' => 24,

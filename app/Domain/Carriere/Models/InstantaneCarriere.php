@@ -29,6 +29,14 @@ class InstantaneCarriere extends Model
         ];
     }
 
+    // Historique de carrière immuable : un instantané n'est jamais modifié ni supprimé ;
+    // une correction passe par un nouvel acte de carrière.
+    protected static function booted(): void
+    {
+        static::updating(fn () => throw new \DomainException('L\'historique de carrière ne peut pas être modifié : enregistrer un nouvel acte.'));
+        static::deleting(fn () => throw new \DomainException('L\'historique de carrière ne peut pas être supprimé.'));
+    }
+
     public function mouvement(): BelongsTo
     {
         return $this->belongsTo(MouvementCarriere::class, 'mouvement_id');

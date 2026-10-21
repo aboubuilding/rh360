@@ -269,6 +269,7 @@ class PretMainOeuvreService
                     'statut' => StatutMouvement::PROGRAMME->value,
                     'date_proposition' => now(),
                     'date_effet' => $dateRetour,
+                    'date_notification' => today(),
                     'poste_depart_id' => $posteOrigine->id,
                     'structure_cible_id' => $posteRetour->structure_id,
                     'poste_cible_id' => $posteRetour->id,

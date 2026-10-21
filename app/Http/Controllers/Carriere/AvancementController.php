@@ -69,6 +69,9 @@ class AvancementController extends Controller
             }
         }
 
+        // Avancements de catégorie et hors catégorie dont la fenêtre est ouverte.
+        $crees += app(\App\Domain\Carriere\Services\PropositionsAvancementCategorie::class)->preparer($entrepriseId, $jours);
+
         if ($request->expectsJson()) {
             return response()->json(['message' => "{$crees} proposition(s) d'avancement créée(s)."]);
         }

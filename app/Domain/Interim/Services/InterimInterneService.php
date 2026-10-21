@@ -382,6 +382,8 @@ class InterimInterneService
             'statut' => StatutMouvement::PROGRAMME->value,
             'date_proposition' => now(),
             'date_decision' => today(),
+            // La décision de reclassement, avec sa pièce, vaut notification écrite au salarié.
+            'date_notification' => today(),
             'date_effet' => $dateEffet,
             'position_classification_depart_id' => $situationPosition?->id,
             'position_classification_cible_id' => $position->id,
