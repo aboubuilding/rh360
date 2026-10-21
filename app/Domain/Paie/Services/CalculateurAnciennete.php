@@ -140,9 +140,11 @@ class CalculateurAnciennete
             return null;
         }
 
+        // Règles versionnées : la plus récente en vigueur à la date s'applique.
         return RegleAnciennete::query()
             ->where('entreprise_id', $salarie->entreprise_id)
             ->enVigueur($date)
+            ->orderByDesc('debut_effet')
             ->first();
     }
 

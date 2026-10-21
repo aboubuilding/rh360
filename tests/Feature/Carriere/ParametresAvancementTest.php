@@ -239,3 +239,29 @@ it('enregistre une règle d\'ancienneté avec son mode de calcul et sa base', fu
     expect($regle->mode_taux)->toBe('ccit_multiplicatif');
     expect($regle->mode_base)->toBe('echelon_salarie');
 });
+
+// --- Règle d'ancienneté versionnée ---
+
+it('crée une nouvelle version datée de la règle d\'ancienneté et applique la version en vigueur', function () {
+    $this->salarie->update(['date_embauche' => '2016-01-01']);
+    RegleAnciennete::query()->update(['mode_base' => 'salary_base']);
+
+    $this->post(route('paie.parametres.anciennete.store'), [
+        'annees_min' => 2, 'taux_initial' => 2, 'increment_annuel' => 1, 'taux_max' => 5,
+        'mode_taux' => 'ccit_cumul', 'annee_debut_increment' => 4, 'mode_base' => 'salary_base',
+        'debut_effet' => '2027-01-01', 'actif' => '1',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    expect(RegleAnciennete::count())->toBe(2);
+    $calcul = app(CalculateurAnciennete::class);
+    // Fin 2026 : version d'origine, 10 ans → 9 %. Début 2027 : nouvelle version plafonnée à 5 %.
+    expect($calcul->calculerTaux($this->salarie, Carbon::parse('2026-12-31')))->toBe(9.0);
+    expect($calcul->calculerTaux($this->salarie, Carbon::parse('2027-01-31')))->toBe(5.0);
+
+    // Deux versions ne peuvent pas commencer à la même date.
+    $this->post(route('paie.parametres.anciennete.store'), [
+        'annees_min' => 2, 'taux_initial' => 2, 'increment_annuel' => 1, 'taux_max' => 35,
+        'mode_taux' => 'ccit_cumul', 'annee_debut_increment' => 4, 'mode_base' => 'salary_base',
+        'debut_effet' => '2027-01-01', 'actif' => '1',
+    ])->assertSessionHasErrors('debut_effet');
+});

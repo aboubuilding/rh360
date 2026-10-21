@@ -21,7 +21,10 @@ class StoreRegleAncienneteRequest extends FormRequest
             'mode_base' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Domain\Paie\Models\RegleAnciennete::MODES_BASE))],
             'mode_taux' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Domain\Paie\Models\RegleAnciennete::MODES_TAUX))],
             'annee_debut_increment' => ['nullable', 'integer', 'min:1', 'max:50', 'required_unless:mode_taux,lineaire'],
-            'debut_effet' => ['required', 'date'],
+            // Une version de règle par date de début d'effet.
+            'debut_effet' => ['required', 'date', \Illuminate\Validation\Rule::unique('regles_anciennete', 'debut_effet')
+                ->where('entreprise_id', $this->user()->entreprise_id)
+                ->ignore($this->route('regle')?->id)],
             'fin_effet' => ['nullable', 'date', 'after:debut_effet'],
             'reference_legale' => ['nullable', 'string', 'max:255'],
             'actif' => ['boolean'],
@@ -43,6 +46,7 @@ class StoreRegleAncienneteRequest extends FormRequest
             'taux_max.gte' => 'Le taux maximum doit être supérieur ou égal au taux initial.',
             'mode_base.required' => 'Le mode de base est obligatoire.',
             'debut_effet.required' => 'La date de début d\'effet est obligatoire.',
+            'debut_effet.unique' => 'Une règle d\'ancienneté commence déjà à cette date.',
             'fin_effet.after' => 'La date de fin doit être postérieure à la date de début.',
         ];
     }
