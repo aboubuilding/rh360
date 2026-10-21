@@ -19,6 +19,9 @@ Schedule::command('interims:appliquer-reclassements')->dailyAt('05:45');
 // Intérims — alertes J-15, 3e mois, passage à régulariser, maladie du titulaire (RG-INT-03 à 09, RG-REM-06)
 Schedule::command('interims:balayer')->dailyAt('06:15');
 
+// Avancements — distinctions honorifiques dues (10 à 35 ans de service)
+Schedule::command('avancements:distinctions')->dailyAt('06:30');
+
 
 // Lot 5 — Recalcul annuel des soldes de congés (1er janvier à minuit)
 Schedule::command('rh:recalculer-soldes-conges')

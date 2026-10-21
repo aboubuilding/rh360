@@ -47,6 +47,39 @@
     {{ count($echeances) }} salarié(s) dont l'avancement est échu ou à échéance sous {{ $jours }} jours.
 </div>
 
+@if($distinctions->isNotEmpty())
+    <div class="card mb-3">
+        <div class="card-header"><strong>Distinctions honorifiques dues</strong></div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr><th>Salarié</th><th>Ancienneté</th><th>Date</th><th class="text-end">Gratification</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach($distinctions as $d)
+                        <tr>
+                            <td><strong>{{ $d->salarie?->nom_complet }}</strong></td>
+                            <td>{{ $d->palier_annees }} ans</td>
+                            <td>{{ $d->date_anniversaire->format('d/m/Y') }}</td>
+                            <td class="text-end">{{ number_format($d->montant, 0, ',', ' ') }} FCFA
+                                <br><small class="text-muted">{{ rtrim(rtrim(number_format($d->mois, 1, ',', ' '), '0'), ',') }} mois × ({{ number_format($d->base, 0, ',', ' ') }} + {{ number_format($d->prime_anciennete, 0, ',', ' ') }})</small>
+                            </td>
+                            <td class="text-end">
+                                @can('permission', 'carriere.manage')
+                                    <form method="POST" action="{{ route('carriere.avancements.distinctions.verser', $d) }}">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-primary">Verser en paie</button>
+                                    </form>
+                                @endcan
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endif
+
 @if($fenetres !== [])
     <div class="card mb-3">
         <div class="card-header"><strong>Fenêtres d'avancement de catégorie</strong></div>

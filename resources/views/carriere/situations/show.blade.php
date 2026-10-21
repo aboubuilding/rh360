@@ -25,6 +25,7 @@
 <div class="row">
     <div class="col-md-6">
         @include('carriere.situations.partials._situation-courante')
+        @include('carriere.situations.partials._anciennete')
     </div>
     <div class="col-md-6">
         @include('carriere.situations.partials._chronologie')

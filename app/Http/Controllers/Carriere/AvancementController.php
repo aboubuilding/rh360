@@ -23,6 +23,8 @@ class AvancementController extends Controller
         return view('carriere.avancements.index', [
             'echeances' => $echeances,
             'fenetres' => $this->calculateur->fenetresCategorie($entrepriseId, $jours),
+            'distinctions' => \App\Domain\Carriere\Models\DistinctionHonorifique::with('salarie')
+                ->where('statut', 'due')->orderBy('date_anniversaire')->get(),
             'sansDate' => $sansDate,
             'jours' => $jours,
         ]);

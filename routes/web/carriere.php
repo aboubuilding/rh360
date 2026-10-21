@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Carriere\AgenceInterimController;
+use App\Http\Controllers\Carriere\AncienneteController;
 use App\Http\Controllers\Carriere\AvancementController;
 use App\Http\Controllers\Carriere\InterimController;
 use App\Http\Controllers\Carriere\MissionInterimController;
@@ -21,6 +22,8 @@ Route::middleware('auth')->prefix('carriere')->name('carriere.')->group(function
     // Situations
     Route::get('situations', [SituationCarriereController::class, 'index'])->name('situations.index');
     Route::get('situations/{salarie}', [SituationCarriereController::class, 'show'])->name('situations.show');
+    Route::post('situations/{salarie}/emplois-anterieurs', [AncienneteController::class, 'ajouterPeriode'])->name('situations.emplois-anterieurs.store');
+    Route::post('avancements/distinctions/{distinction}/verser', [AncienneteController::class, 'verserDistinction'])->name('avancements.distinctions.verser');
     Route::get('situations/{salarie}/reprendre', [SituationCarriereController::class, 'reprendre'])->name('situations.reprendre');
     Route::post('situations/{salarie}/reprendre', [SituationCarriereController::class, 'enregistrerReprise'])->name('situations.reprendre.store');
     Route::post('situations/{situation}/confirmer-fiabilite', [SituationCarriereController::class, 'confirmerFiabilite'])->name('situations.confirmer-fiabilite');

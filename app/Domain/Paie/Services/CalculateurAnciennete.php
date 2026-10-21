@@ -118,8 +118,15 @@ class CalculateurAnciennete
             return $position->salaire_minimum !== null ? (float) $position->salaire_minimum : $salaireReel;
         }
 
-        // Minimum de la catégorie : position de même catégorie (et classe) à l'échelon de référence,
-        // sinon la plus basse de la catégorie.
+        return $this->minimumCategorie($position) ?? $salaireReel;
+    }
+
+    /**
+     * Minimum de la catégorie d'une position : position de même catégorie (et classe) à l'échelon
+     * de référence, sinon la plus basse de la catégorie.
+     */
+    public function minimumCategorie(PositionClassification $position): ?float
+    {
         $positions = PositionClassification::withoutGlobalScopes()
             ->where('referentiel_id', $position->referentiel_id)
             ->where('categorie_id', $position->categorie_id)
@@ -131,7 +138,7 @@ class CalculateurAnciennete
         $reference = $positions->first(fn ($p) => $p->echelon?->code === $this->parametres->get('echelon_reference_prime'))
             ?? $positions->sortBy('salaire_minimum')->first();
 
-        return $reference ? (float) $reference->salaire_minimum : $salaireReel;
+        return $reference ? (float) $reference->salaire_minimum : null;
     }
 
     private function regle(Salarie $salarie, Carbon $date): ?RegleAnciennete

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Carriere\Services;
 
+use App\Domain\Carriere\Models\PeriodeEmploiAnterieure;
 use App\Domain\Conges\Enums\ImpactAnciennete;
 use App\Domain\Conges\Models\Absence;
 use App\Domain\Personnel\Models\Salarie;
@@ -37,7 +38,36 @@ class CalculateurAncienneteUtile
 
         $debut = Carbon::parse($salarie->date_embauche)->startOfDay();
 
-        return $debut->copy()->addDays($this->joursExclus($salarie, $debut, Carbon::parse($date)->startOfDay()));
+        return $debut->copy()
+            ->addDays($this->joursExclus($salarie, $debut, Carbon::parse($date)->startOfDay()))
+            ->subDays($this->joursEmploisAnterieurs($salarie));
+    }
+
+    /**
+     * Réembauche : jours des emplois précédents dans l'entreprise, en remontant tant que le départ
+     * précédent est d'un motif permettant le cumul (compression, suppression d'emploi, fermeture par
+     * départ de l'employeur sous les drapeaux, service militaire). Les intervalles entre les emplois
+     * ne comptent pas.
+     */
+    public function joursEmploisAnterieurs(Salarie $salarie): int
+    {
+        $periodes = PeriodeEmploiAnterieure::withoutGlobalScopes()
+            ->where('salarie_id', $salarie->id)
+            ->where('etat', 1)
+            ->where('date_fin', '<', $salarie->date_embauche)
+            ->orderByDesc('date_fin')
+            ->get();
+
+        $jours = 0;
+        foreach ($periodes as $periode) {
+            if (! $periode->motif_depart->cumulable()) {
+                break;
+            }
+            $total = (int) $periode->date_debut->diffInDays($periode->date_fin) + 1;
+            $jours += $total - $this->joursExclus($salarie, $periode->date_debut, $periode->date_fin);
+        }
+
+        return $jours;
     }
 
     /**
