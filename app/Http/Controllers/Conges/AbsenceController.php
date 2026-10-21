@@ -73,7 +73,14 @@ class AbsenceController extends Controller
     {
         $this->authorize('view', $absence);
         $absence->load(['salarie', 'typeConge', 'transmisPaiePar', 'creePar']);
-        return view('conges.absences.show', compact('absence'));
+
+        return view('conges.absences.show', [
+            'absence' => $absence,
+            // Régularisation d'une absence constatée sans demande (force majeure).
+            'demandeLiee' => \App\Domain\Conges\Models\DemandeConge::where('absence_id', $absence->id)->where('statut', '!=', 'cancelled')->latest('id')->first(),
+            'typesRegularisation' => \App\Domain\Conges\Models\TypeConge::where('actif', true)->where('code', '!=', 'ABS-NJ')->orderBy('nom')->get(),
+            'evenements' => \App\Domain\Conges\Models\EvenementPermission::where('actif', true)->orderBy('ordre')->get(),
+        ]);
     }
 
     public function qualifier(Request $request, Absence $absence, QualifierAbsence $action)

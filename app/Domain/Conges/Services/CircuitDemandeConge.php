@@ -4,6 +4,7 @@ namespace App\Domain\Conges\Services;
 
 use App\Domain\Conges\Enums\StatutDemandeConge;
 use App\Domain\Conges\Models\DemandeConge;
+use App\Domain\Conges\Models\HistoriqueDemande;
 use Illuminate\Support\Facades\DB;
 
 class CircuitDemandeConge
@@ -14,6 +15,7 @@ class CircuitDemandeConge
         DemandeConge $demande,
         StatutDemandeConge $cible,
         ?string $motif = null,
+        bool $automatique = false,
     ): DemandeConge {
         if (! $demande->statut->peutTransitionnerVers($cible)) {
             throw new \DomainException(
@@ -21,10 +23,20 @@ class CircuitDemandeConge
             );
         }
 
-        return DB::transaction(function () use ($demande, $cible, $motif) {
+        return DB::transaction(function () use ($demande, $cible, $motif, $automatique) {
             $avant = $demande->statut;
             $demande->statut = $cible;
             $demande->save();
+
+            HistoriqueDemande::create([
+                'entreprise_id' => $demande->entreprise_id,
+                'demande_id' => $demande->id,
+                'de_statut' => $avant->value,
+                'vers_statut' => $cible->value,
+                'automatique' => $automatique,
+                'acteur_id' => auth()->id(),
+                'motif' => $motif,
+            ]);
 
             // Resynchroniser le solde à chaque changement d'état
             $this->resynchroniserSolde($demande);

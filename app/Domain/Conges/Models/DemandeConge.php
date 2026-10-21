@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DemandeConge extends Model
 {
@@ -23,6 +24,9 @@ class DemandeConge extends Model
         'motif', 'remplacant', 'statut', 'date_decision',
         'reference_acte', 'date_acte',
         'cree_par', 'valide_par', 'etat',
+        'force_majeure', 'motif_force_majeure', 'evenement_permission_id', 'date_evenement',
+        'membre_foyer_id', 'echeance_justificatif', 'validation_automatique', 'absence_id',
+        'requalification', 'requalifiee_le',
     ];
 
     protected function casts(): array
@@ -33,6 +37,11 @@ class DemandeConge extends Model
             'date_reprise' => 'date',
             'date_decision' => 'date',
             'date_acte' => 'date',
+            'date_evenement' => 'date',
+            'echeance_justificatif' => 'date',
+            'requalifiee_le' => 'datetime',
+            'force_majeure' => 'boolean',
+            'validation_automatique' => 'boolean',
             'duree_jours' => 'decimal:2',
             'statut' => StatutDemandeConge::class,
         ];
@@ -58,6 +67,31 @@ class DemandeConge extends Model
     public function validePar(): BelongsTo
     {
         return $this->belongsTo(\App\Domain\Administration\Models\Utilisateur::class, 'valide_par');
+    }
+
+    public function evenement(): BelongsTo
+    {
+        return $this->belongsTo(EvenementPermission::class, 'evenement_permission_id');
+    }
+
+    public function membreFoyer(): BelongsTo
+    {
+        return $this->belongsTo(\App\Domain\Personnel\Models\MembreFoyer::class, 'membre_foyer_id');
+    }
+
+    public function absence(): BelongsTo
+    {
+        return $this->belongsTo(Absence::class, 'absence_id');
+    }
+
+    public function pieces(): HasMany
+    {
+        return $this->hasMany(PieceDemande::class, 'demande_id')->orderBy('recue_le');
+    }
+
+    public function historique(): HasMany
+    {
+        return $this->hasMany(HistoriqueDemande::class, 'demande_id')->orderBy('id');
     }
 
     // --- Scopes ---
@@ -117,6 +151,19 @@ class DemandeConge extends Model
         return $this->statut === StatutDemandeConge::EN_COURS
             && $this->date_reprise
             && $this->date_reprise->isPast();
+    }
+
+    public function aUnePieceConforme(): bool
+    {
+        return $this->pieces()->where('conforme', true)->exists();
+    }
+
+    // Justificatif attendu, non encore reçu conforme, et dont l'échéance est dépassée.
+    public function justificatifEnRetard(?\Carbon\Carbon $aujourdhui = null): bool
+    {
+        return $this->statut === StatutDemandeConge::ATTENTE_JUSTIFICATIF
+            && $this->echeance_justificatif !== null
+            && $this->echeance_justificatif->lt(($aujourdhui ?? today())->copy()->startOfDay());
     }
 
     public function joursDepuisDebut(): ?int

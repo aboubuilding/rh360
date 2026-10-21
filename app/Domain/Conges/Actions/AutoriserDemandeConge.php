@@ -31,6 +31,7 @@ class AutoriserDemandeConge
         ]);
 
         $demande = $this->circuit->transitionner($demande, StatutDemandeConge::AUTORISEE);
+        app(\App\Domain\Conges\Services\GestionJustificatifs::class)->qualifierAbsenceLiee($demande);
 
         event(new DemandeAutorisee($demande));
 

@@ -13,6 +13,7 @@ use App\Domain\Conges\Actions\RefuserDemandeConge;
 use App\Domain\Conges\Actions\SoumettreDemandeConge;
 use App\Domain\Conges\Enums\StatutDemandeConge;
 use App\Domain\Conges\Models\DemandeConge;
+use App\Domain\Conges\Models\EvenementPermission;
 use App\Domain\Conges\Models\TypeConge;
 use App\Domain\Conges\Requests\AnnulerDemandeCongeRequest;
 use App\Domain\Conges\Requests\AutoriserDemandeCongeRequest;
@@ -34,7 +35,7 @@ class DemandeCongeController extends Controller
         $query = DemandeConge::query()->with(['salarie', 'typeConge', 'validePar']);
 
         match ($vue) {
-            'a_traiter' => $query->where('statut', StatutDemandeConge::SOUMISE->value),
+            'a_traiter' => $query->whereIn('statut', [StatutDemandeConge::SOUMISE->value, StatutDemandeConge::ATTENTE_JUSTIFICATIF->value]),
             'programmes' => $query->programmees(),
             'en_cours' => $query->enCours(),
             'reprises_retard' => $query->reprisesEnRetard(),
@@ -70,6 +71,7 @@ class DemandeCongeController extends Controller
             'salarie' => $salarie,
             'salaries' => Salarie::orderBy('nom')->get(),
             'types' => TypeConge::where('actif', true)->orderBy('nom')->get(),
+            'evenements' => EvenementPermission::where('actif', true)->orderBy('ordre')->get(),
         ]);
     }
 
@@ -94,7 +96,7 @@ class DemandeCongeController extends Controller
     {
         $this->authorize('view', $demande);
 
-        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar']);
+        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar', 'evenement', 'pieces.controlePar', 'historique.acteur', 'absence']);
 
         // Charger le solde correspondant
         $solde = null;
@@ -118,6 +120,7 @@ class DemandeCongeController extends Controller
             // Le salarié d'une demande existante n'est pas modifiable : affiché en lecture seule
             'salarie' => $demande->salarie,
             'types' => TypeConge::where('actif', true)->orderBy('nom')->get(),
+            'evenements' => EvenementPermission::where('actif', true)->orderBy('ordre')->get(),
         ]);
     }
 
@@ -192,7 +195,14 @@ class DemandeCongeController extends Controller
     {
         $this->authorize('refuser', $demande);
 
-        $action->executer($demande, $request->motif);
+        try {
+            $action->executer($demande, $request->motif);
+        } catch (\DomainException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+            return back()->with('error', $e->getMessage());
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Demande refusée.']);

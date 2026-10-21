@@ -42,7 +42,16 @@ class CreerDemandeConge
             $donnees['cree_par'] = auth()->id();
             $donnees['etat'] = 1;
 
-            return DemandeConge::create($donnees);
+            $demande = DemandeConge::create($donnees);
+            \App\Domain\Conges\Models\HistoriqueDemande::create([
+                'entreprise_id' => $entrepriseId,
+                'demande_id' => $demande->id,
+                'vers_statut' => StatutDemandeConge::BROUILLON->value,
+                'acteur_id' => auth()->id(),
+                'motif' => $demande->force_majeure ? 'Demande de régularisation (force majeure).' : null,
+            ]);
+
+            return $demande;
         });
     }
 }

@@ -91,4 +91,46 @@
         </a>
     </div>
 </div>
+
+{{-- Absence constatée sans demande : régularisation par une demande (force majeure). --}}
+<div class="card mt-3">
+    <div class="card-header"><strong>Régularisation par une demande</strong></div>
+    <div class="card-body">
+        @if($demandeLiee)
+            Cette absence est régularisée par la demande
+            <a href="{{ route('conges.demandes.show', $demandeLiee) }}">{{ $demandeLiee->numero_demande }}</a>
+            <span class="badge bg-{{ $demandeLiee->statut->couleur() }}">{{ $demandeLiee->statut->libelle() }}</span>.
+        @elseif($absence->qualification?->value === 'en_attente')
+            @can('permission', 'conges.manage')
+                <p class="text-muted small">
+                    Si l'absence relève d'une absence autorisée (décès, maladie…) prise sans demande préalable,
+                    une demande est créée pour ses dates et soumise aussitôt. Le délai de remise du justificatif
+                    court depuis l'événement ou le premier jour d'absence.
+                </p>
+                <form method="POST" action="{{ route('conges.absences.regulariser-par-demande', $absence) }}" class="row g-2">
+                    @csrf
+                    <div class="col-12 col-md-6">
+                        <x-field name="type_conge_id" label="Type de demande" type="select" required
+                                 :options="[null => '—'] + $typesRegularisation->pluck('nom', 'id')->all()" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <x-field name="evenement_permission_id" label="Événement (permission exceptionnelle)" type="select"
+                                 :options="[null => '—'] + $evenements->mapWithKeys(fn ($e) => [$e->id => $e->libelle])->all()" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <x-field name="date_evenement" label="Date de l'événement" type="date" />
+                    </div>
+                    <div class="col-12">
+                        <x-field name="motif_force_majeure" label="Cas de force majeure" type="textarea" required />
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary"><i class="fas fa-file-signature"></i> Créer la demande de régularisation</button>
+                    </div>
+                </form>
+            @endcan
+        @else
+            <span class="text-muted">L'absence est déjà qualifiée.</span>
+        @endif
+    </div>
+</div>
 @endsection

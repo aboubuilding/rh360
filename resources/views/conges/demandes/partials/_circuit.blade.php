@@ -12,7 +12,11 @@
             $indexActuel = array_search($statutActuel, array_column($etapes, 'statut'));
         @endphp
 
-        @if(in_array($statutActuel, ['refused', 'cancelled']))
+        @if($statutActuel === 'awaiting_document')
+            @php $indexActuel = 0; @endphp
+        @endif
+
+        @if(in_array($statutActuel, ['refused', 'cancelled', 'requalified']))
             <div class="alert alert-danger">
                 <i class="fas fa-times-circle"></i>
                 Demande <strong>{{ $demande->statut->libelle() }}</strong>.

@@ -251,6 +251,18 @@ class InstallateurCatalogueDemandes
                 'plafond_base' => BasePlafond::SALARIE->value,
                 'report_credit_autorise' => false,
             ]),
+            // Absence sans justificatif, ou dont le justificatif n'a pas été remis dans le délai.
+            'ABS-NJ' => $type([
+                'nom' => 'Absence non justifiée',
+                'categorie' => CategorieTypeConge::ABSENCE->value,
+                'famille' => FamilleDemande::AUTRE->value,
+                'remunere' => false,
+                'justificatif_requis' => false,
+                'traitement_salarial' => TraitementSalarial::NON_REMUNERE->value,
+                'impact_conge_annuel' => ImpactCongeAnnuel::SUSPEND->value,
+                'impact_anciennete' => ImpactAnciennete::SUSPENDUE->value,
+                'de_droit' => false,
+            ]),
             // CCIT art. 6 §8 ; Code art. 65 k : sans solde, d'accord parties.
             'SYN-MANDAT' => $type([
                 'nom' => 'Congé pour mandat syndical',

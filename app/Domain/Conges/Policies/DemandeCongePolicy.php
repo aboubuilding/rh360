@@ -55,7 +55,16 @@ class DemandeCongePolicy
     {
         return $u->peut('conges.validate')
             && $u->entreprise_id === $d->entreprise_id
-            && $d->statut === StatutDemandeConge::SOUMISE;
+            && $d->statut === StatutDemandeConge::SOUMISE
+            // Une absence de droit ne se refuse pas.
+            && ! $d->typeConge?->estDeDroit();
+    }
+
+    public function requalifier(Utilisateur $u, DemandeConge $d): bool
+    {
+        return $u->peut('conges.validate')
+            && $u->entreprise_id === $d->entreprise_id
+            && $d->statut === StatutDemandeConge::ATTENTE_JUSTIFICATIF;
     }
 
     public function programmer(Utilisateur $u, DemandeConge $d): bool

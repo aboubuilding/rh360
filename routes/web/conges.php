@@ -5,6 +5,7 @@ use App\Http\Controllers\Conges\DemandeCongeController;
 use App\Http\Controllers\Conges\DossierMaterniteController;
 use App\Http\Controllers\Conges\EvenementPermissionController;
 use App\Http\Controllers\Conges\JourFerieController;
+use App\Http\Controllers\Conges\JustificatifDemandeController;
 use App\Http\Controllers\Conges\ParametreDemandeController;
 use App\Http\Controllers\Conges\PlanningCongeController;
 use App\Http\Controllers\Conges\SoldeCongeController;
@@ -46,6 +47,7 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     Route::get('absences/{absence}', [AbsenceController::class, 'show'])->name('absences.show');
     Route::post('absences/{absence}/qualifier', [AbsenceController::class, 'qualifier'])->name('absences.qualifier');
     Route::post('absences/{absence}/regulariser', [AbsenceController::class, 'regulariser'])->name('absences.regulariser');
+    Route::post('absences/{absence}/regulariser-par-demande', [JustificatifDemandeController::class, 'regulariserAbsence'])->name('absences.regulariser-par-demande');
     Route::delete('absences/{absence}', [AbsenceController::class, 'destroy'])->name('absences.destroy');
 
     // 4.2 Maternité & paternité (registre confidentiel)
@@ -82,6 +84,13 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     Route::post('demandes/{demande}/confirmer-reprise', [DemandeCongeController::class, 'confirmerReprise'])->name('demandes.confirmer-reprise');
     Route::post('demandes/{demande}/annuler', [DemandeCongeController::class, 'annuler'])->name('demandes.annuler');
     Route::get('demandes/{demande}/acte', [DemandeCongeController::class, 'imprimerActe'])->name('demandes.acte');
+
+    // Justificatifs, requalification et prolongation du délai (force majeure)
+    Route::post('demandes/{demande}/pieces', [JustificatifDemandeController::class, 'deposer'])->name('demandes.pieces.store');
+    Route::post('demandes/{demande}/pieces/{piece}/controler', [JustificatifDemandeController::class, 'controler'])->name('demandes.pieces.controler');
+    Route::get('demandes/{demande}/pieces/{piece}', [JustificatifDemandeController::class, 'telecharger'])->name('demandes.pieces.show');
+    Route::post('demandes/{demande}/requalifier', [JustificatifDemandeController::class, 'requalifier'])->name('demandes.requalifier');
+    Route::post('demandes/{demande}/prolonger-echeance', [JustificatifDemandeController::class, 'prolonger'])->name('demandes.prolonger-echeance');
 
     // CRUD final
     Route::get('demandes/{demande}/modifier', [DemandeCongeController::class, 'edit'])->name('demandes.edit');

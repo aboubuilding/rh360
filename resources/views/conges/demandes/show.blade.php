@@ -27,11 +27,22 @@
             <button type="button" class="btn btn-success js-autoriser">
                 <i class="fas fa-check"></i> Autoriser
             </button>
-            <button type="button" class="btn btn-outline-danger js-refuser">
-                <i class="fas fa-times"></i> Refuser
-            </button>
+            @can('refuser', $demande)
+                <button type="button" class="btn btn-outline-danger js-refuser">
+                    <i class="fas fa-times"></i> Refuser
+                </button>
+            @endcan
         @endcan
     @endif
+
+    @can('requalifier', $demande)
+        <button type="button" class="btn btn-outline-primary js-prolonger">
+            <i class="fas fa-calendar-plus"></i> Prolonger le délai
+        </button>
+        <button type="button" class="btn btn-outline-dark js-requalifier">
+            <i class="fas fa-exchange-alt"></i> Requalifier
+        </button>
+    @endcan
 
     @if($demande->statut->value === 'authorized')
         @can('permission', 'conges.validate')
@@ -110,6 +121,42 @@
     </div>
 </div>
 
+@if($demande->statut->value === 'awaiting_document')
+    <div class="alert alert-warning">
+        <i class="fas fa-hourglass-half"></i>
+        <strong>En attente de justificatif.</strong>
+        @if($demande->echeance_justificatif)
+            À remettre au plus tard le {{ $demande->echeance_justificatif->format('d/m/Y') }} ; passé ce délai, la demande sera requalifiée.
+        @endif
+        @if($demande->typeConge?->estDeDroit())
+            Absence de droit : elle sera validée dès que le justificatif sera reconnu conforme.
+        @endif
+    </div>
+@endif
+
+@if($demande->statut->value === 'requalified')
+    <div class="alert alert-dark">
+        <i class="fas fa-exchange-alt"></i>
+        <strong>Demande requalifiée</strong> le {{ $demande->requalifiee_le?->format('d/m/Y') }} :
+        {{ $demande->requalification === 'deduction_conge' ? 'jours déduits du congé payé.' : 'absence non justifiée.' }}
+        @if($demande->absence)
+            <a href="{{ route('conges.absences.show', $demande->absence) }}">Voir l'absence</a>
+        @endif
+    </div>
+@endif
+
+@if($demande->validation_automatique && in_array($demande->statut->value, ['authorized', 'scheduled', 'in_progress', 'resumed']))
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> Absence de droit : validée automatiquement.
+    </div>
+@endif
+
+@if($demande->force_majeure)
+    <div class="alert alert-info">
+        <i class="fas fa-bolt"></i> <strong>Force majeure :</strong> {{ $demande->motif_force_majeure }}
+    </div>
+@endif
+
 @if($demande->estEnRetard())
     <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
@@ -124,6 +171,8 @@
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-soldes">
             <i class="fas fa-balance-scale"></i> Solde</a></li>
     @endif
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-justificatifs">
+        <i class="fas fa-paperclip"></i> Justificatifs</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-circuit">
         <i class="fas fa-route"></i> Circuit</a></li>
 </ul>
@@ -137,8 +186,12 @@
             @include('conges.demandes.partials._soldes')
         </div>
     @endif
+    <div class="tab-pane fade" id="tab-justificatifs">
+        @include('conges.demandes.partials._justificatifs')
+    </div>
     <div class="tab-pane fade" id="tab-circuit">
         @include('conges.demandes.partials._circuit')
+        @include('conges.demandes.partials._historique')
     </div>
 </div>
 
@@ -148,6 +201,8 @@
 @include('conges.demandes.partials._modal-programmer')
 @include('conges.demandes.partials._modal-reprise')
 @include('conges.demandes.partials._modal-annuler')
+@include('conges.demandes.partials._modal-requalifier')
+@include('conges.demandes.partials._modal-prolonger')
 @endsection
 
 @push('js')
@@ -191,7 +246,7 @@ $(function () {
             $.post("{{ route('conges.demandes.demarrer', $demande) }}",
                 { _token: $('meta[name="csrf-token"]').attr('content') })
                 .done(function (resp) { window.showToastThenReload(resp.message || 'Démarré.'); })
-                .fail(function () { window.showToast('Erreur.', 'error'); });
+                .fail(function (xhr) { window.showToast(xhr.responseJSON?.message || 'Erreur.', 'error'); });
         });
     });
 
@@ -200,6 +255,8 @@ $(function () {
     $(document).on('click', '.js-programmer',   () => ouvrir('modal-programmer'));
     $(document).on('click', '.js-reprise',      () => ouvrir('modal-reprise'));
     $(document).on('click', '.js-annuler',      () => ouvrir('modal-annuler'));
+    $(document).on('click', '.js-requalifier',  () => ouvrir('modal-requalifier'));
+    $(document).on('click', '.js-prolonger',    () => ouvrir('modal-prolonger'));
 
     function soumettreModal(formSelector, modalId, url) {
         $(formSelector).on('submit', function (e) {
@@ -244,6 +301,8 @@ $(function () {
     soumettreModal('#form-programmer','modal-programmer',"{{ route('conges.demandes.programmer', $demande) }}");
     soumettreModal('#form-reprise',   'modal-reprise',   "{{ route('conges.demandes.confirmer-reprise', $demande) }}");
     soumettreModal('#form-annuler',   'modal-annuler',   "{{ route('conges.demandes.annuler', $demande) }}");
+    soumettreModal('#form-requalifier', 'modal-requalifier', "{{ route('conges.demandes.requalifier', $demande) }}");
+    soumettreModal('#form-prolonger', 'modal-prolonger', "{{ route('conges.demandes.prolonger-echeance', $demande) }}");
 });
 </script>
 @endpush

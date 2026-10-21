@@ -3,6 +3,7 @@
 namespace App\Domain\Conges\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreDemandeCongeRequest extends FormRequest
 {
@@ -24,6 +25,11 @@ class StoreDemandeCongeRequest extends FormRequest
             'remplacant' => ['nullable', 'string', 'max:255'],
             'reference_acte' => ['nullable', 'string', 'max:255'],
             'date_acte' => ['nullable', 'date'],
+            // L'événement appartient au type de demande choisi.
+            'evenement_permission_id' => ['nullable', Rule::exists('evenements_permission', 'id')->where('type_conge_id', $this->input('type_conge_id'))],
+            'date_evenement' => ['nullable', 'date', 'required_with:evenement_permission_id'],
+            'force_majeure' => ['boolean'],
+            'motif_force_majeure' => ['nullable', 'required_if:force_majeure,1', 'string', 'max:2000'],
         ];
     }
 
@@ -41,6 +47,8 @@ class StoreDemandeCongeRequest extends FormRequest
             'duree_jours.numeric' => 'La durée doit être un nombre.',
             'duree_jours.min' => 'La durée ne peut pas être négative.',
             'motif.max' => 'Le motif ne doit pas dépasser 2000 caractères.',
+            'date_evenement.required_with' => 'La date de l\'événement est obligatoire.',
+            'motif_force_majeure.required_if' => 'Précisez le cas de force majeure.',
         ];
     }
 

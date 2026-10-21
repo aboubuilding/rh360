@@ -1,6 +1,7 @@
 @php
     $demande = $demande ?? null;
     $salarie = $salarie ?? null;
+    $evenements = $evenements ?? collect();
 @endphp
 
 <div class="row">
@@ -20,6 +21,17 @@
         <x-field name="type_conge_id" label="Type de congé" type="select" required
                  :value="$demande?->type_conge_id"
                  :options="$types->pluck('nom', 'id')->all()" />
+    </div>
+
+    {{-- Événement : permissions exceptionnelles uniquement (affiché selon le type choisi). --}}
+    <div class="col-md-6 js-champ-evenement" data-types="{{ $evenements->pluck('type_conge_id')->unique()->values()->toJson() }}">
+        <x-field name="evenement_permission_id" label="Événement" type="select"
+                 :value="$demande?->evenement_permission_id"
+                 :options="[null => '—'] + $evenements->mapWithKeys(fn ($e) => [$e->id => $e->libelle.' ('.(float) $e->jours.' j)'])->all()" />
+    </div>
+    <div class="col-md-6 js-champ-evenement" data-types="{{ $evenements->pluck('type_conge_id')->unique()->values()->toJson() }}">
+        <x-field name="date_evenement" label="Date de l'événement" type="date"
+                 :value="$demande?->date_evenement?->format('Y-m-d')" />
     </div>
 
     <div class="col-md-6">
@@ -49,6 +61,15 @@
                  :value="$demande?->motif" />
     </div>
 
+    <div class="col-md-12">
+        <x-field name="force_majeure" label="Absence déjà commencée ou imprévue (force majeure)" type="checkbox"
+                 :value="$demande?->force_majeure" />
+    </div>
+    <div class="col-md-12 js-champ-force-majeure">
+        <x-field name="motif_force_majeure" label="Cas de force majeure" type="textarea"
+                 :value="$demande?->motif_force_majeure" />
+    </div>
+
     @if($demande)
         <div class="col-md-6">
             <x-field name="reference_acte" label="Référence de l'acte" :value="$demande->reference_acte" />
@@ -59,3 +80,24 @@
         </div>
     @endif
 </div>
+
+@push('js')
+<script>
+$(function () {
+    // Champs de l'événement : seulement pour les types qui ont des événements (permissions exceptionnelles).
+    function majChampsEvenement() {
+        const type = parseInt($('[name="type_conge_id"]').val(), 10);
+        $('.js-champ-evenement').each(function () {
+            $(this).toggle(($(this).data('types') || []).includes(type));
+        });
+    }
+    function majForceMajeure() {
+        $('.js-champ-force-majeure').toggle($('input[type="checkbox"][name="force_majeure"]').is(':checked'));
+    }
+    $(document).on('change', '[name="type_conge_id"]', majChampsEvenement);
+    $(document).on('change', 'input[type="checkbox"][name="force_majeure"]', majForceMajeure);
+    majChampsEvenement();
+    majForceMajeure();
+});
+</script>
+@endpush

@@ -22,6 +22,9 @@ Schedule::command('interims:balayer')->dailyAt('06:15');
 // Avancements — distinctions honorifiques dues (10 à 35 ans de service)
 Schedule::command('avancements:distinctions')->dailyAt('06:30');
 
+// Demandes — requalification des demandes dont le justificatif n'a pas été remis à temps
+Schedule::command('demandes:echeances')->dailyAt('00:20');
+
 
 // Lot 5 — Recalcul annuel des soldes de congés (1er janvier à minuit)
 Schedule::command('rh:recalculer-soldes-conges')
