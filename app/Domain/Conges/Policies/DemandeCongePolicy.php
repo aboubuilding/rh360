@@ -60,6 +60,20 @@ class DemandeCongePolicy
             && ! $d->typeConge?->estDeDroit();
     }
 
+    public function reporter(Utilisateur $u, DemandeConge $d): bool
+    {
+        return $u->peut('conges.validate')
+            && $u->entreprise_id === $d->entreprise_id
+            && in_array($d->statut, [StatutDemandeConge::AUTORISEE, StatutDemandeConge::PROGRAMMEE], true);
+    }
+
+    public function rappeler(Utilisateur $u, DemandeConge $d): bool
+    {
+        return $u->peut('conges.validate')
+            && $u->entreprise_id === $d->entreprise_id
+            && $d->statut === StatutDemandeConge::EN_COURS;
+    }
+
     public function requalifier(Utilisateur $u, DemandeConge $d): bool
     {
         return $u->peut('conges.validate')

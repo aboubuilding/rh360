@@ -84,6 +84,8 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     Route::post('demandes/{demande}/demarrer', [DemandeCongeController::class, 'demarrer'])->name('demandes.demarrer');
     Route::post('demandes/{demande}/confirmer-reprise', [DemandeCongeController::class, 'confirmerReprise'])->name('demandes.confirmer-reprise');
     Route::post('demandes/{demande}/annuler', [DemandeCongeController::class, 'annuler'])->name('demandes.annuler');
+    Route::post('demandes/{demande}/reporter', [DemandeCongeController::class, 'reporter'])->name('demandes.reporter');
+    Route::post('demandes/{demande}/rappeler', [DemandeCongeController::class, 'rappeler'])->name('demandes.rappeler');
     Route::get('demandes/{demande}/acte', [DemandeCongeController::class, 'imprimerActe'])->name('demandes.acte');
 
     // Justificatifs, requalification et prolongation du délai (force majeure)

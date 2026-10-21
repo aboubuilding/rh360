@@ -15,8 +15,11 @@ class AutoriserDemandeConge
         private ValidateurDroitConge $validateur,
     ) {}
 
-    public function executer(DemandeConge $demande, ?string $referenceActe = null, ?string $dateActe = null): DemandeConge
+    public function executer(DemandeConge $demande, ?string $referenceActe = null, ?string $dateActe = null, bool $anticipation = false): DemandeConge
     {
+        // Congé payé pris sur l'année en cours, avant l'ouverture de ses droits : accord exprès de l'employeur.
+        $demande->anticipation = $anticipation;
+
         // Les règles du type restent respectées au moment de la décision (plafond, chevauchement…).
         app(\App\Domain\Conges\Services\ControleDemande::class)->exiger($demande);
 
@@ -27,6 +30,9 @@ class AutoriserDemandeConge
         }
 
         $demande->update([
+            'anticipation' => $anticipation,
+            // Première date de départ fixée : référence du décalage maximum autorisé.
+            'date_debut_fixee' => $demande->date_debut_fixee ?? $demande->date_debut,
             'date_decision' => now(),
             'valide_par' => auth()->id(),
             'reference_acte' => $referenceActe,

@@ -28,6 +28,10 @@ class ValidateurDroitConge
             return ['ok' => true];
         }
 
+        if (GrandLivreConges::gere($type)) {
+            return $this->verifierGrandLivre($demande);
+        }
+
         $annee = $demande->date_debut?->year ?? now()->year;
         $solde = $this->calculateurSolde->obtenir($demande->salarie, $type, $annee);
 
@@ -51,6 +55,26 @@ class ValidateurDroitConge
             'disponible' => $solde->disponible,
             'demande' => $dureeDemandee,
         ];
+    }
+
+    // Congé payé : lots ouverts à la date de départ, et lot en cours si l'anticipation est accordée.
+    private function verifierGrandLivre(DemandeConge $demande): array
+    {
+        $grandLivre = app(GrandLivreConges::class);
+        $date = $demande->date_debut ?? today();
+        $dureeDemandee = (float) $demande->duree_jours;
+        $disponible = $grandLivre->disponible($demande->salarie, $demande->typeConge, $date, (bool) $demande->anticipation);
+
+        if ($disponible >= $dureeDemandee) {
+            return ['ok' => true, 'disponible' => $disponible, 'demande' => $dureeDemandee];
+        }
+
+        $message = sprintf('Solde insuffisant. Disponible : %.2f jours, demandé : %.2f jours.', $disponible, $dureeDemandee);
+        if (! $demande->anticipation && $grandLivre->disponible($demande->salarie, $demande->typeConge, $date, true) >= $dureeDemandee) {
+            $message .= ' Les jours acquis sur l\'année en cours peuvent être pris par anticipation, si vous l\'accordez.';
+        }
+
+        return ['ok' => false, 'message' => $message, 'disponible' => $disponible, 'demande' => $dureeDemandee];
     }
 
     /**

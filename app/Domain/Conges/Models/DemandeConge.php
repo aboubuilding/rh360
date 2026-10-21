@@ -27,6 +27,7 @@ class DemandeConge extends Model
         'force_majeure', 'motif_force_majeure', 'evenement_permission_id', 'date_evenement',
         'membre_foyer_id', 'echeance_justificatif', 'validation_automatique', 'absence_id',
         'requalification', 'requalifiee_le',
+        'anticipation', 'initiative', 'ordre_depart_le', 'date_debut_fixee',
     ];
 
     protected function casts(): array
@@ -41,6 +42,9 @@ class DemandeConge extends Model
             'echeance_justificatif' => 'date',
             'requalifiee_le' => 'datetime',
             'force_majeure' => 'boolean',
+            'anticipation' => 'boolean',
+            'ordre_depart_le' => 'date',
+            'date_debut_fixee' => 'date',
             'validation_automatique' => 'boolean',
             'duree_jours' => 'decimal:2',
             'duree_heures' => 'decimal:2',
@@ -88,6 +92,11 @@ class DemandeConge extends Model
     public function pieces(): HasMany
     {
         return $this->hasMany(PieceDemande::class, 'demande_id')->orderBy('recue_le');
+    }
+
+    public function rappels(): HasMany
+    {
+        return $this->hasMany(RappelConge::class, 'demande_id')->orderBy('du');
     }
 
     public function historique(): HasMany

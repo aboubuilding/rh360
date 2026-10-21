@@ -37,6 +37,7 @@ class ControleDemande
 
         return array_values(array_filter([
             $this->heures($demande, $type),
+            $this->droitCongePaye($demande, $type),
             $this->ancienneteMinimale($demande, $type),
             $this->delaiDepot($demande, $type),
             ...$this->evenement($demande, $type),
@@ -60,6 +61,25 @@ class ControleDemande
     {
         if ($type->unite === UniteConge::HEURE && (float) $demande->duree_heures <= 0) {
             return 'Indiquez la durée de l\'absence en heures.';
+        }
+
+        return null;
+    }
+
+    // Congé payé : aucun droit avant 6 mois de service consécutifs (anticipation, d'accord parties).
+    private function droitCongePaye(DemandeConge $demande, TypeConge $type): ?string
+    {
+        if (! GrandLivreConges::gere($type) || ! $demande->salarie->date_embauche) {
+            return null;
+        }
+
+        $ouverture = $demande->salarie->date_embauche->copy()
+            ->addMonthsNoOverflow((int) $this->parametres->get('conge_anciennete_anticipation_mois'));
+        if ($demande->date_debut->lt($ouverture)) {
+            return sprintf(
+                'Le droit au congé payé s\'ouvre après %d mois de service consécutifs, soit à partir du %s.',
+                (int) $this->parametres->get('conge_anciennete_anticipation_mois'), $ouverture->format('d/m/Y'),
+            );
         }
 
         return null;

@@ -73,6 +73,11 @@
     <div class="col-md-4">
         <x-field name="remplacant" label="Remplaçant" :value="$demande?->remplacant" />
     </div>
+    <div class="col-md-4 js-champ-initiative" data-types="{{ $types->filter(fn ($t) => \App\Domain\Conges\Services\GrandLivreConges::gere($t))->pluck('id')->values()->toJson() }}">
+        <x-field name="initiative" label="Départ" type="select"
+                 :value="$demande?->initiative ?? 'salarie'"
+                 :options="['salarie' => 'Demandé par le salarié', 'employeur' => 'Fixé par l\'employeur']" />
+    </div>
     <div class="col-md-4">
         <x-field name="date_demande" label="Date de la demande" type="date"
                  :value="$demande?->date_demande?->format('Y-m-d') ?? now()->format('Y-m-d')" />
@@ -136,12 +141,13 @@ $(function () {
         $('.js-champ-force-majeure').toggle($('input[type="checkbox"][name="force_majeure"]').is(':checked'));
     }
     $(document).on('change', '[name="type_conge_id"]', majChampsEvenement);
-    $(document).on('change', '[name="type_conge_id"]', () => { majChampsParType('.js-champ-enfant'); majChampsParType('.js-champ-heures'); });
+    $(document).on('change', '[name="type_conge_id"]', () => { majChampsParType('.js-champ-enfant'); majChampsParType('.js-champ-heures'); majChampsParType('.js-champ-initiative'); });
     $(document).on('change', '[name="salarie_id"]', chargerEnfants);
     $(document).on('change', 'input[type="checkbox"][name="force_majeure"]', majForceMajeure);
     majChampsEvenement();
     majChampsParType('.js-champ-enfant');
     majChampsParType('.js-champ-heures');
+    majChampsParType('.js-champ-initiative');
     chargerEnfants();
     majForceMajeure();
 });

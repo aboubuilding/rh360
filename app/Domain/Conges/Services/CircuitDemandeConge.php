@@ -58,6 +58,19 @@ class CircuitDemandeConge
 
     private function resynchroniserSolde(DemandeConge $demande): void
     {
+        // Congé payé : jours imputés aux lots à l'autorisation, recrédités si la demande tombe.
+        if (GrandLivreConges::gere($demande->typeConge)) {
+            $grandLivre = app(GrandLivreConges::class);
+            if ($demande->statut->reserveDesJours() || $demande->statut->consommeDesJours()) {
+                $grandLivre->imputerPrise($demande);
+            } else {
+                $grandLivre->recrediter($demande, 'Demande '.mb_strtolower($demande->statut->libelle()));
+            }
+            $grandLivre->projeter($demande->salarie, $demande->typeConge);
+
+            return;
+        }
+
         $annee = $demande->date_debut?->year ?? now()->year;
 
         $solde = \App\Domain\Conges\Models\SoldeConge::where('salarie_id', $demande->salarie_id)

@@ -35,6 +35,18 @@
         @endcan
     @endif
 
+    @can('reporter', $demande)
+        <button type="button" class="btn btn-outline-secondary js-reporter">
+            <i class="fas fa-calendar-alt"></i> Décaler le départ
+        </button>
+    @endcan
+
+    @can('rappeler', $demande)
+        <button type="button" class="btn btn-outline-warning js-rappel">
+            <i class="fas fa-phone"></i> Rappeler
+        </button>
+    @endcan
+
     @can('requalifier', $demande)
         <button type="button" class="btn btn-outline-primary js-prolonger">
             <i class="fas fa-calendar-plus"></i> Prolonger le délai
@@ -191,6 +203,9 @@
     @if($solde)
         <div class="tab-pane fade" id="tab-soldes">
             @include('conges.demandes.partials._soldes')
+            @if($lots !== null)
+                @include('conges.demandes.partials._conge-paye')
+            @endif
         </div>
     @endif
     <div class="tab-pane fade" id="tab-justificatifs">
@@ -210,6 +225,8 @@
 @include('conges.demandes.partials._modal-annuler')
 @include('conges.demandes.partials._modal-requalifier')
 @include('conges.demandes.partials._modal-prolonger')
+@include('conges.demandes.partials._modal-reporter')
+@include('conges.demandes.partials._modal-rappel')
 @endsection
 
 @push('js')
@@ -264,6 +281,8 @@ $(function () {
     $(document).on('click', '.js-annuler',      () => ouvrir('modal-annuler'));
     $(document).on('click', '.js-requalifier',  () => ouvrir('modal-requalifier'));
     $(document).on('click', '.js-prolonger',    () => ouvrir('modal-prolonger'));
+    $(document).on('click', '.js-reporter',     () => ouvrir('modal-reporter'));
+    $(document).on('click', '.js-rappel',       () => ouvrir('modal-rappel'));
 
     function soumettreModal(formSelector, modalId, url) {
         $(formSelector).on('submit', function (e) {
@@ -310,6 +329,8 @@ $(function () {
     soumettreModal('#form-annuler',   'modal-annuler',   "{{ route('conges.demandes.annuler', $demande) }}");
     soumettreModal('#form-requalifier', 'modal-requalifier', "{{ route('conges.demandes.requalifier', $demande) }}");
     soumettreModal('#form-prolonger', 'modal-prolonger', "{{ route('conges.demandes.prolonger-echeance', $demande) }}");
+    soumettreModal('#form-reporter', 'modal-reporter', "{{ route('conges.demandes.reporter', $demande) }}");
+    soumettreModal('#form-rappel', 'modal-rappel', "{{ route('conges.demandes.rappeler', $demande) }}");
 });
 </script>
 @endpush

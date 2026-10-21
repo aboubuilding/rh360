@@ -97,6 +97,13 @@ class CatalogueParametresDemandes
                 'reference' => 'Code art. 201 (muet sur la sanction)',
             ],
 
+            'conge_allocation_rubriques_exclues' => [
+                'groupe' => 'Congé payé',
+                'libelle' => 'Rubriques exclues de la base de l\'allocation de congé (primes de rendement, remboursements de frais), codes séparés par des virgules',
+                'type' => 'texte',
+                'reference' => 'Code art. 202 ; CCIT art. 49 c',
+            ],
+
             // --- Permissions exceptionnelles ---
             'permissions_plafond_annuel' => [
                 'groupe' => 'Permissions exceptionnelles',

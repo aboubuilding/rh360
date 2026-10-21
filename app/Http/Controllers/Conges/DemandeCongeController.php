@@ -114,7 +114,7 @@ class DemandeCongeController extends Controller
     {
         $this->authorize('view', $demande);
 
-        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar', 'evenement', 'membreFoyer', 'pieces.controlePar', 'historique.acteur', 'absence']);
+        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar', 'evenement', 'membreFoyer', 'pieces.controlePar', 'historique.acteur', 'absence', 'rappels']);
 
         // Charger le solde correspondant
         $solde = null;
@@ -128,7 +128,17 @@ class DemandeCongeController extends Controller
 
         $compteur = app(\App\Domain\Conges\Services\CompteurDemandes::class)->situation($demande);
 
-        return view('conges.demandes.show', compact('demande', 'solde', 'compteur'));
+        // Congé payé : droits par lot à la date de départ et allocation de congé.
+        $lots = null;
+        $allocation = null;
+        if (\App\Domain\Conges\Services\GrandLivreConges::gere($demande->typeConge) && $demande->date_debut) {
+            $grandLivre = app(\App\Domain\Conges\Services\GrandLivreConges::class);
+            $grandLivre->assurerReprise($demande->salarie, $demande->typeConge);
+            $lots = $grandLivre->lots($demande->salarie, $demande->typeConge, $demande->date_debut);
+            $allocation = app(\App\Domain\Conges\Services\CalculateurAllocationConge::class)->calculer($demande);
+        }
+
+        return view('conges.demandes.show', compact('demande', 'solde', 'compteur', 'lots', 'allocation'));
     }
 
     public function edit(DemandeConge $demande)
@@ -197,7 +207,7 @@ class DemandeCongeController extends Controller
         $this->authorize('autoriser', $demande);
 
         try {
-            $action->executer($demande, $request->reference_acte, $request->date_acte);
+            $action->executer($demande, $request->reference_acte, $request->date_acte, $request->boolean('anticipation'));
         } catch (\DomainException $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 422);
@@ -234,12 +244,20 @@ class DemandeCongeController extends Controller
     {
         $this->authorize('programmer', $demande);
 
-        $action->executer($demande);
-
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Demande programmée.']);
+        try {
+            $action->executer($demande);
+        } catch (\DomainException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+            return back()->with('error', $e->getMessage());
         }
-        return back()->with('success', 'Demande programmée.');
+
+        $message = $action->avertissement ? 'Demande programmée. '.$action->avertissement : 'Demande programmée.';
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+        return back()->with('success', $message);
     }
 
     public function demarrer(Request $request, DemandeConge $demande, DemarrerConge $action)
@@ -268,6 +286,64 @@ class DemandeCongeController extends Controller
             return response()->json(['message' => 'Reprise confirmée.']);
         }
         return back()->with('success', 'Reprise confirmée.');
+    }
+
+    public function reporter(Request $request, DemandeConge $demande, \App\Domain\Conges\Actions\ReporterDepartConge $action)
+    {
+        $this->authorize('reporter', $demande);
+
+        $donnees = $request->validate([
+            'date_debut' => ['required', 'date'],
+            'date_reprise' => ['required', 'date', 'after:date_debut'],
+            'motif' => ['required', 'string', 'max:2000'],
+            'force_majeure' => ['nullable', 'boolean'],
+        ], [
+            'date_reprise.after' => 'La date de reprise doit être postérieure à la date de départ.',
+            'motif.required' => 'Le motif du décalage est obligatoire.',
+        ]);
+
+        return $this->executerTransition($request, fn () => $action->executer(
+            $demande,
+            \Carbon\Carbon::parse($donnees['date_debut']),
+            \Carbon\Carbon::parse($donnees['date_reprise']),
+            $donnees['motif'],
+            $request->boolean('force_majeure'),
+        ), 'Départ décalé.');
+    }
+
+    public function rappeler(Request $request, DemandeConge $demande, \App\Domain\Conges\Actions\RappelerPendantConge $action)
+    {
+        $this->authorize('rappeler', $demande);
+
+        $donnees = $request->validate([
+            'du' => ['required', 'date'],
+            'au' => ['required', 'date', 'after_or_equal:du'],
+            'motif' => ['required', 'string', 'max:2000'],
+        ], [
+            'au.after_or_equal' => 'La fin du rappel doit suivre son début.',
+            'motif.required' => 'Le motif du rappel est obligatoire.',
+        ]);
+
+        return $this->executerTransition($request, fn () => $action->executer(
+            $demande, \Carbon\Carbon::parse($donnees['du']), \Carbon\Carbon::parse($donnees['au']), $donnees['motif'],
+        ), 'Rappel enregistré : le congé est prolongé d\'autant.');
+    }
+
+    private function executerTransition(Request $request, callable $operation, string $message)
+    {
+        try {
+            $operation();
+        } catch (\DomainException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+            return back()->with('error', $e->getMessage());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+        return back()->with('success', $message);
     }
 
     public function annuler(AnnulerDemandeCongeRequest $request, DemandeConge $demande, AnnulerDemandeConge $action)

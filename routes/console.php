@@ -25,6 +25,10 @@ Schedule::command('avancements:distinctions')->dailyAt('06:30');
 // Demandes — requalification des demandes dont le justificatif n'a pas été remis à temps
 Schedule::command('demandes:echeances')->dailyAt('00:20');
 
+// Congés payés — acquisition des mois échus (le 1er du mois) et clôture des lots (arrondi, report)
+Schedule::command('conges:acquerir')->monthlyOn(1, '00:40');
+Schedule::command('conges:cloturer-lots')->dailyAt('01:00');
+
 
 // Lot 5 — Recalcul annuel des soldes de congés (1er janvier à minuit)
 Schedule::command('rh:recalculer-soldes-conges')

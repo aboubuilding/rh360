@@ -29,6 +29,8 @@ class StoreDemandeCongeRequest extends FormRequest
             'evenement_permission_id' => ['nullable', Rule::exists('evenements_permission', 'id')->where('type_conge_id', $this->input('type_conge_id'))],
             'date_evenement' => ['nullable', 'date', 'required_with:evenement_permission_id'],
             'force_majeure' => ['boolean'],
+            // Départ demandé par le salarié, ou fixé par l'employeur (ordre de départ à communiquer à l'avance).
+            'initiative' => ['nullable', Rule::in(['salarie', 'employeur'])],
             'duree_heures' => ['nullable', 'numeric', 'min:0.25', 'max:1000'],
             // L'enfant appartient au foyer du salarié de la demande.
             'membre_foyer_id' => ['nullable', Rule::exists('membres_foyer', 'id')->where('salarie_id', $this->input('salarie_id', $this->route('demande')?->salarie_id))],

@@ -11,6 +11,9 @@
                     <p>La demande <strong>{{ $demande->numero_demande }}</strong> sera autorisée.</p>
                     <x-field name="reference_acte" label="Référence de l'acte (optionnel)" />
                     <x-field name="date_acte" label="Date de l'acte (optionnel)" type="date" :value="now()->format('Y-m-d')" />
+                    @if(\App\Domain\Conges\Services\GrandLivreConges::gere($demande->typeConge))
+                        <x-field name="anticipation" label="J'accorde la prise par anticipation des jours acquis sur l'année en cours" type="checkbox" />
+                    @endif
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>

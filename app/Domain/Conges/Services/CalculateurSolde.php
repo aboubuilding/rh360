@@ -15,6 +15,18 @@ class CalculateurSolde
      */
     public function obtenir(Salarie $salarie, TypeConge $type, int $annee): SoldeConge
     {
+        // Congé payé : la ligne de l'année est la projection du lot correspondant du grand livre.
+        if (GrandLivreConges::gere($type)) {
+            $grandLivre = app(GrandLivreConges::class);
+            $grandLivre->assurerReprise($salarie, $type);
+            $grandLivre->projeter($salarie, $type);
+
+            return SoldeConge::firstOrCreate(
+                ['entreprise_id' => $salarie->entreprise_id, 'salarie_id' => $salarie->id, 'type_conge_id' => $type->id, 'annee' => $annee],
+                ['solde_ouverture' => 0, 'acquis' => 0, 'ajustement' => 0, 'consomme' => 0, 'reserve' => 0, 'etat' => 1],
+            );
+        }
+
         $solde = SoldeConge::where('salarie_id', $salarie->id)
             ->where('type_conge_id', $type->id)
             ->where('annee', $annee)
@@ -99,6 +111,14 @@ class CalculateurSolde
      */
     public function resynchroniser(SoldeConge $solde): SoldeConge
     {
+        if (GrandLivreConges::gere($solde->typeConge)) {
+            $grandLivre = app(GrandLivreConges::class);
+            $grandLivre->assurerReprise($solde->salarie, $solde->typeConge);
+            $grandLivre->projeter($solde->salarie, $solde->typeConge);
+
+            return $solde->fresh();
+        }
+
         $demandes = \App\Domain\Conges\Models\DemandeConge::where('salarie_id', $solde->salarie_id)
             ->where('type_conge_id', $solde->type_conge_id)
             ->whereYear('date_debut', $solde->annee)

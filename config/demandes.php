@@ -42,6 +42,9 @@ return [
     'conge_report_max_annees' => 2,
     // Reliquat d'un lot au-delà de cette limite : alerte et départ imposé, ou perte.
     'conge_lot_expire' => 'alerte_depart_impose',
+    // Allocation de congé : rubriques exclues de la rémunération de référence (primes de
+    // rendement et remboursements de frais, Code art. 202 ; CCIT art. 49 c).
+    'conge_allocation_rubriques_exclues' => 'PRIME-REND,PRIME-TRANSP',
 
     // --- Permissions exceptionnelles (CCIT art. 50 ; Code art. 200) ---
     // Plafond annuel des permissions non déductibles : aucun selon la CCIT (le Code en fixe 10).
