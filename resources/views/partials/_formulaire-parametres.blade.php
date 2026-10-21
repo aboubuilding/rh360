@@ -68,11 +68,11 @@
                                     @case('entier')
                                     @case('entier_facultatif')
                                         <input type="number" name="{{ $l['cle'] }}" id="parametre-{{ $l['cle'] }}" value="{{ $l['valeur'] }}"
-                                               min="{{ $l['min'] ?? 0 }}" class="form-control @error($l['cle']) is-invalid @enderror">
+                                               min="{{ $l['min'] ?? 0 }}" @isset($l['max']) max="{{ $l['max'] }}" @endisset class="form-control @error($l['cle']) is-invalid @enderror">
                                         @break
                                     @case('decimal')
                                         <input type="number" step="0.5" name="{{ $l['cle'] }}" id="parametre-{{ $l['cle'] }}" value="{{ $l['valeur'] }}"
-                                               min="{{ $l['min'] ?? 0 }}" class="form-control @error($l['cle']) is-invalid @enderror">
+                                               min="{{ $l['min'] ?? 0 }}" @isset($l['max']) max="{{ $l['max'] }}" @endisset class="form-control @error($l['cle']) is-invalid @enderror">
                                         @break
                                     @default
                                         <input type="text" name="{{ $l['cle'] }}" id="parametre-{{ $l['cle'] }}" value="{{ $l['valeur'] }}"

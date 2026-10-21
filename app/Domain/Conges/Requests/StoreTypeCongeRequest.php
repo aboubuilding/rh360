@@ -2,11 +2,15 @@
 
 namespace App\Domain\Conges\Requests;
 
+use App\Domain\Conges\Enums\BasePlafond;
 use App\Domain\Conges\Enums\CategorieTypeConge;
+use App\Domain\Conges\Enums\FamilleDemande;
 use App\Domain\Conges\Enums\ImpactAnciennete;
 use App\Domain\Conges\Enums\ImpactCongeAnnuel;
+use App\Domain\Conges\Enums\PeriodePlafond;
 use App\Domain\Conges\Enums\TraitementSalarial;
 use App\Domain\Conges\Enums\UniteConge;
+use App\Domain\Conges\Models\TypeConge;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -43,6 +47,19 @@ class StoreTypeCongeRequest extends FormRequest
             'delai_justification_jours' => ['nullable', 'integer', 'min:0', 'max:90'],
             'autorisation_prealable_requise' => ['boolean'],
             'actif' => ['boolean'],
+            'famille' => ['nullable', Rule::enum(FamilleDemande::class)],
+            'de_droit' => ['boolean'],
+            'delai_depot' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'delai_depot_unite' => ['nullable', 'required_with:delai_depot', Rule::in(array_keys(TypeConge::UNITES_DELAI_DEPOT))],
+            'delai_information_heures' => ['nullable', 'integer', 'min:1', 'max:720'],
+            'delai_justification_depart' => ['nullable', 'required_with:delai_justification_jours', Rule::in(array_keys(TypeConge::DEPARTS_JUSTIFICATION))],
+            'plafond_valeur' => ['nullable', 'numeric', 'min:0.5', 'max:9999'],
+            'plafond_unite' => ['nullable', 'required_with:plafond_valeur', Rule::in(array_keys(TypeConge::UNITES_PLAFOND))],
+            'plafond_periode' => ['nullable', 'required_with:plafond_valeur', Rule::enum(PeriodePlafond::class)],
+            'plafond_base' => ['nullable', Rule::enum(BasePlafond::class)],
+            'anciennete_min_mois' => ['nullable', 'integer', 'min:1', 'max:600'],
+            'prise_continue_autorisee' => ['boolean'],
+            'report_credit_autorise' => ['boolean'],
         ];
     }
 
@@ -68,6 +85,10 @@ class StoreTypeCongeRequest extends FormRequest
             'impact_anciennete.required' => 'L\'impact sur l\'ancienneté est obligatoire.',
             'delai_justification_jours.integer' => 'Le délai doit être un entier.',
             'delai_justification_jours.max' => 'Le délai ne peut pas dépasser 90 jours.',
+            'delai_depot_unite.required_with' => 'Précisez l\'unité du délai de dépôt.',
+            'delai_justification_depart.required_with' => 'Précisez à partir de quand le délai de justification est compté.',
+            'plafond_unite.required_with' => 'Précisez l\'unité du plafond.',
+            'plafond_periode.required_with' => 'Précisez la période du plafond.',
         ];
     }
 

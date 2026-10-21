@@ -75,6 +75,58 @@
                         <div class="col-md-12">
                             <x-field name="actif" label="Actif" type="checkbox" :value="true" />
                         </div>
+
+                        <div class="col-md-12"><hr><h6 class="fw-bold">Règles de la demande</h6></div>
+
+                        <div class="col-md-6">
+                            <x-field name="famille" label="Famille" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Enums\FamilleDemande::options()" />
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <x-field name="de_droit" label="Absence de droit (accordée dès que le justificatif est conforme)" type="checkbox" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <x-field name="delai_depot" label="Délai de dépôt avant l'absence" type="number" />
+                        </div>
+                        <div class="col-md-4">
+                            <x-field name="delai_depot_unite" label="Unité du délai" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Models\TypeConge::UNITES_DELAI_DEPOT" />
+                        </div>
+                        <div class="col-md-4">
+                            <x-field name="delai_information_heures" label="Information de l'employeur (heures)" type="number" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <x-field name="delai_justification_depart" label="Délai de justification compté depuis" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Models\TypeConge::DEPARTS_JUSTIFICATION" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-field name="anciennete_min_mois" label="Ancienneté minimale (mois)" type="number" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <x-field name="plafond_valeur" label="Plafond" type="number" step="0.5" />
+                        </div>
+                        <div class="col-md-3">
+                            <x-field name="plafond_unite" label="Unité" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Models\TypeConge::UNITES_PLAFOND" />
+                        </div>
+                        <div class="col-md-3">
+                            <x-field name="plafond_periode" label="Période" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Enums\PeriodePlafond::options()" />
+                        </div>
+                        <div class="col-md-3">
+                            <x-field name="plafond_base" label="Appliqué" type="select"
+                                     :options="[null => '—'] + \App\Domain\Conges\Enums\BasePlafond::options()" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <x-field name="prise_continue_autorisee" label="Peut être pris d'un seul tenant" type="checkbox" :value="true" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-field name="report_credit_autorise" label="Le crédit non utilisé se reporte" type="checkbox" :value="true" />
+                        </div>
                     </div>
                 </div>
 

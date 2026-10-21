@@ -3,11 +3,13 @@
 namespace Database\Seeders;
 
 use App\Domain\Conges\Enums\CategorieTypeConge;
+use App\Domain\Conges\Enums\FamilleDemande;
 use App\Domain\Conges\Enums\ImpactAnciennete;
 use App\Domain\Conges\Enums\ImpactCongeAnnuel;
 use App\Domain\Conges\Enums\TraitementSalarial;
 use App\Domain\Conges\Enums\UniteConge;
 use App\Domain\Conges\Models\TypeConge;
+use App\Domain\Conges\Services\InstallateurCatalogueDemandes;
 use Illuminate\Database\Seeder;
 
 class TypesCongesSeeder extends Seeder
@@ -63,68 +65,8 @@ class TypesCongesSeeder extends Seeder
                 'autorisation_prealable_requise' => true,
             ],
             [
-                'code' => 'PAT',
-                'nom' => 'Congé de paternité',
-                'categorie' => CategorieTypeConge::CONGE->value,
-                'unite' => UniteConge::JOUR_CALENDAIRE->value,
-                'droit_annuel' => 0,
-                'remunere' => true,
-                'justificatif_requis' => true,
-                'reference_legale' => 'Code du travail — 10 jours',
-                'duree_max' => 10,
-                'portee_duree_max' => 'par événement',
-                'traitement_salarial' => TraitementSalarial::MAINTIEN->value,
-                'impact_conge_annuel' => ImpactCongeAnnuel::AUCUNE->value,
-                'impact_anciennete' => ImpactAnciennete::MAINTENUE->value,
-                'autorisation_prealable_requise' => true,
-            ],
-            [
-                'code' => 'DECES',
-                'nom' => 'Congé pour décès d\'un proche',
-                'categorie' => CategorieTypeConge::CONGE->value,
-                'unite' => UniteConge::JOUR_CALENDAIRE->value,
-                'droit_annuel' => 0,
-                'remunere' => true,
-                'justificatif_requis' => true,
-                'reference_legale' => 'Convention collective',
-                'duree_max' => 5,
-                'portee_duree_max' => 'par événement',
-                'traitement_salarial' => TraitementSalarial::MAINTIEN->value,
-                'impact_conge_annuel' => ImpactCongeAnnuel::AUCUNE->value,
-                'impact_anciennete' => ImpactAnciennete::MAINTENUE->value,
-                'autorisation_prealable_requise' => false,
-            ],
-            [
-                'code' => 'MARIAGE',
-                'nom' => 'Congé pour mariage',
-                'categorie' => CategorieTypeConge::CONGE->value,
-                'unite' => UniteConge::JOUR_CALENDAIRE->value,
-                'droit_annuel' => 0,
-                'remunere' => true,
-                'justificatif_requis' => true,
-                'reference_legale' => 'Convention collective',
-                'duree_max' => 4,
-                'portee_duree_max' => 'par événement',
-                'traitement_salarial' => TraitementSalarial::MAINTIEN->value,
-                'impact_conge_annuel' => ImpactCongeAnnuel::AUCUNE->value,
-                'impact_anciennete' => ImpactAnciennete::MAINTENUE->value,
-                'autorisation_prealable_requise' => true,
-            ],
-            [
-                'code' => 'PERM-EXC',
-                'nom' => 'Permission exceptionnelle',
-                'categorie' => CategorieTypeConge::PERMISSION->value,
-                'unite' => UniteConge::HEURE->value,
-                'droit_annuel' => 0,
-                'remunere' => true,
-                'justificatif_requis' => false,
-                'traitement_salarial' => TraitementSalarial::MAINTIEN->value,
-                'impact_conge_annuel' => ImpactCongeAnnuel::AUCUNE->value,
-                'impact_anciennete' => ImpactAnciennete::MAINTENUE->value,
-                'autorisation_prealable_requise' => true,
-            ],
-            [
                 'code' => 'ABS-NJ',
+                'famille' => FamilleDemande::AUTRE->value,
                 'nom' => 'Absence non justifiée',
                 'categorie' => CategorieTypeConge::ABSENCE->value,
                 'unite' => UniteConge::JOUR_CALENDAIRE->value,
@@ -153,6 +95,7 @@ class TypesCongesSeeder extends Seeder
                 // RG-TT-05 — sert au refus des missions d'intérim remplaçant des grévistes.
                 // Traitement salarial et impacts à vérifier par les RH.
                 'code' => 'GREVE',
+                'famille' => FamilleDemande::AUTRE->value,
                 'nom' => 'Grève',
                 'categorie' => CategorieTypeConge::ABSENCE->value,
                 'unite' => UniteConge::JOUR_CALENDAIRE->value,
@@ -177,6 +120,9 @@ class TypesCongesSeeder extends Seeder
             );
         }
 
-        $this->command->info(count($types) . ' types de congés créés.');
+        // Types et événements de permission tirés des textes : alignés pour une nouvelle installation.
+        $resultat = app(InstallateurCatalogueDemandes::class)->installer($entrepriseId, aligner: true);
+
+        $this->command->info((count($types) + $resultat['crees']) . ' types de congés créés.');
     }
 }

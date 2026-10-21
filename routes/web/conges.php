@@ -3,6 +3,9 @@
 use App\Http\Controllers\Conges\AbsenceController;
 use App\Http\Controllers\Conges\DemandeCongeController;
 use App\Http\Controllers\Conges\DossierMaterniteController;
+use App\Http\Controllers\Conges\EvenementPermissionController;
+use App\Http\Controllers\Conges\JourFerieController;
+use App\Http\Controllers\Conges\ParametreDemandeController;
 use App\Http\Controllers\Conges\PlanningCongeController;
 use App\Http\Controllers\Conges\SoldeCongeController;
 use App\Http\Controllers\Conges\TypeCongeController;
@@ -18,6 +21,16 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     Route::resource('types', TypeCongeController::class)
         ->parameters(['types' => 'type'])
         ->except(['show', 'create', 'edit']); // création / modification dans la modale de la liste
+    Route::put('evenements-permission/{evenement}', [EvenementPermissionController::class, 'update'])->name('evenements.update');
+
+    // Paramètres des demandes et calendrier des jours fériés
+    Route::get('parametres', [ParametreDemandeController::class, 'edit'])->name('parametres');
+    Route::put('parametres', [ParametreDemandeController::class, 'update'])->name('parametres.update');
+    Route::post('parametres/reinitialiser', [ParametreDemandeController::class, 'reinitialiser'])->name('parametres.reinitialiser');
+    Route::get('jours-feries', [JourFerieController::class, 'index'])->name('jours-feries.index');
+    Route::post('jours-feries', [JourFerieController::class, 'store'])->name('jours-feries.store');
+    Route::post('jours-feries/proposer', [JourFerieController::class, 'proposer'])->name('jours-feries.proposer');
+    Route::delete('jours-feries/{jourFerie}', [JourFerieController::class, 'destroy'])->name('jours-feries.destroy');
 
     // 4.4 Droits & soldes
     Route::get('soldes', [SoldeCongeController::class, 'index'])->name('soldes.index');

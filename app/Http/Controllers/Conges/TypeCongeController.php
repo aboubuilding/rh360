@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Conges;
 
 use App\Domain\Conges\Enums\CategorieTypeConge;
+use App\Domain\Conges\Models\EvenementPermission;
 use App\Domain\Conges\Models\TypeConge;
 use App\Domain\Conges\Requests\StoreTypeCongeRequest;
 use App\Http\Controllers\Controller;
@@ -24,6 +25,7 @@ class TypeCongeController extends Controller
         return view('conges.types.index', [
             'types' => $types,
             'categories' => CategorieTypeConge::options(),
+            'evenements' => EvenementPermission::orderBy('ordre')->get(),
         ]);
     }
 

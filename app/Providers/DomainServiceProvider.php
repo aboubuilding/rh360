@@ -109,6 +109,8 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Domain\Administration\Services\VerificateurMotDePasseLegacy::class);
         $this->app->scoped(\App\Domain\Interim\Services\ParametresInterim::class);
         $this->app->scoped(\App\Domain\Carriere\Services\ParametresAvancement::class);
+        $this->app->scoped(\App\Domain\Conges\Services\ParametresDemandes::class);
+        $this->app->scoped(\App\Domain\Conges\Services\CalendrierJoursFeries::class);
     }
 
     public function boot(): void

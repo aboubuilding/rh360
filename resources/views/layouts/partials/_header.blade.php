@@ -251,6 +251,8 @@
             ['Absences', 'conges.absences.index', ['conges.view'], 'fa-user-clock'],
             ['Droits & soldes', 'conges.soldes.index', ['conges.soldes.view'], 'fa-scale-unbalanced'],
             ['Types de congés', 'conges.types.index', ['conges.view'], 'fa-list'],
+            ['Jours fériés', 'conges.jours-feries.index', ['conges.view'], 'fa-calendar-xmark'],
+            ['Paramètres des demandes', 'conges.parametres', ['conges.manage'], 'fa-sliders-h'],
         ]],
         ['cle' => 'paie', 'libelle' => 'Paie', 'icone' => 'fa-money-check-dollar', 'entrees' => [
             ['Périodes & calcul', 'paie.periodes.index', ['paie.view'], 'fa-calculator'],

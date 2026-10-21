@@ -48,7 +48,7 @@
                 <tr>
                     <th>Code</th>
                     <th>Nom</th>
-                    <th>Catégorie</th>
+                    <th>Famille</th>
                     <th>Unité</th>
                     <th>Droit annuel</th>
                     <th>Durée max</th>
@@ -61,8 +61,20 @@
                 @forelse($types as $t)
                     <tr>
                         <td><code>{{ $t->code }}</code></td>
-                        <td><strong>{{ $t->nom }}</strong></td>
-                        <td><span class="badge bg-secondary">{{ $t->categorie?->libelle() }}</span></td>
+                        <td>
+                            <strong>{{ $t->nom }}</strong>
+                            <div class="small">
+                                @if($t->estDeDroit())
+                                    <span class="badge bg-success">De droit</span>
+                                @else
+                                    <span class="badge bg-info">Soumis à accord</span>
+                                @endif
+                                @if($t->aUnPlafond())
+                                    <span class="text-muted">Plafond : {{ $t->libellePlafond() }}</span>
+                                @endif
+                            </div>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ $t->famille?->libelle() ?? $t->categorie?->libelle() }}</span></td>
                         <td>{{ $t->unite?->libelle() }}</td>
                         <td>{{ number_format($t->droit_annuel, 2) }}</td>
                         <td>{{ $t->duree_max ?? '—' }}</td>
@@ -109,6 +121,19 @@
                                                         'delai_justification_jours' => $t->delai_justification_jours,
                                                         'autorisation_prealable_requise' => $t->autorisation_prealable_requise,
                                                         'actif' => $t->actif,
+                                                        'famille' => $t->famille?->value,
+                                                        'de_droit' => $t->de_droit,
+                                                        'delai_depot' => $t->delai_depot,
+                                                        'delai_depot_unite' => $t->delai_depot_unite,
+                                                        'delai_information_heures' => $t->delai_information_heures,
+                                                        'delai_justification_depart' => $t->delai_justification_depart,
+                                                        'anciennete_min_mois' => $t->anciennete_min_mois,
+                                                        'plafond_valeur' => $t->plafond_valeur,
+                                                        'plafond_unite' => $t->plafond_unite,
+                                                        'plafond_periode' => $t->plafond_periode?->value,
+                                                        'plafond_base' => $t->plafond_base?->value,
+                                                        'prise_continue_autorisee' => $t->prise_continue_autorisee,
+                                                        'report_credit_autorise' => $t->report_credit_autorise,
                                                     ]) }}">
                                                 <i class="fas fa-edit"></i> Modifier
                                             </button>
@@ -138,6 +163,8 @@
     <div class="card-footer">{{ $types->links() }}</div>
 </div>
 
+@include('conges.types._evenements', ['evenements' => $evenements])
+
 @include('conges.types._modal', ['categories' => $categories])
 @endsection
 
@@ -164,7 +191,9 @@ $(function () {
                 $.each(donnees, function (k, v) {
                     const $el = $form.find('[name="' + k + '"]');
                     if (! $el.length) return;
-                    if ($el.attr('type') === 'checkbox') $el.prop('checked', !!v);
+                    // Une case à cocher est précédée d'un champ caché de même nom (valeur 0).
+                    const $case = $el.filter('[type="checkbox"]');
+                    if ($case.length) $case.prop('checked', !!v);
                     else $el.val(v ?? '');
                 });
             }
