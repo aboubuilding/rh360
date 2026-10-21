@@ -55,7 +55,11 @@ it('ne verse à chaque salarié que ses propres heures supplémentaires et rappe
     HeureSupplementaire::factory()->create(['salarie_id' => $this->a->id, 'periode_paiement_id' => $this->periode->id, 'heures_hs20' => 5, 'taux_horaire' => 435.585]);
     RappelAvancement::create([
         'entreprise_id' => 1, 'salarie_id' => $this->a->id, 'mouvement_id' => MouvementCarriere::factory()->create(['salarie_id' => $this->a->id])->id,
-        'bulletin_source_id' => BulletinPaie::factory()->create(['salarie_id' => $this->a->id])->id,
+        // Bulletin d'origine du rappel, sur une période antérieure (pas celle du mois en cours, déjà créée par le jeu de départ).
+        'bulletin_source_id' => BulletinPaie::factory()->create([
+            'salarie_id' => $this->a->id,
+            'periode_id' => PeriodePaie::firstOrCreate(['entreprise_id' => 1, 'annee' => 2025, 'mois' => 1], ['statut' => 'validated', 'etat' => 1])->id,
+        ])->id,
         'periode_generation_id' => $this->periode->id, 'montant_rappel_base' => 12000, 'montant_rappel_anciennete' => 0,
     ]);
 
