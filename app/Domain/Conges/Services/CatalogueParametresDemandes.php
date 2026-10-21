@@ -123,6 +123,12 @@ class CatalogueParametresDemandes
             ],
 
             // --- Enfant malade et veuvage ---
+            'enfant_malade_age_max' => [
+                'groupe' => 'Enfant malade et veuvage',
+                'libelle' => 'Âge maximum de l\'enfant malade (années révolues)',
+                'type' => 'entier', 'min' => 21,
+                'reference' => 'CCIT art. 51',
+            ],
             'veuvage_duree_mois' => [
                 'groupe' => 'Enfant malade et veuvage',
                 'libelle' => 'Durée de l\'absence pour veuvage ou décès d\'un descendant (mois)',

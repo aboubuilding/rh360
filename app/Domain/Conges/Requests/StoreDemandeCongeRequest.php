@@ -29,6 +29,9 @@ class StoreDemandeCongeRequest extends FormRequest
             'evenement_permission_id' => ['nullable', Rule::exists('evenements_permission', 'id')->where('type_conge_id', $this->input('type_conge_id'))],
             'date_evenement' => ['nullable', 'date', 'required_with:evenement_permission_id'],
             'force_majeure' => ['boolean'],
+            'duree_heures' => ['nullable', 'numeric', 'min:0.25', 'max:1000'],
+            // L'enfant appartient au foyer du salarié de la demande.
+            'membre_foyer_id' => ['nullable', Rule::exists('membres_foyer', 'id')->where('salarie_id', $this->input('salarie_id', $this->route('demande')?->salarie_id))],
             'motif_force_majeure' => ['nullable', 'required_if:force_majeure,1', 'string', 'max:2000'],
         ];
     }
@@ -49,6 +52,8 @@ class StoreDemandeCongeRequest extends FormRequest
             'motif.max' => 'Le motif ne doit pas dépasser 2000 caractères.',
             'date_evenement.required_with' => 'La date de l\'événement est obligatoire.',
             'motif_force_majeure.required_if' => 'Précisez le cas de force majeure.',
+            'membre_foyer_id.exists' => 'Cette personne ne fait pas partie du foyer du salarié.',
+            'duree_heures.min' => 'La durée en heures doit être d\'au moins un quart d\'heure.',
         ];
     }
 

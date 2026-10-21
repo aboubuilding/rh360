@@ -20,7 +20,7 @@ class DemandeConge extends Model
 
     protected $fillable = [
         'entreprise_id', 'numero_demande', 'salarie_id', 'type_conge_id',
-        'date_demande', 'date_debut', 'date_reprise', 'duree_jours',
+        'date_demande', 'date_debut', 'date_reprise', 'duree_jours', 'duree_heures',
         'motif', 'remplacant', 'statut', 'date_decision',
         'reference_acte', 'date_acte',
         'cree_par', 'valide_par', 'etat',
@@ -43,6 +43,7 @@ class DemandeConge extends Model
             'force_majeure' => 'boolean',
             'validation_automatique' => 'boolean',
             'duree_jours' => 'decimal:2',
+            'duree_heures' => 'decimal:2',
             'statut' => StatutDemandeConge::class,
         ];
     }

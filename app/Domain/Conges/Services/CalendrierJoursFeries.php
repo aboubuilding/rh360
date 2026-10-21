@@ -59,6 +59,20 @@ class CalendrierJoursFeries
         return $courant;
     }
 
+    // Date atteinte en reculant de N jours ouvrés (ex. date limite d'une convocation).
+    public function retrancherJoursOuvres(Carbon $date, int $jours, int $entrepriseId): Carbon
+    {
+        $courant = $date->copy()->startOfDay();
+        while ($jours > 0) {
+            $courant->subDay();
+            if ($this->estOuvre($courant, $entrepriseId)) {
+                $jours--;
+            }
+        }
+
+        return $courant;
+    }
+
     /** @return Collection<int, JourFerie> jours fériés compris entre deux dates (bornes incluses) */
     public function feriesEntre(Carbon $du, Carbon $au, int $entrepriseId): Collection
     {

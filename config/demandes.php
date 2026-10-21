@@ -52,6 +52,8 @@ return [
     'naissance_mere_en_maternite' => 'absorbee',
 
     // --- Enfant malade et veuvage (CCIT art. 51) ---
+    // Enfant malade : enfant de 21 ans révolus au plus, à la charge permanente du salarié.
+    'enfant_malade_age_max' => 21,
     'veuvage_duree_mois' => 1,
     // Le mois de veuvage s'ajoute à la permission de 4 jours pour décès du conjoint.
     'veuvage_cumul_permission' => true,

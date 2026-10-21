@@ -17,6 +17,9 @@ class AutoriserDemandeConge
 
     public function executer(DemandeConge $demande, ?string $referenceActe = null, ?string $dateActe = null): DemandeConge
     {
+        // Les règles du type restent respectées au moment de la décision (plafond, chevauchement…).
+        app(\App\Domain\Conges\Services\ControleDemande::class)->exiger($demande);
+
         // Vérifier la disponibilité du solde
         $verif = $this->validateur->verifier($demande);
         if (! $verif['ok']) {

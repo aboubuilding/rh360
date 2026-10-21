@@ -27,7 +27,9 @@ beforeEach(function () {
     $this->seed();
     Storage::fake('local');
     $this->actingAs(Utilisateur::where('role', Utilisateur::ROLE_SUPER_ADMIN)->first());
+    // Les demandes de démonstration du salarié sont retirées : les dates des tests ne chevauchent rien.
     $this->salarie = Salarie::orderBy('id')->firstOrFail();
+    \Illuminate\Support\Facades\DB::table('demandes_conges')->where('salarie_id', $this->salarie->id)->delete();
     $this->type = fn (string $code) => TypeConge::where('code', $code)->sole();
 
     // Crée une demande par l'écran, puis la soumet.
@@ -93,7 +95,7 @@ it('garde en attente une demande dont la pièce n\'est pas conforme', function (
 });
 
 it('valide aussitôt une absence de droit sans justificatif requis', function () {
-    $demande = ($this->demander)('DELEG', '2026-10-05', '2026-10-06');
+    $demande = ($this->demander)('DELEG', '2026-10-05', '2026-10-06', ['duree_heures' => 2]);
 
     expect($demande->statut)->toBe(StatutDemandeConge::AUTORISEE);
     expect($demande->validation_automatique)->toBeTrue();

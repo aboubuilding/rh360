@@ -35,6 +35,9 @@ class SoumettreDemandeConge
             throw new \DomainException('Précisez le cas de force majeure.');
         }
 
+        // Ancienneté, délai de dépôt, événement, enfant, plafond, chevauchement…
+        app(\App\Domain\Conges\Services\ControleDemande::class)->exiger($demande);
+
         return DB::transaction(function () use ($demande) {
             $demande->update(['echeance_justificatif' => $this->justificatifs->echeance($demande)]);
             $demande = $this->circuit->transitionner($demande, StatutDemandeConge::SOUMISE);

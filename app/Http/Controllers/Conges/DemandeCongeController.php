@@ -92,11 +92,29 @@ class DemandeCongeController extends Controller
             ->with('success', 'Demande créée.');
     }
 
+    // Enfants déclarés d'un salarié, pour les demandes dont le plafond s'apprécie par enfant.
+    public function membresFoyer(Salarie $salarie)
+    {
+        $this->authorize('create', DemandeConge::class);
+
+        return response()->json(
+            $salarie->membresFoyer()
+                ->where('lien_parente', \App\Domain\Personnel\Enums\LienParente::ENFANT->value)
+                ->orderBy('date_naissance')
+                ->get()
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'libelle' => trim("{$m->prenoms} {$m->nom}").($m->date_naissance ? ' — né(e) le '.$m->date_naissance->format('d/m/Y') : ''),
+                ])
+                ->values()
+        );
+    }
+
     public function show(DemandeConge $demande)
     {
         $this->authorize('view', $demande);
 
-        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar', 'evenement', 'pieces.controlePar', 'historique.acteur', 'absence']);
+        $demande->load(['salarie', 'typeConge', 'creePar', 'validePar', 'evenement', 'membreFoyer', 'pieces.controlePar', 'historique.acteur', 'absence']);
 
         // Charger le solde correspondant
         $solde = null;
@@ -108,7 +126,9 @@ class DemandeCongeController extends Controller
                 ->first();
         }
 
-        return view('conges.demandes.show', compact('demande', 'solde'));
+        $compteur = app(\App\Domain\Conges\Services\CompteurDemandes::class)->situation($demande);
+
+        return view('conges.demandes.show', compact('demande', 'solde', 'compteur'));
     }
 
     public function edit(DemandeConge $demande)

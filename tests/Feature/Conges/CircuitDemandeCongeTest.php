@@ -14,7 +14,9 @@ beforeEach(function () {
     $this->seed();
     $this->admin = Utilisateur::where('role', Utilisateur::ROLE_SUPER_ADMIN)->first();
     $this->actingAs($this->admin);
-    $this->salarie = Salarie::first();
+    // Les demandes de démonstration du salarié sont retirées : les dates des tests ne chevauchent rien.
+    $this->salarie = Salarie::orderBy('id')->firstOrFail();
+    \Illuminate\Support\Facades\DB::table('demandes_conges')->where('salarie_id', $this->salarie->id)->delete();
     $this->typeConge = TypeConge::where('code', 'CA')->first();
 });
 

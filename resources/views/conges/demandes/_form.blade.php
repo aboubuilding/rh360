@@ -2,6 +2,10 @@
     $demande = $demande ?? null;
     $salarie = $salarie ?? null;
     $evenements = $evenements ?? collect();
+    // Types exprimés en heures, et types dont le plafond s'apprécie par enfant.
+    $typesEnHeures = $types->filter(fn ($t) => $t->unite === \App\Domain\Conges\Enums\UniteConge::HEURE)->pluck('id')->values();
+    $typesParEnfant = $types->filter(fn ($t) => $t->plafond_base === \App\Domain\Conges\Enums\BasePlafond::ENFANT)->pluck('id')->values();
+    $membreFoyer = $demande?->membreFoyer;
 @endphp
 
 <div class="row">
@@ -32,6 +36,24 @@
     <div class="col-md-6 js-champ-evenement" data-types="{{ $evenements->pluck('type_conge_id')->unique()->values()->toJson() }}">
         <x-field name="date_evenement" label="Date de l'événement" type="date"
                  :value="$demande?->date_evenement?->format('Y-m-d')" />
+    </div>
+
+    {{-- Enfant concerné : chargé depuis le foyer du salarié. --}}
+    <div class="col-md-6 js-champ-enfant" data-types="{{ $typesParEnfant->toJson() }}">
+        <label class="form-label" for="membre_foyer_id">Enfant concerné</label>
+        <select name="membre_foyer_id" id="membre_foyer_id" class="form-select @error('membre_foyer_id') is-invalid @enderror"
+                data-url="{{ route('conges.demandes.membres-foyer', ['salarie' => '__ID__']) }}"
+                data-valeur="{{ old('membre_foyer_id', $demande?->membre_foyer_id) }}">
+            <option value="">—</option>
+            @if($membreFoyer)
+                <option value="{{ $membreFoyer->id }}" selected>{{ $membreFoyer->prenoms }} {{ $membreFoyer->nom }}</option>
+            @endif
+        </select>
+        @error('membre_foyer_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6 js-champ-heures" data-types="{{ $typesEnHeures->toJson() }}">
+        <x-field name="duree_heures" label="Durée (heures)" type="number" step="0.25"
+                 :value="$demande?->duree_heures" />
     </div>
 
     <div class="col-md-6">
@@ -91,12 +113,36 @@ $(function () {
             $(this).toggle(($(this).data('types') || []).includes(type));
         });
     }
+    function majChampsParType(selecteur) {
+        const type = parseInt($('[name="type_conge_id"]').val(), 10);
+        $(selecteur).each(function () {
+            $(this).toggle(($(this).data('types') || []).includes(type));
+        });
+    }
+    // Enfants déclarés du salarié choisi.
+    function chargerEnfants() {
+        const $select = $('#membre_foyer_id');
+        const salarie = $('[name="salarie_id"]').val();
+        if (! $select.length || ! salarie) return;
+        $.getJSON($select.data('url').replace('__ID__', salarie), function (enfants) {
+            const valeur = String($select.data('valeur') || '');
+            $select.find('option:not(:first)').remove();
+            enfants.forEach(function (e) {
+                $select.append($('<option>', { value: e.id, text: e.libelle, selected: String(e.id) === valeur }));
+            });
+        });
+    }
     function majForceMajeure() {
         $('.js-champ-force-majeure').toggle($('input[type="checkbox"][name="force_majeure"]').is(':checked'));
     }
     $(document).on('change', '[name="type_conge_id"]', majChampsEvenement);
+    $(document).on('change', '[name="type_conge_id"]', () => { majChampsParType('.js-champ-enfant'); majChampsParType('.js-champ-heures'); });
+    $(document).on('change', '[name="salarie_id"]', chargerEnfants);
     $(document).on('change', 'input[type="checkbox"][name="force_majeure"]', majForceMajeure);
     majChampsEvenement();
+    majChampsParType('.js-champ-enfant');
+    majChampsParType('.js-champ-heures');
+    chargerEnfants();
     majForceMajeure();
 });
 </script>

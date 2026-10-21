@@ -74,6 +74,7 @@ Route::middleware('auth')->prefix('conges')->name('conges.')->group(function () 
     Route::get('demandes', [DemandeCongeController::class, 'index'])->name('demandes.index-alias');
     Route::get('demandes/creer', [DemandeCongeController::class, 'create'])->name('demandes.create');
     Route::post('demandes', [DemandeCongeController::class, 'store'])->name('demandes.store');
+    Route::get('demandes/membres-foyer/{salarie}', [DemandeCongeController::class, 'membresFoyer'])->name('demandes.membres-foyer');
 
     // Transitions
     Route::post('demandes/{demande}/soumettre', [DemandeCongeController::class, 'soumettre'])->name('demandes.soumettre');

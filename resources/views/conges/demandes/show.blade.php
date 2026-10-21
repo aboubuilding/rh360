@@ -151,6 +151,13 @@
     </div>
 @endif
 
+@if($compteur)
+    <div class="alert alert-{{ $compteur['reste'] < 0 ? 'danger' : 'light' }} border">
+        <i class="fas fa-gauge"></i>
+        <strong>Plafond :</strong> {{ (float) $compteur['plafond'] }} {{ $compteur['unite'] }} {{ $compteur['periode'] }}{{ $demande->membreFoyer ? ' pour '.$demande->membreFoyer->prenoms : '' }} — déjà décompté : {{ (float) $compteur['consomme'] }} ; cette demande : {{ (float) $compteur['demande'] }} ; reste après : {{ (float) $compteur['reste'] }}.
+    </div>
+@endif
+
 @if($demande->force_majeure)
     <div class="alert alert-info">
         <i class="fas fa-bolt"></i> <strong>Force majeure :</strong> {{ $demande->motif_force_majeure }}
