@@ -94,18 +94,22 @@ class CalculateurEligibilite
         $limite = $finAttente->copy()->addMonthsNoOverflow((int) $this->parametres->get('fenetre_categorie_limite_mois'));
         $aujourdhui = now()->startOfDay();
 
-        // Catégorie immédiatement supérieure du même référentiel ; à défaut, la classe est épuisée (hors catégorie).
+        // Catégorie immédiatement supérieure de la même classe ; à l'épuisement des catégories de la
+        // classe, l'échelon hors catégorie (catégorie « HC… ») ou, à défaut, la fin de la grille.
         $categorieSuivante = $position->categorie
             ? CategorieClassification::where('referentiel_id', $position->referentiel_id)
-                ->where('ordre', '>', $position->categorie->ordre)->orderBy('ordre')->first()
+                ->where('ordre', '>', $position->categorie->ordre)
+                ->when($position->classe_id, fn ($q) => $q->whereHas('positions', fn ($p) => $p->where('classe_id', $position->classe_id)))
+                ->orderBy('ordre')->first()
             : null;
+        $horsCategorie = ! $categorieSuivante || str_starts_with($categorieSuivante->code, 'HC');
 
         return [
             'salarie_id' => $salarie->id,
             'salarie' => $salarie,
             'position_actuelle_libelle' => $position->libelleComplet(),
-            'categorie_suivante' => $categorieSuivante?->libelle,
-            'hors_categorie' => $categorieSuivante === null,
+            'categorie_suivante' => $horsCategorie ? null : $categorieSuivante->libelle,
+            'hors_categorie' => $horsCategorie,
             'date_reference' => Carbon::parse($reference)->format('Y-m-d'),
             'ouverture' => $ouverture->format('Y-m-d'),
             'limite' => $limite->format('Y-m-d'),
