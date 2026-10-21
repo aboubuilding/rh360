@@ -47,6 +47,9 @@
                             @endif
                         </td>
                         <td class="text-end">
+                            <a href="{{ route('paie.modeles.apercu', $m) }}" class="btn btn-sm btn-action" title="Aperçu du bulletin">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             @can('permission', 'paie.manage')
                                 <a href="{{ route('paie.modeles.edit', $m) }}" class="btn btn-sm btn-action">
                                     <i class="fas fa-edit"></i>

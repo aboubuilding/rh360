@@ -53,6 +53,9 @@ beforeEach(function () {
         'echelon_id' => $echelonA->id, 'salaire_minimum' => 103500, 'actif' => true,
     ]);
 
+    // Modèle de bulletin de la catégorie E4 du barème de test.
+    \App\Domain\Paie\Models\ModelePaie::create(['entreprise_id' => 1, 'categorie_id' => $this->e4->id, 'nom' => 'Modèle E4 (test)', 'actif' => true, 'etat' => 1]);
+
     $this->salarie = Salarie::orderBy('id')->firstOrFail();
     $this->titulaire = Salarie::where('id', '!=', $this->salarie->id)->orderBy('id')->firstOrFail();
     SituationCarriere::where('salarie_id', $this->salarie->id)->update(['position_classification_id' => $positionE4->id]);

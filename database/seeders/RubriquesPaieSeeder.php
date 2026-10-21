@@ -33,6 +33,8 @@ class RubriquesPaieSeeder extends Seeder
             ],
             [
                 'code' => 'PRIME-TRANSP',
+                // Indemnité de transport : remboursement de frais, hors brut (Code art. 162).
+                'est_frais' => true,
                 'nom' => 'Prime de transport',
                 'nature' => NatureRubrique::GAIN->value,
                 'recurrence' => RecurrenceRubrique::FIXE->value,

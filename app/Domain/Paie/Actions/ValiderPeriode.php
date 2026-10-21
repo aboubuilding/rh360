@@ -20,6 +20,12 @@ class ValiderPeriode
             throw new \DomainException('Impossible de valider une période sans bulletins calculés.');
         }
 
+        // Anomalies bloquantes du calcul : bulletin non calculé, salaire sous le minimum, catégorie absente…
+        $bloquantes = $periode->anomalies()->where('gravite', \App\Domain\Paie\Models\AnomaliePaie::BLOQUANTE)->count();
+        if ($bloquantes > 0) {
+            throw new \DomainException("Impossible de valider : {$bloquantes} anomalie(s) bloquante(s) à corriger, puis recalculer la période.");
+        }
+
         // RG-INT-09 — un intérim à régulariser bloque la validation de la paie du mois.
         app(ControleClotureInterims::class)->verifier($periode);
 

@@ -39,6 +39,11 @@ class PeriodePaie extends Model
         return $this->hasMany(BulletinPaie::class, 'periode_id');
     }
 
+    public function anomalies(): HasMany
+    {
+        return $this->hasMany(AnomaliePaie::class, 'periode_id');
+    }
+
     public function saisies(): HasMany
     {
         return $this->hasMany(SaisiePaie::class, 'periode_id');

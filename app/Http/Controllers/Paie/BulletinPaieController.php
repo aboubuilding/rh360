@@ -11,7 +11,7 @@ class BulletinPaieController extends Controller
     {
         $this->authorize('view', $bulletin);
 
-        $bulletin->load(['salarie', 'periode', 'lignes']);
+        $bulletin->load(['salarie', 'periode', 'lignes.rubrique']);
 
         // Charger les infos de l'entreprise pour l'en-tête
         $entreprise = \App\Domain\Administration\Models\Entreprise::find($bulletin->entreprise_id);
@@ -23,7 +23,7 @@ class BulletinPaieController extends Controller
     {
         $this->authorize('imprimer', $bulletin);
 
-        $bulletin->load(['salarie', 'periode', 'lignes']);
+        $bulletin->load(['salarie', 'periode', 'lignes.rubrique']);
         $entreprise = \App\Domain\Administration\Models\Entreprise::find($bulletin->entreprise_id);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('paie.bulletins.pdf', [

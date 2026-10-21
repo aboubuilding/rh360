@@ -17,13 +17,16 @@ class ElementPaieSalarie extends Model
 
     protected $fillable = [
         'entreprise_id', 'salarie_id', 'rubrique_id',
-        'montant', 'actif', 'observations', 'etat',
+        'montant', 'debut', 'fin', 'exclu', 'actif', 'observations', 'etat',
     ];
 
     protected function casts(): array
     {
         return [
             'montant' => 'decimal:2',
+            'debut' => 'date',
+            'fin' => 'date',
+            'exclu' => 'boolean',
             'actif' => 'boolean',
         ];
     }
@@ -36,5 +39,11 @@ class ElementPaieSalarie extends Model
     public function rubrique(): BelongsTo
     {
         return $this->belongsTo(RubriquePaie::class, 'rubrique_id');
+    }
+
+    // Élément en vigueur sur au moins un jour de l'intervalle (sans dates : toujours en vigueur).
+    public function enVigueurEntre(\Carbon\CarbonInterface $du, \Carbon\CarbonInterface $au): bool
+    {
+        return (! $this->debut || $this->debut->lte($au)) && (! $this->fin || $this->fin->gte($du));
     }
 }

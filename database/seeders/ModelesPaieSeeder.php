@@ -31,8 +31,10 @@ class ModelesPaieSeeder extends Seeder
 
         $codesModeleBase = [
             'SAL-BASE' => ['montant_defaut' => 0, 'obligatoire' => true, 'ordre' => 10],
-            'PRIME-TRANSP' => ['montant_defaut' => 15000, 'obligatoire' => false, 'ordre' => 20],
-            'PRIME-LOGT' => ['montant_defaut' => 30000, 'obligatoire' => false, 'ordre' => 30],
+            // Prévues au modèle sans montant par défaut : le montant est un élément individuel du salarié
+            // (l'indemnité de logement n'est due qu'au salarié déplacé, CCIT art. 43).
+            'PRIME-TRANSP' => ['montant_defaut' => 0, 'obligatoire' => false, 'ordre' => 20],
+            'PRIME-LOGT' => ['montant_defaut' => 0, 'obligatoire' => false, 'ordre' => 30],
             'PRIME-ANC' => ['montant_defaut' => 0, 'obligatoire' => false, 'ordre' => 40],
             'CNSS' => ['montant_defaut' => 0, 'obligatoire' => true, 'ordre' => 60],
             'AMU' => ['montant_defaut' => 0, 'obligatoire' => true, 'ordre' => 70],

@@ -10,7 +10,7 @@ class CalculateurCotisations
     /**
      * Retourne la liste des cotisations applicables à une date donnée.
      *
-     * @return array<int, array{code: string, nom: string, taux_salarial: float, montant: float}>
+     * @return array{lignes: array<int, array{code: string, nom: string, taux_salarial: float, montant: float}>, total_salarial: float, patronales: array<int, array>, total_patronal: float}
      */
     public function calculer(int $entrepriseId, float $base, Carbon $date): array
     {
@@ -21,7 +21,9 @@ class CalculateurCotisations
             ->get();
 
         $resultats = [];
+        $patronales = [];
         $total = 0.0;
+        $totalPatronal = 0.0;
 
         foreach ($regles as $regle) {
             $taux = (float) $regle->taux_salarial;
@@ -34,11 +36,26 @@ class CalculateurCotisations
                 'taux_salarial' => $taux,
                 'montant' => $montant,
             ];
+
+            // Part patronale : à la charge de l'employeur, jamais déduite du salaire (CCIT art. 35).
+            $tauxPatronal = (float) $regle->taux_patronal;
+            if ($tauxPatronal > 0) {
+                $montantPatronal = round($base * ($tauxPatronal / 100), 2);
+                $totalPatronal += $montantPatronal;
+                $patronales[] = [
+                    'code' => $regle->code.'-PAT',
+                    'nom' => $regle->nom.' (part patronale)',
+                    'taux_patronal' => $tauxPatronal,
+                    'montant' => $montantPatronal,
+                ];
+            }
         }
 
         return [
             'lignes' => $resultats,
             'total_salarial' => round($total, 2),
+            'patronales' => $patronales,
+            'total_patronal' => round($totalPatronal, 2),
         ];
     }
 

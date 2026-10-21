@@ -19,6 +19,8 @@ class BulletinPaie extends Model
     protected $fillable = [
         'entreprise_id', 'periode_id', 'salarie_id',
         'montant_brut', 'montant_retenues', 'montant_net',
+        'assiette_cotisations', 'montant_frais', 'montant_cotisations_patronales',
+        'jours_presence', 'jours_mois', 'categorie_libelle', 'echelon_libelle', 'emploi_libelle',
         'brut_imposable', 'retenues_sociales_deductibles',
         'abattement_professionnel', 'deduction_charges_famille',
         'base_imposable', 'montant_irpp', 'calcule_le',
@@ -31,6 +33,9 @@ class BulletinPaie extends Model
             'montant_brut' => 'decimal:2',
             'montant_retenues' => 'decimal:2',
             'montant_net' => 'decimal:2',
+            'assiette_cotisations' => 'decimal:2',
+            'montant_frais' => 'decimal:2',
+            'montant_cotisations_patronales' => 'decimal:2',
             'brut_imposable' => 'decimal:2',
             'retenues_sociales_deductibles' => 'decimal:2',
             'abattement_professionnel' => 'decimal:2',

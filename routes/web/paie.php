@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\Paie\ApercuModelePaieController;
 use App\Http\Controllers\Paie\BulletinPaieController;
+use App\Http\Controllers\Paie\ElementPaieSalarieController;
+use App\Http\Controllers\Paie\GenerationPaieController;
 use App\Http\Controllers\Paie\HeureSupplementaireController;
 use App\Http\Controllers\Paie\ModelePaieController;
 use App\Http\Controllers\Paie\ParametreLegalController;
@@ -15,6 +18,19 @@ Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
     // 1. ROUTES FIXES
     // ============================================================
 
+    // Paie du mois : génération et téléchargement des bulletins
+    Route::get('generation', [GenerationPaieController::class, 'index'])->name('generation.index');
+    Route::post('generation', [GenerationPaieController::class, 'generer'])->name('generation.generer');
+    Route::get('generation/{periode}/bulletins', [GenerationPaieController::class, 'telecharger'])->name('generation.telecharger');
+
+    // Éléments de paie des salariés et association aux modèles
+    Route::get('salaries', [ElementPaieSalarieController::class, 'index'])->name('elements.index');
+    Route::get('salaries/{salarie}', [ElementPaieSalarieController::class, 'show'])->name('elements.show');
+    Route::post('salaries/{salarie}/elements', [ElementPaieSalarieController::class, 'enregistrer'])->name('elements.store');
+    Route::delete('salaries/{salarie}/elements/{element}', [ElementPaieSalarieController::class, 'supprimer'])->name('elements.destroy');
+    Route::post('salaries/{salarie}/modeles', [ElementPaieSalarieController::class, 'associer'])->name('elements.associer');
+    Route::delete('salaries/{salarie}/modeles/{affectation}', [ElementPaieSalarieController::class, 'dissocier'])->name('elements.dissocier');
+
     // Rubriques
     Route::get('rubriques', [RubriquePaieController::class, 'index'])->name('rubriques.index');
     Route::post('rubriques', [RubriquePaieController::class, 'store'])->name('rubriques.store');
@@ -26,6 +42,8 @@ Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
     Route::get('modeles/creer', [ModelePaieController::class, 'create'])->name('modeles.create');
     Route::post('modeles', [ModelePaieController::class, 'store'])->name('modeles.store');
     Route::get('modeles/{modele}/modifier', [ModelePaieController::class, 'edit'])->name('modeles.edit');
+    Route::get('modeles/{modele}/apercu', [ApercuModelePaieController::class, 'show'])->name('modeles.apercu');
+    Route::get('modeles/{modele}/apercu/document', [ApercuModelePaieController::class, 'document'])->name('modeles.apercu.document');
     Route::put('modeles/{modele}', [ModelePaieController::class, 'update'])->name('modeles.update');
     Route::delete('modeles/{modele}', [ModelePaieController::class, 'destroy'])->name('modeles.destroy');
 

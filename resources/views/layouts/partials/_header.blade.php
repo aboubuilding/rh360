@@ -255,7 +255,9 @@
             ['Paramètres des demandes', 'conges.parametres', ['conges.manage'], 'fa-sliders-h'],
         ]],
         ['cle' => 'paie', 'libelle' => 'Paie', 'icone' => 'fa-money-check-dollar', 'entrees' => [
+            ['Générer la paie', 'paie.generation.index', ['paie.view'], 'fa-file-invoice-dollar'],
             ['Périodes & calcul', 'paie.periodes.index', ['paie.view'], 'fa-calculator'],
+            ['Éléments des salariés', 'paie.elements.index', ['paie.view'], 'fa-user-tag'],
             ['Rubriques', 'paie.rubriques.index', ['paie.view'], 'fa-list-ol'],
             ['Modèles de bulletin', 'paie.modeles.index', ['paie.view'], 'fa-file-invoice'],
             ['Heures supplémentaires', 'paie.heures-supp.index', ['paie.view'], 'fa-clock'],

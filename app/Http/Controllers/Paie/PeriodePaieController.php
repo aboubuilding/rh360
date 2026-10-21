@@ -74,7 +74,7 @@ class PeriodePaieController extends Controller
     {
         $this->authorize('view', $periode);
 
-        $periode->load(['bulletins.salarie', 'validePar']);
+        $periode->load(['bulletins.salarie', 'validePar', 'anomalies.salarie']);
 
         $salaries = Salarie::where('entreprise_id', $periode->entreprise_id)
             ->where('actif', true)
@@ -104,6 +104,9 @@ class PeriodePaieController extends Controller
         }
 
         $message = "{$resultats['bulletins_calcules']} bulletin(s) calculé(s).";
+        if ($resultats['anomalies_bloquantes'] > 0) {
+            $message .= " {$resultats['anomalies_bloquantes']} anomalie(s) bloquante(s) à corriger avant la validation.";
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => $message]);

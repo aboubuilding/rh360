@@ -47,6 +47,12 @@ class ReglesPaieSeeder extends Seeder
             );
         }
 
+        // SMIG (paramètre externe daté) : niveau E1 du barème 2026, à confirmer par l'arrêté en vigueur.
+        \App\Domain\Paie\Models\ParametreLegalPaie::updateOrCreate(
+            ['entreprise_id' => $entrepriseId, 'cle' => 'smig', 'debut_effet' => '2026-05-20'],
+            ['valeur' => 52500, 'commentaire' => 'Niveau E1 du barème de la CCIT 2026 — à confirmer par l\'arrêté en vigueur'],
+        );
+
         // ============================================================
         // PRIME D'ANCIENNETÉ
         // ============================================================

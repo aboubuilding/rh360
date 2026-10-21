@@ -25,7 +25,7 @@ class RubriquePaie extends Model
         'taux', 'montant_defaut',
         'imposable', 'traitement_fiscal', 'pourcentage_imposable',
         'methode_evaluation', 'justificatif_requis', 'reference_fiscale',
-        'soumis_cotisation', 'actif', 'etat',
+        'soumis_cotisation', 'est_frais', 'actif', 'etat',
     ];
 
     protected function casts(): array
@@ -37,6 +37,7 @@ class RubriquePaie extends Model
             'imposable' => 'boolean',
             'justificatif_requis' => 'boolean',
             'soumis_cotisation' => 'boolean',
+            'est_frais' => 'boolean',
             'actif' => 'boolean',
             'nature' => NatureRubrique::class,
             'recurrence' => RecurrenceRubrique::class,

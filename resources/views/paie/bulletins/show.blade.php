@@ -36,10 +36,21 @@
                     <dt class="col-sm-5">N° CNSS</dt>
                     <dd class="col-sm-7">{{ $bulletin->salarie?->numero_cnss ?? '—' }}</dd>
 
-                    <dt class="col-sm-5">Poste</dt>
+                    <dt class="col-sm-5">Emploi</dt>
                     <dd class="col-sm-7">
-                        {{ $bulletin->salarie?->affectationCourante?->poste?->intitule ?? '—' }}
+                        {{ $bulletin->emploi_libelle ?? $bulletin->salarie?->affectationCourante?->poste?->intitule ?? '—' }}
                     </dd>
+
+                    <dt class="col-sm-5">Catégorie</dt>
+                    <dd class="col-sm-7">
+                        {{ $bulletin->categorie_libelle ?? '—' }}
+                        @if($bulletin->echelon_libelle) — échelon {{ $bulletin->echelon_libelle }} @endif
+                    </dd>
+
+                    @if($bulletin->jours_presence && $bulletin->jours_presence < $bulletin->jours_mois)
+                        <dt class="col-sm-5">Présence</dt>
+                        <dd class="col-sm-7">{{ $bulletin->jours_presence }} jour(s) sur {{ $bulletin->jours_mois }}</dd>
+                    @endif
 
                     <dt class="col-sm-5">Période</dt>
                     <dd class="col-sm-7"><strong>{{ $bulletin->periode?->libelle }}</strong></dd>
@@ -63,7 +74,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($bulletin->lignes->where('nature', 'gain') as $ligne)
+                        @foreach($bulletin->lignes->where('nature', 'gain')->reject(fn ($l) => $l->rubrique?->est_frais) as $ligne)
                             <tr>
                                 <td><code>{{ $ligne->code }}</code></td>
                                 <td>{{ $ligne->libelle }}</td>
@@ -105,6 +116,16 @@
                             </td>
                         </tr>
 
+                        @foreach($bulletin->lignes->where('nature', 'gain')->filter(fn ($l) => $l->rubrique?->est_frais) as $ligne)
+                            <tr>
+                                <td><code>{{ $ligne->code }}</code></td>
+                                <td>{{ $ligne->libelle }}</td>
+                                <td><span class="badge bg-info">Remboursement de frais</span></td>
+                                <td class="text-end">—</td>
+                                <td class="text-end">+{{ number_format($ligne->montant, 0, ',', ' ') }}</td>
+                            </tr>
+                        @endforeach
+
                         <tr class="table-success">
                             <td colspan="4" class="text-end fs-5"><strong>NET À PAYER</strong></td>
                             <td class="text-end fw-bold fs-5">
@@ -115,6 +136,20 @@
                 </table>
             </div>
         </div>
+
+        @if($bulletin->lignes->where('nature', 'cotisation_patronale')->isNotEmpty())
+            <div class="card mt-3">
+                <div class="card-header"><strong>Cotisations patronales</strong> <small class="text-muted">à la charge de l'employeur, non déduites du salaire</small></div>
+                <ul class="list-group list-group-flush">
+                    @foreach($bulletin->lignes->where('nature', 'cotisation_patronale') as $ligne)
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ $ligne->libelle }}</span>
+                            <span>{{ number_format($ligne->montant, 0, ',', ' ') }} FCFA</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="card mt-3">
             <div class="card-header"><strong>Détail du calcul fiscal</strong></div>

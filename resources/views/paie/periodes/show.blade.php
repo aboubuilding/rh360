@@ -50,6 +50,7 @@
 @section('contenu')
 @include('paie.periodes.partials._entete')
 @include('carriere.interims.partials._alertes-paie', ['periode' => $periode])
+@include('paie.periodes.partials._anomalies', ['anomalies' => $periode->anomalies])
 
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-bulletins">
