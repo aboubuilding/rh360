@@ -12,6 +12,9 @@
 
 @section('page_actions')
     @can('permission', 'carriere.manage')
+        <a href="{{ route('carriere.avancements.parametres') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-sliders-h"></i> Paramètres
+        </a>
         <form method="POST" action="{{ route('carriere.avancements.preparer') }}" class="d-inline js-form-preparer">
             @csrf
             <input type="hidden" name="jours" value="{{ $jours }}">
@@ -43,6 +46,44 @@
     <i class="fas fa-info-circle"></i>
     {{ count($echeances) }} salarié(s) dont l'avancement est échu ou à échéance sous {{ $jours }} jours.
 </div>
+
+@if($fenetres !== [])
+    <div class="card mb-3">
+        <div class="card-header"><strong>Fenêtres d'avancement de catégorie</strong></div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Salarié</th>
+                        <th>Position actuelle</th>
+                        <th>Évolution</th>
+                        <th>Ouverture</th>
+                        <th>Limite</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($fenetres as $f)
+                        <tr>
+                            <td><strong>{{ $f['salarie']->nom_complet }}</strong><br><small class="text-muted">{{ $f['salarie']->matricule }}</small></td>
+                            <td>{{ $f['position_actuelle_libelle'] }}</td>
+                            <td>{{ $f['hors_categorie'] ? 'Hors catégorie (classe épuisée)' : 'Catégorie '.$f['categorie_suivante'] }}</td>
+                            <td>{{ \Carbon\Carbon::parse($f['ouverture'])->format('d/m/Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($f['limite'])->format('d/m/Y') }}</td>
+                            <td>
+                                @switch($f['statut'])
+                                    @case('avant_ouverture') <span class="badge bg-info">À venir</span> @break
+                                    @case('ouverte') <span class="badge bg-success">Ouverte</span> @break
+                                    @default <span class="badge bg-danger">Limite dépassée</span>
+                                @endswitch
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endif
 
 <div class="card mb-3">
     <div class="card-header"><strong>Échéances d'avancement</strong></div>

@@ -3,6 +3,7 @@
 namespace App\Domain\Carriere\Services;
 
 use App\Domain\Carriere\Models\SituationCarriere;
+use App\Domain\Classification\Models\CategorieClassification;
 use App\Domain\Classification\Models\PositionClassification;
 use App\Domain\Classification\Models\RegleEvolution;
 use App\Domain\Personnel\Models\Salarie;
@@ -10,8 +11,14 @@ use Carbon\Carbon;
 
 class CalculateurEligibilite
 {
+    public function __construct(
+        private ParametresAvancement $parametres,
+        private CalculateurAncienneteUtile $anciennete,
+    ) {}
+
     /**
-     * Calcule la prochaine échéance d'avancement d'un salarié.
+     * Calcule la prochaine échéance d'avancement d'échelon d'un salarié (CCIT art. 33) :
+     * date de référence + ancienneté maximale dans l'échelon + jours déduits de l'ancienneté.
      */
     public function calculer(Salarie $salarie): ?array
     {
@@ -25,8 +32,12 @@ class CalculateurEligibilite
             return null;
         }
 
+        $this->parametres->pourEntreprise($salarie->entreprise_id);
+
+        // Délai de la règle d'évolution du référentiel, sinon celui des paramètres.
         $regle = $this->chargerRegle($position);
-        if (! $regle || ! $regle->mois_min) {
+        $delaiMois = $regle?->mois_min ?: (int) $this->parametres->get('delai_echelon_mois');
+        if (! $delaiMois) {
             return null;
         }
 
@@ -36,8 +47,8 @@ class CalculateurEligibilite
 
         if (! $dateReference) return null;
 
-        $dateEligibilite = Carbon::parse($dateReference)->addMonths($regle->mois_min);
-        $joursRestants = now()->diffInDays($dateEligibilite, false);
+        $dateEligibilite = $this->echeance($salarie, Carbon::parse($dateReference), $delaiMois);
+        $joursRestants = now()->startOfDay()->diffInDays($dateEligibilite, false);
 
         return [
             'salarie_id' => $salarie->id,
@@ -47,13 +58,103 @@ class CalculateurEligibilite
             'date_reference' => $dateReference instanceof Carbon
                 ? $dateReference->format('Y-m-d')
                 : Carbon::parse($dateReference)->format('Y-m-d'),
-            'delai_mois' => $regle->mois_min,
+            'delai_mois' => $delaiMois,
             'date_eligibilite' => $dateEligibilite->format('Y-m-d'),
             'jours_restants' => (int) $joursRestants,
             'est_eligible' => $joursRestants <= 0,
             'echeance_proche' => $joursRestants > 0 && $joursRestants <= 90,
-            'anticipation_autorisee' => (bool) $regle->anticipation_autorisee,
+            // Avancement au mérite avant l'échéance (CCIT art. 33) : autorisé par la règle d'évolution.
+            'anticipation_autorisee' => (bool) ($regle?->anticipation_autorisee ?? true),
+            'mode' => $this->parametres->get('avancement_echelon_mode'),
         ];
+    }
+
+    /**
+     * Fenêtre d'avancement de catégorie d'un salarié au dernier échelon de sa catégorie (CCIT art. 33) :
+     * au moins N et au plus M mois après une ancienneté donnée dans le dernier échelon.
+     * Retourne null si le salarié n'est pas au dernier échelon.
+     */
+    public function fenetreCategorie(Salarie $salarie): ?array
+    {
+        $situation = SituationCarriere::where('salarie_id', $salarie->id)->first();
+        $position = $situation?->positionClassification;
+        if (! $position || $position->position_suivante_id) {
+            return null;
+        }
+
+        $this->parametres->pourEntreprise($salarie->entreprise_id);
+
+        $reference = $situation->date_effet_echelon ?? $situation->date_reference_avancement ?? $salarie->date_embauche;
+        if (! $reference) {
+            return null;
+        }
+
+        $finAttente = $this->echeance($salarie, Carbon::parse($reference), (int) $this->parametres->get('fenetre_categorie_attente_mois'));
+        $ouverture = $finAttente->copy()->addMonthsNoOverflow((int) $this->parametres->get('fenetre_categorie_ouverture_mois'));
+        $limite = $finAttente->copy()->addMonthsNoOverflow((int) $this->parametres->get('fenetre_categorie_limite_mois'));
+        $aujourdhui = now()->startOfDay();
+
+        // Catégorie immédiatement supérieure du même référentiel ; à défaut, la classe est épuisée (hors catégorie).
+        $categorieSuivante = $position->categorie
+            ? CategorieClassification::where('referentiel_id', $position->referentiel_id)
+                ->where('ordre', '>', $position->categorie->ordre)->orderBy('ordre')->first()
+            : null;
+
+        return [
+            'salarie_id' => $salarie->id,
+            'salarie' => $salarie,
+            'position_actuelle_libelle' => $position->libelleComplet(),
+            'categorie_suivante' => $categorieSuivante?->libelle,
+            'hors_categorie' => $categorieSuivante === null,
+            'date_reference' => Carbon::parse($reference)->format('Y-m-d'),
+            'ouverture' => $ouverture->format('Y-m-d'),
+            'limite' => $limite->format('Y-m-d'),
+            'statut' => match (true) {
+                $aujourdhui->lt($ouverture) => 'avant_ouverture',
+                $aujourdhui->lte($limite) => 'ouverte',
+                default => 'depassee',
+            },
+        ];
+    }
+
+    /**
+     * Fenêtres de catégorie de l'entreprise, ouvertes ou s'ouvrant dans le délai donné.
+     */
+    public function fenetresCategorie(int $entrepriseId, int $jours = 90): array
+    {
+        $resultats = [];
+        foreach (Salarie::where('entreprise_id', $entrepriseId)->where('actif', true)->get() as $salarie) {
+            $fenetre = $this->fenetreCategorie($salarie);
+            if ($fenetre && ($fenetre['statut'] !== 'avant_ouverture'
+                || now()->startOfDay()->diffInDays(Carbon::parse($fenetre['ouverture']), false) <= $jours)) {
+                $resultats[] = $fenetre;
+            }
+        }
+
+        usort($resultats, fn ($a, $b) => strcmp($a['ouverture'], $b['ouverture']));
+
+        return $resultats;
+    }
+
+    /**
+     * Échéance = date de référence + durée en mois, décalée des jours déduits de l'ancienneté
+     * pendant la période si les paramètres le prévoient.
+     */
+    private function echeance(Salarie $salarie, Carbon $reference, int $mois): Carbon
+    {
+        $echeance = $reference->copy()->startOfDay()->addMonthsNoOverflow($mois);
+
+        if ($this->parametres->get('periodes_avancement') !== 'idem_prime') {
+            return $echeance;
+        }
+
+        // Deux passes : les jours déduits peuvent eux-mêmes repousser l'échéance au-delà d'une absence.
+        for ($i = 0; $i < 2; $i++) {
+            $exclus = $this->anciennete->joursExclus($salarie, $reference, $echeance);
+            $echeance = $reference->copy()->startOfDay()->addMonthsNoOverflow($mois)->addDays($exclus);
+        }
+
+        return $echeance;
     }
 
     /**

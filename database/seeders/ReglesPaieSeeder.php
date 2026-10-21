@@ -54,11 +54,15 @@ class ReglesPaieSeeder extends Seeder
             ['entreprise_id' => $entrepriseId, 'debut_effet' => $debutEffet],
             [
                 'entreprise_id' => $entrepriseId,
+                // CCIT 2026 art. 40 : 2 % après deux ans, 1 % par année à partir de la
+                // quatrième, au plus 35 %, sur le salaire minimum de base de la catégorie.
                 'annees_min' => 2,
-                'taux_initial' => 3.0,
+                'taux_initial' => 2.0,
                 'increment_annuel' => 1.0,
-                'taux_max' => 15.0,
-                'mode_base' => 'salary_base',
+                'taux_max' => 35.0,
+                'mode_taux' => 'ccit_cumul',
+                'annee_debut_increment' => 4,
+                'mode_base' => 'echelon_a',
                 'debut_effet' => $debutEffet,
                 'fin_effet' => null,
                 'reference_legale' => 'Convention collective interprofessionnelle',

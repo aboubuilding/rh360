@@ -13,16 +13,25 @@
                             <x-field name="annees_min" label="Années minimum" type="number" required :value="2" />
                         </div>
                         <div class="col-md-6">
-                            <x-field name="mode_base" label="Mode de base" required :value="'salary_base'" />
+                            <x-field name="mode_base" label="Base de la prime" type="select" required :value="'echelon_a'"
+                                     :options="\App\Domain\Paie\Models\RegleAnciennete::MODES_BASE" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-field name="mode_taux" label="Calcul du taux" type="select" required :value="'ccit_cumul'"
+                                     :options="\App\Domain\Paie\Models\RegleAnciennete::MODES_TAUX" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-field name="annee_debut_increment" label="Année de début de l'incrément" type="number" :value="4"
+                                     help="Pour un calcul par cumul ou multiplicatif." />
                         </div>
                         <div class="col-md-4">
-                            <x-field name="taux_initial" label="Taux initial (%)" type="number" step="0.01" required :value="3" />
+                            <x-field name="taux_initial" label="Taux initial (%)" type="number" step="0.01" required :value="2" />
                         </div>
                         <div class="col-md-4">
                             <x-field name="increment_annuel" label="Incrément annuel (%)" type="number" step="0.01" required :value="1" />
                         </div>
                         <div class="col-md-4">
-                            <x-field name="taux_max" label="Taux max (%)" type="number" step="0.01" required :value="15" />
+                            <x-field name="taux_max" label="Taux max (%)" type="number" step="0.01" required :value="35" />
                         </div>
                         <div class="col-md-6">
                             <x-field name="debut_effet" label="Début d'effet" type="date" required :value="now()->format('Y-m-d')" />

@@ -20,7 +20,7 @@ class Absence extends Model
 
     protected $fillable = [
         'entreprise_id', 'salarie_id', 'type_conge_id',
-        'debut_le', 'fin_le', 'duree_heures',
+        'debut_le', 'fin_le', 'date_remplacement', 'duree_heures',
         'motif', 'justification', 'date_limite_justification',
         'statut', 'decision_regularisation', 'qualification',
         'statut_transmission_paie', 'periode_paie',
@@ -33,6 +33,7 @@ class Absence extends Model
         return [
             'debut_le' => 'datetime',
             'fin_le' => 'datetime',
+            'date_remplacement' => 'date',
             'date_limite_justification' => 'date',
             'transmis_paie_le' => 'datetime',
             'duree_heures' => 'decimal:2',

@@ -22,6 +22,7 @@ class AvancementController extends Controller
 
         return view('carriere.avancements.index', [
             'echeances' => $echeances,
+            'fenetres' => $this->calculateur->fenetresCategorie($entrepriseId, $jours),
             'sansDate' => $sansDate,
             'jours' => $jours,
         ]);

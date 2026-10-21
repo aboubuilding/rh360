@@ -128,7 +128,10 @@
                                 <td class="text-end">{{ number_format($r->taux_initial, 2) }} %</td>
                                 <td class="text-end">{{ number_format($r->increment_annuel, 2) }}</td>
                                 <td class="text-end">{{ number_format($r->taux_max, 2) }} %</td>
-                                <td>{{ $r->mode_base }}</td>
+                                <td>
+                                    {{ \App\Domain\Paie\Models\RegleAnciennete::MODES_BASE[$r->mode_base] ?? $r->mode_base }}
+                                    <br><small class="text-muted">{{ \App\Domain\Paie\Models\RegleAnciennete::MODES_TAUX[$r->mode_taux] ?? $r->mode_taux }}</small>
+                                </td>
                                 <td>{{ $r->debut_effet?->format('d/m/Y') }}</td>
                                 <td>
                                     @if($r->actif)
@@ -147,6 +150,8 @@
                                                     'increment_annuel' => $r->increment_annuel,
                                                     'taux_max' => $r->taux_max,
                                                     'mode_base' => $r->mode_base,
+                                                    'mode_taux' => $r->mode_taux,
+                                                    'annee_debut_increment' => $r->annee_debut_increment,
                                                     'debut_effet' => $r->debut_effet?->format('Y-m-d'),
                                                     'fin_effet' => $r->fin_effet?->format('Y-m-d'),
                                                     'reference_legale' => $r->reference_legale,

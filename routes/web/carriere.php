@@ -5,6 +5,7 @@ use App\Http\Controllers\Carriere\AvancementController;
 use App\Http\Controllers\Carriere\InterimController;
 use App\Http\Controllers\Carriere\MissionInterimController;
 use App\Http\Controllers\Carriere\MouvementCarriereController;
+use App\Http\Controllers\Carriere\ParametreAvancementController;
 use App\Http\Controllers\Carriere\ParametreInterimController;
 use App\Http\Controllers\Carriere\PretMainOeuvreController;
 use App\Http\Controllers\Carriere\ReportingCarriereController;
@@ -27,6 +28,9 @@ Route::middleware('auth')->prefix('carriere')->name('carriere.')->group(function
     // Avancements
     Route::get('avancements', [AvancementController::class, 'index'])->name('avancements.index');
     Route::post('avancements/preparer', [AvancementController::class, 'preparerPropositions'])->name('avancements.preparer');
+    Route::get('avancements/parametres', [ParametreAvancementController::class, 'edit'])->name('avancements.parametres');
+    Route::put('avancements/parametres', [ParametreAvancementController::class, 'update'])->name('avancements.parametres.update');
+    Route::post('avancements/parametres/reinitialiser', [ParametreAvancementController::class, 'reinitialiser'])->name('avancements.parametres.reinitialiser');
 
     // Intérims
     Route::get('interims', [InterimController::class, 'index'])->name('interims.index');

@@ -164,7 +164,10 @@ it('RG-TT-05 / RG-TT-10 : refuse le remplacement de gréviste et affiche la sanc
 });
 
 it('RG-TT-05 : refuse une mission sur un poste dont le titulaire est en grève sur la période', function () {
-    $titulaire = Salarie::findOrFail(Affectation::where('poste_id', $this->poste->id)->where('en_cours', true)->value('salarie_id'));
+    // Les affectations de démonstration sont tirées au hasard : le titulaire du poste est fixé ici.
+    $titulaire = Salarie::orderBy('id')->firstOrFail();
+    Affectation::where('salarie_id', $titulaire->id)->where('en_cours', true)
+        ->update(['poste_id' => $this->poste->id, 'structure_id' => $this->poste->structure_id]);
     absenceGreve($titulaire, '2026-12-10 00:00:00', '2026-12-12 00:00:00');
 
     $erreurs = erreursMission(fn () => $this->service->creer(donneesMission()));

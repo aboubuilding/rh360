@@ -2,6 +2,7 @@
 
 use App\Domain\Administration\Models\Utilisateur;
 use App\Domain\Contrats\Enums\StatutContrat;
+use App\Domain\Contrats\Enums\TypeContrat;
 use App\Domain\Contrats\Models\Contrat;
 use App\Domain\Contrats\Models\HistoriqueContrat;
 
@@ -9,7 +10,9 @@ beforeEach(function () {
     $this->seed();
     $this->admin = Utilisateur::where('role', Utilisateur::ROLE_SUPER_ADMIN)->first();
     $this->actingAs($this->admin);
-    $this->contrat = Contrat::first();
+    // Contrat à durée indéterminée : le circuit testé ne dépend pas des règles propres au CDD
+    // (terme obligatoire, durée totale de 4 ans), et Contrat::first() n'a pas d'ordre garanti.
+    $this->contrat = Contrat::where('type_contrat', TypeContrat::CDI->value)->orderBy('id')->firstOrFail();
 });
 
 it('soumet un contrat brouillon', function () {
@@ -139,8 +142,6 @@ describe('contrat signé', function () {
             'reference' => 'MODIF-APRES-SIGNATURE',
             'type_contrat' => $this->contrat->type_contrat,
             'date_debut' => now()->format('Y-m-d'),
-            // Un CDD a un terme (RG-REM-02) : sans lui, la validation échouerait avant le contrôle d'accès.
-            'date_fin' => now()->addYear()->format('Y-m-d'),
             'poste_id' => $this->contrat->poste_id,
             'position_classification_id' => $this->contrat->position_classification_id,
         ])->assertForbidden();
@@ -162,7 +163,6 @@ describe('contrat signé', function () {
             'reference' => 'AVN-2026-0001',
             'type_contrat' => $this->contrat->type_contrat,
             'date_debut' => now()->addMonth()->format('Y-m-d'),
-            'date_fin' => now()->addYear()->format('Y-m-d'), // RG-REM-02 : un CDD a un terme
             'poste_id' => $this->contrat->poste_id,
             'position_classification_id' => $this->contrat->position_classification_id,
         ])->assertRedirect();
@@ -183,7 +183,6 @@ it('refuse un avenant sur un contrat non signé', function () {
         'reference' => 'AVN-INTERDIT',
         'type_contrat' => $this->contrat->type_contrat,
         'date_debut' => now()->format('Y-m-d'),
-        'date_fin' => now()->addYear()->format('Y-m-d'), // RG-REM-02 : un CDD a un terme
         'poste_id' => $this->contrat->poste_id,
         'position_classification_id' => $this->contrat->position_classification_id,
     ])->assertForbidden();
