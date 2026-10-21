@@ -18,7 +18,7 @@ class PeriodePaie extends Model
     protected $table = 'periodes_paie';
 
     protected $fillable = [
-        'entreprise_id', 'annee', 'mois', 'statut',
+        'entreprise_id', 'annee', 'mois', 'statut', 'date_paiement',
         'valide_le', 'valide_par', 'etat',
     ];
 
@@ -28,6 +28,7 @@ class PeriodePaie extends Model
             'annee' => 'integer',
             'mois' => 'integer',
             'valide_le' => 'datetime',
+            'date_paiement' => 'date',
             'statut' => StatutPeriode::class,
         ];
     }

@@ -107,6 +107,48 @@
             </table>
         </div>
 
+        <div class="card mb-3">
+            <div class="card-header"><strong>Prêts et avances</strong> <small class="text-muted">remboursés par cession volontaire vérifiée</small></div>
+            <ul class="list-group list-group-flush">
+                @forelse($prets as $p)
+                    <li class="list-group-item d-flex flex-wrap justify-content-between gap-2">
+                        <span>
+                            {{ \App\Domain\Paie\Models\PretSalarie::TYPES[$p->type] ?? $p->type }} n° {{ $p->id }} :
+                            {{ number_format($p->montant, 0, ',', ' ') }} FCFA, {{ number_format($p->echeance, 0, ',', ' ') }} par mois à partir de {{ $p->premier_mois->format('m/Y') }}
+                            <div class="small text-muted">Reste dû : {{ number_format($p->restant(), 0, ',', ' ') }} FCFA</div>
+                        </span>
+                        @if($p->verifie_le)
+                            <span class="badge bg-success align-self-center">Cession vérifiée le {{ $p->verifie_le->format('d/m/Y') }}</span>
+                        @else
+                            @can('permission', 'paie.manage')
+                                <form method="POST" action="{{ route('paie.elements.prets.verifier', [$salarie, $p]) }}" class="d-flex gap-1">
+                                    @csrf
+                                    <input type="date" name="verifie_le" class="form-control form-control-sm" required aria-label="Date de vérification">
+                                    <button class="btn btn-sm btn-outline-success text-nowrap">Vérifiée ({{ \App\Domain\Paie\Models\PretSalarie::VERIFICATIONS[$p->verification] ?? '' }})</button>
+                                </form>
+                            @endcan
+                        @endif
+                    </li>
+                @empty
+                    <li class="list-group-item text-muted">Aucun prêt ni avance.</li>
+                @endforelse
+            </ul>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><strong>Saisies-attributions</strong> <small class="text-muted">retenues dans la limite de la quotité saisissable</small></div>
+            <ul class="list-group list-group-flush">
+                @forelse($saisies as $s)
+                    <li class="list-group-item d-flex flex-wrap justify-content-between gap-2">
+                        <span>Rang {{ $s->rang }} — {{ $s->creancier }} ({{ $s->reference_acte }} du {{ $s->date_acte->format('d/m/Y') }})</span>
+                        <span>{{ number_format($s->montant_total, 0, ',', ' ') }} FCFA, reste {{ number_format($s->restant(), 0, ',', ' ') }} FCFA</span>
+                    </li>
+                @empty
+                    <li class="list-group-item text-muted">Aucune saisie.</li>
+                @endforelse
+            </ul>
+        </div>
+
         <div class="card">
             <div class="card-header"><strong>Associations manuelles à un modèle</strong></div>
             <ul class="list-group list-group-flush">
@@ -145,6 +187,7 @@
                             <div class="col-6"><x-field name="fin" label="Au" type="date" /></div>
                         </div>
                         <x-field name="exclu" label="Exclure cette rubrique du bulletin du salarié" type="checkbox" />
+                        <x-field name="accord_le" label="Accord écrit du salarié le (cotisation syndicale)" type="date" />
                         <x-field name="observations" label="Observations" />
                         <button class="btn btn-primary w-100"><i class="fas fa-save"></i> Enregistrer</button>
                     </form>
@@ -152,6 +195,44 @@
                         Le salaire de base ne peut pas être inférieur au minimum de la position du salarié. Sans dates,
                         l'élément vaut chaque mois ; un élément mensuel est proratisé sur ses jours de validité.
                     </p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><strong>Nouveau prêt ou avance</strong></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('paie.elements.prets.store', $salarie) }}">
+                        @csrf
+                        <x-field name="type" label="Nature" type="select" required :options="\App\Domain\Paie\Models\PretSalarie::TYPES" />
+                        <div class="row g-2">
+                            <div class="col-6"><x-field name="montant" label="Montant (FCFA)" type="number" required /></div>
+                            <div class="col-6"><x-field name="echeance" label="Échéance mensuelle" type="number" required /></div>
+                        </div>
+                        <x-field name="premier_mois" label="Premier remboursement (mois)" type="date" required />
+                        <x-field name="verification" label="Cession vérifiée par" type="select" required :options="\App\Domain\Paie\Models\PretSalarie::VERIFICATIONS" />
+                        <x-field name="verifie_le" label="Vérifiée le" type="date" help="Sans cette date, rien n'est retenu sur le salaire." />
+                        <x-field name="motif" label="Motif" />
+                        <button class="btn btn-outline-primary w-100"><i class="fas fa-hand-holding-usd"></i> Enregistrer le prêt</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><strong>Nouvelle saisie-attribution</strong></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('paie.elements.saisies.store', $salarie) }}">
+                        @csrf
+                        <x-field name="creancier" label="Créancier" required />
+                        <div class="row g-2">
+                            <div class="col-7"><x-field name="reference_acte" label="Référence de l'acte" required /></div>
+                            <div class="col-5"><x-field name="date_acte" label="Date de l'acte" type="date" required /></div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-7"><x-field name="montant_total" label="Montant à retenir (FCFA)" type="number" required /></div>
+                            <div class="col-5"><x-field name="rang" label="Rang" type="number" :value="1" /></div>
+                        </div>
+                        <button class="btn btn-outline-primary w-100"><i class="fas fa-gavel"></i> Enregistrer la saisie</button>
+                    </form>
                 </div>
             </div>
 

@@ -17,7 +17,7 @@ class ElementPaieSalarie extends Model
 
     protected $fillable = [
         'entreprise_id', 'salarie_id', 'rubrique_id',
-        'montant', 'debut', 'fin', 'exclu', 'actif', 'observations', 'etat',
+        'montant', 'debut', 'fin', 'exclu', 'accord_le', 'actif', 'observations', 'etat',
     ];
 
     protected function casts(): array
@@ -27,6 +27,7 @@ class ElementPaieSalarie extends Model
             'debut' => 'date',
             'fin' => 'date',
             'exclu' => 'boolean',
+            'accord_le' => 'date',
             'actif' => 'boolean',
         ];
     }

@@ -211,6 +211,10 @@ class RubriquesPaieSeeder extends Seeder
 
         // Rubriques des absences (congé payé, maladie, maternité, absences non rémunérées).
         \App\Domain\Paie\Services\PreparateurPaieAbsences::installerRubriques($entrepriseId);
+        // Retenues autorisées : saisie-attribution, cotisation syndicale, mutuelle.
+        \App\Domain\Paie\Services\InstallateurRubriquesRetenues::installer($entrepriseId);
+        // Solde de tout compte : préavis, congés, indemnités de rupture.
+        \App\Domain\Paie\Services\CalculateurSoldeToutCompte::installerRubriques($entrepriseId);
 
         $this->command->info(count($rubriques) . ' rubriques de paie créées.');
     }

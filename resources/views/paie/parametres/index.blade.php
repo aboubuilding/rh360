@@ -18,6 +18,8 @@
         <i class="fas fa-hourglass-half"></i> Prime d'ancienneté</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-irpp">
         <i class="fas fa-file-invoice"></i> Barème IRPP</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-externes">
+        <i class="fas fa-scale-balanced"></i> SMIG et quotité</a></li>
 </ul>
 
 <div class="tab-content">
@@ -237,6 +239,9 @@
                 </table>
             </div>
         </div>
+    </div>
+    <div class="tab-pane fade" id="tab-externes">
+        @include('paie.parametres._externes')
     </div>
 </div>
 

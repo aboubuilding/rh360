@@ -17,6 +17,10 @@ use App\Domain\Paie\Models\HeureSupplementaire;
 use App\Domain\Paie\Models\LigneBulletin;
 use App\Domain\Paie\Models\ParametreLegalPaie;
 use App\Domain\Paie\Models\PeriodePaie;
+use App\Domain\Paie\Models\PretSalarie;
+use App\Domain\Paie\Models\SaisieAttribution;
+use App\Domain\Paie\Models\SortieSalarie;
+use App\Domain\Paie\Enums\TypeRetenue;
 use App\Domain\Paie\Models\RappelAvancement;
 use App\Domain\Paie\Models\RubriquePaie;
 use App\Domain\Paie\Models\SaisiePaie;
@@ -52,6 +56,7 @@ class MoteurPaie
         private CalculateurHeuresSupp $calcHS,
         private CalculateurIRPP $calcIrpp,
         private ResolveurModelePaie $resolveurModele,
+        private CalculateurQuotite $quotite,
     ) {}
 
     /**
@@ -75,6 +80,10 @@ class MoteurPaie
             foreach (app(PreparateurPaieAbsences::class)->preparer($periode) as $anomalie) {
                 AnomaliePaie::create($anomalie + ['entreprise_id' => $periode->entreprise_id, 'periode_id' => $periode->id, 'gravite' => AnomaliePaie::ALERTE, 'code' => 'absence']);
             }
+            // Sorties du mois : éléments du solde de tout compte.
+            foreach (app(PreparateurPaieSorties::class)->preparer($periode) as $anomalie) {
+                AnomaliePaie::create($anomalie + ['entreprise_id' => $periode->entreprise_id, 'periode_id' => $periode->id, 'gravite' => AnomaliePaie::ALERTE, 'code' => 'sortie']);
+            }
 
             $dateFinPeriode = Carbon::createFromDate($periode->annee, $periode->mois, 1)->endOfMonth()->startOfDay();
             $this->rubriques = RubriquePaie::pourEntreprise($periode->entreprise_id)->pluck('id', 'code')->all();
@@ -82,6 +91,9 @@ class MoteurPaie
             $salaries = Salarie::where('entreprise_id', $periode->entreprise_id)
                 ->where('actif', true)
                 ->where(fn ($q) => $q->whereNull('date_embauche')->orWhere('date_embauche', '<=', $dateFinPeriode))
+                // Un salarié sorti avant le mois n'a plus de bulletin.
+                ->whereNotIn('id', SortieSalarie::pourEntreprise($periode->entreprise_id)
+                    ->where('date_cessation', '<', $dateFinPeriode->copy()->startOfMonth()->toDateString())->select('salarie_id'))
                 ->get();
 
             $resultats = [
@@ -122,6 +134,23 @@ class MoteurPaie
     private function calculerBulletin(PeriodePaie $periode, Salarie $salarie, Carbon $date): BulletinPaie
     {
         $calcul = $this->construire($periode->entreprise_id, $periode->id, $salarie, $date);
+
+        // Un recalcul qui change le brut ou le net est journalisé.
+        $ancien = BulletinPaie::where('periode_id', $periode->id)->where('salarie_id', $salarie->id)->first();
+        if ($ancien && (round((float) $ancien->montant_brut, 2) !== round((float) $calcul['bulletin']['montant_brut'], 2)
+            || round((float) $ancien->montant_net, 2) !== round((float) $calcul['bulletin']['montant_net'], 2))) {
+            DB::table('journal_recalculs_paie')->insert([
+                'entreprise_id' => $periode->entreprise_id,
+                'periode_id' => $periode->id,
+                'salarie_id' => $salarie->id,
+                'ancien_brut' => $ancien->montant_brut,
+                'ancien_net' => $ancien->montant_net,
+                'nouveau_brut' => $calcul['bulletin']['montant_brut'],
+                'nouveau_net' => $calcul['bulletin']['montant_net'],
+                'auteur_id' => auth()->id(),
+                'created_at' => now(),
+            ]);
+        }
 
         $bulletin = BulletinPaie::updateOrCreate(
             ['periode_id' => $periode->id, 'salarie_id' => $salarie->id],
@@ -169,7 +198,11 @@ class MoteurPaie
         $debutPresence = $salarie->date_embauche && $salarie->date_embauche->gt($debutPeriode)
             ? $salarie->date_embauche->copy()->startOfDay()
             : $debutPeriode;
-        $joursPresence = (int) $debutPresence->diffInDays($date) + 1;
+        // Sortie dans le mois : le salaire s'arrête au jour de la cessation du service.
+        $cessation = SortieSalarie::pourEntreprise($entrepriseId)->where('salarie_id', $salarie->id)
+            ->whereBetween('date_cessation', [$debutPeriode->toDateString(), $date->toDateString()])->value('date_cessation');
+        $finPresence = $cessation ? Carbon::parse($cessation)->startOfDay() : $date;
+        $joursPresence = (int) $debutPresence->diffInDays($finPresence) + 1;
         $prorata = $joursPresence / $joursMois;
 
         $position = SituationCarriere::withoutGlobalScopes()->where('salarie_id', $salarie->id)
@@ -196,7 +229,7 @@ class MoteurPaie
             NatureRubrique::GAIN->value, $salaireBase * $prorata, TraitementFiscal::IMPOSABLE->value, 1,
         );
 
-        foreach ($this->composerElements($salarie, $resolution['modele'], $debutPresence, $date) as [$rubrique, $montant]) {
+        foreach ($this->composerElements($salarie, $resolution['modele'], $debutPresence, $finPresence) as [$rubrique, $montant]) {
             $lignes[] = $this->ligne(
                 $rubrique->code, $rubrique->nom, $rubrique->nature->value, $montant,
                 $rubrique->traitement_fiscal->value, 10, (bool) $rubrique->est_frais, (bool) $rubrique->soumis_cotisation,
@@ -281,6 +314,11 @@ class MoteurPaie
         }
 
         // ============================================================
+        // RETENUES ENCADRÉES : cas légaux, prêts, saisies, quotité
+        // ============================================================
+        $lignes = $this->encadrerRetenues($lignes, $entrepriseId, $periodeId, $salarie, $date, $brut - $totalCotisations - $resultatIrpp['montant_irpp']);
+
+        // ============================================================
         // AUTRES RETENUES (saisies de nature RETENUE)
         // ============================================================
         $autresRetenues = collect($lignes)
@@ -316,6 +354,106 @@ class MoteurPaie
             'lignes' => $lignes,
             'anomalies' => $this->anomalies,
         ];
+    }
+
+    // ============================================================
+    // RETENUES
+    // ============================================================
+
+    /**
+     * Retenues sur salaire (Code art. 120, 173 à 175 ; CCIT art. 35) :
+     * - une retenue saisie hors des cas prévus par la loi n'est pas appliquée et bloque la paie ;
+     * - la cotisation syndicale n'est prélevée qu'avec l'accord préalable du salarié ;
+     * - un prêt ou une avance n'est remboursé que si la cession a été vérifiée ;
+     * - les saisies-attributions, puis les cessions, sont limitées à la quotité saisissable ;
+     *   le reliquat reste dû et sera retenu les mois suivants.
+     *
+     * @param  array<int, array<string, mixed>>  $lignes
+     * @return array<int, array<string, mixed>>
+     */
+    private function encadrerRetenues(array $lignes, int $entrepriseId, ?int $periodeId, Salarie $salarie, Carbon $date, float $assietteQuotite): array
+    {
+        $rubriques = RubriquePaie::pourEntreprise($entrepriseId)->get()->keyBy('id');
+        $parCode = $rubriques->keyBy('code');
+        $accords = ElementPaieSalarie::where('salarie_id', $salarie->id)->whereNotNull('accord_le')->pluck('rubrique_id')->all();
+
+        $lignes = collect($lignes)->filter(function (array $l) use ($rubriques, $accords) {
+            if ($l['nature'] !== NatureRubrique::RETENUE->value || $l['code'] === 'IRPP') {
+                return true;
+            }
+            $rubrique = $rubriques->get($l['rubrique_id']);
+            if (! $rubrique?->type_retenue) {
+                $this->signaler(AnomaliePaie::BLOQUANTE, 'retenue_non_autorisee', "La retenue « {$l['libelle']} » ne correspond à aucun cas prévu par la loi : elle n'est pas appliquée.");
+
+                return false;
+            }
+            if ($rubrique->type_retenue === TypeRetenue::COTISATION_SYNDICALE && ! in_array($rubrique->id, $accords, true)) {
+                $this->signaler(AnomaliePaie::BLOQUANTE, 'cotisation_syndicale', 'Cotisation syndicale sans accord préalable du salarié : elle n\'est pas prélevée.');
+
+                return false;
+            }
+
+            return true;
+        })->values()->all();
+
+        // Prêts et avances : remboursement par cession vérifiée.
+        $prets = PretSalarie::pourEntreprise($entrepriseId)->where('salarie_id', $salarie->id)->where('statut', 'actif')
+            ->where('premier_mois', '<=', $date->toDateString())->orderBy('id')->get();
+        foreach ($prets as $pret) {
+            if (! $pret->verifie_le) {
+                $this->signaler(AnomaliePaie::BLOQUANTE, 'cession', "Le remboursement du prêt n° {$pret->id} attend la vérification de la cession par l'inspecteur du travail ou le tribunal : il n'est pas retenu.");
+
+                continue;
+            }
+            $restant = $pret->restant($periodeId);
+            $montant = min((float) $pret->echeance, $restant);
+            if ($montant > 0) {
+                $lignes[] = $this->ligne('PRET', PretSalarie::TYPES[$pret->type].' n° '.$pret->id.' (reste '.$this->fcfa($restant - $montant).' FCFA)',
+                    NatureRubrique::RETENUE->value, $montant, TraitementFiscal::EXONERE->value, 96, reference: $pret->reference());
+            }
+        }
+
+        // Saisies-attributions, par rang.
+        $saisies = SaisieAttribution::pourEntreprise($entrepriseId)->where('salarie_id', $salarie->id)->where('statut', 'active')
+            ->where('date_acte', '<=', $date->toDateString())->orderBy('rang')->orderBy('id')->get();
+        foreach ($saisies as $saisie) {
+            $restant = $saisie->restant($periodeId);
+            if ($restant > 0) {
+                $lignes[] = $this->ligne('SAISIE-ATT', "Saisie-attribution {$saisie->reference_acte} ({$saisie->creancier})",
+                    NatureRubrique::RETENUE->value, $restant, TraitementFiscal::EXONERE->value, 95, reference: $saisie->reference());
+            }
+        }
+
+        // Quotité : saisies d'abord, puis cessions.
+        $plafonnees = collect($lignes)->filter(fn ($l) => $l['nature'] === NatureRubrique::RETENUE->value
+            && ($rubriques->get($l['rubrique_id'])?->type_retenue?->plafonneeParQuotite() ?? false))
+            ->sortBy('ordre')->keys();
+        $total = $plafonnees->sum(fn ($i) => $lignes[$i]['montant']);
+        if ($total <= 0) {
+            return $lignes;
+        }
+
+        $quotite = $this->quotite->quotite($entrepriseId, max(0, $assietteQuotite), $date);
+        if ($quotite === null) {
+            $this->signaler(AnomaliePaie::BLOQUANTE, 'quotite', 'Barème de la quotité saisissable non paramétré : les retenues sur cession ou saisie ne peuvent pas être plafonnées.');
+
+            return $lignes;
+        }
+        if ($total <= $quotite) {
+            return $lignes;
+        }
+
+        $disponible = $quotite;
+        foreach ($plafonnees as $i) {
+            $lignes[$i]['montant'] = round(min($lignes[$i]['montant'], $disponible), 2);
+            $disponible -= $lignes[$i]['montant'];
+        }
+        $this->signaler(AnomaliePaie::ALERTE, 'quotite', sprintf(
+            'Retenues sur cession et saisie limitées à la quotité saisissable de %s FCFA : %s FCFA restent dus et seront retenus les mois suivants.',
+            $this->fcfa($quotite), $this->fcfa($total - $quotite),
+        ));
+
+        return collect($lignes)->reject(fn ($l) => $l['nature'] === NatureRubrique::RETENUE->value && $l['montant'] <= 0 && $l['reference'] !== null)->values()->all();
     }
 
     // ============================================================
@@ -383,6 +521,7 @@ class MoteurPaie
         int $ordre,
         bool $frais = false,
         bool $cotisable = true,
+        ?string $reference = null,
     ): array {
         return [
             'rubrique_id' => $this->rubriques[$code] ?? null,
@@ -393,6 +532,7 @@ class MoteurPaie
             'traitement_fiscal' => $traitementFiscal,
             'montant_imposable' => $traitementFiscal === TraitementFiscal::IMPOSABLE->value && ! $frais ? round($montant, 2) : 0,
             'ordre' => $ordre,
+            'reference' => $reference,
             'frais' => $frais,
             'cotisable' => $cotisable,
         ];

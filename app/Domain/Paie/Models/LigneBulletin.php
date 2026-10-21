@@ -16,7 +16,7 @@ class LigneBulletin extends Model
     protected $fillable = [
         'entreprise_id', 'bulletin_id', 'rubrique_id',
         'code', 'libelle', 'nature',
-        'montant', 'traitement_fiscal', 'montant_imposable', 'ordre',
+        'montant', 'traitement_fiscal', 'montant_imposable', 'ordre', 'reference',
     ];
 
     protected function casts(): array

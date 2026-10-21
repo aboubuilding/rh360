@@ -16,6 +16,13 @@
                         Seul un super administrateur pourra exceptionnellement rouvrir la période.
                     </div>
 
+                    @php
+                        $finMois = \Carbon\Carbon::create($periode->annee, $periode->mois, 1)->endOfMonth();
+                    @endphp
+                    <x-field name="date_paiement" label="Date de paiement des salaires" type="date" required
+                             :value="$finMois->format('Y-m-d')"
+                             help="Au plus tard le {{ $finMois->copy()->addDays(8)->format('d/m/Y') }}, ni un dimanche ni un jour férié." />
+
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" name="confirmation" id="confirmation" value="1" required>
                         <label class="form-check-label" for="confirmation">

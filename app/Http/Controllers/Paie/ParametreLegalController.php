@@ -20,7 +20,51 @@ class ParametreLegalController extends Controller
         $anciennete = RegleAnciennete::orderByDesc('debut_effet')->get();
         $irpp = RegleIrpp::orderByDesc('debut_effet')->get();
 
-        return view('paie.parametres.index', compact('cotisations', 'anciennete', 'irpp'));
+        $externes = \App\Domain\Paie\Models\ParametreLegalPaie::orderBy('cle')->orderByDesc('debut_effet')->get();
+
+        return view('paie.parametres.index', compact('cotisations', 'anciennete', 'irpp', 'externes'));
+    }
+
+    // Paramètre externe daté : SMIG (arrêté) ou barème de quotité saisissable (décret).
+    public function storeExterne(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('permission', 'paie.manage');
+
+        $donnees = $request->validate([
+            'cle' => ['required', 'in:smig,quotite_saisissable'],
+            'valeur' => ['nullable', 'required_if:cle,smig', 'numeric', 'min:1'],
+            'tranches' => ['nullable', 'required_if:cle,quotite_saisissable', 'string', 'max:2000'],
+            'debut_effet' => ['required', 'date'],
+            'commentaire' => ['nullable', 'string', 'max:255'],
+        ], [
+            'valeur.required_if' => 'Le montant du SMIG est obligatoire.',
+            'tranches.required_if' => 'Les tranches du barème sont obligatoires.',
+            'debut_effet.required' => 'La date d\'effet est obligatoire.',
+        ]);
+
+        $json = null;
+        if ($donnees['cle'] === 'quotite_saisissable') {
+            // « plafond ; pourcentage » par ligne ; dernière tranche sans plafond.
+            $json = [];
+            foreach (preg_split('/\R/', trim($donnees['tranches'])) as $ligne) {
+                [$plafond, $pourcentage] = array_map('trim', explode(';', $ligne) + [1 => '']);
+                $pourcentage = (float) str_replace(',', '.', $pourcentage);
+                if ($pourcentage <= 0 || $pourcentage > 100) {
+                    return back()->withInput()->withErrors(['tranches' => "Pourcentage invalide sur la ligne « {$ligne} »."]);
+                }
+                $json[] = [$plafond === '' ? null : (float) str_replace([' ', ','], ['', '.'], $plafond), round($pourcentage / 100, 6)];
+            }
+            if (end($json)[0] !== null) {
+                return back()->withInput()->withErrors(['tranches' => 'La dernière tranche n\'a pas de plafond : commencez-la par « ; ».']);
+            }
+        }
+
+        \App\Domain\Paie\Models\ParametreLegalPaie::updateOrCreate(
+            ['entreprise_id' => auth()->user()->entreprise_id, 'cle' => $donnees['cle'], 'debut_effet' => $donnees['debut_effet']],
+            ['valeur' => $donnees['valeur'] ?? null, 'valeur_json' => $json, 'commentaire' => $donnees['commentaire'] ?? null],
+        );
+
+        return redirect()->route('paie.parametres.index')->with('success', 'Paramètre enregistré.');
     }
 
     // --- Cotisations ---

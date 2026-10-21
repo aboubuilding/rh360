@@ -10,6 +10,7 @@ use App\Http\Controllers\Paie\ParametreLegalController;
 use App\Http\Controllers\Paie\PeriodePaieController;
 use App\Http\Controllers\Paie\RappelAvancementController;
 use App\Http\Controllers\Paie\RubriquePaieController;
+use App\Http\Controllers\Paie\SortieSalarieController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
@@ -23,6 +24,11 @@ Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
     Route::post('generation', [GenerationPaieController::class, 'generer'])->name('generation.generer');
     Route::get('generation/{periode}/bulletins', [GenerationPaieController::class, 'telecharger'])->name('generation.telecharger');
 
+    // Sorties : solde de tout compte
+    Route::get('sorties', [SortieSalarieController::class, 'index'])->name('sorties.index');
+    Route::post('sorties', [SortieSalarieController::class, 'store'])->name('sorties.store');
+    Route::delete('sorties/{sortie}', [SortieSalarieController::class, 'destroy'])->name('sorties.destroy');
+
     // Éléments de paie des salariés et association aux modèles
     Route::get('salaries', [ElementPaieSalarieController::class, 'index'])->name('elements.index');
     Route::get('salaries/{salarie}', [ElementPaieSalarieController::class, 'show'])->name('elements.show');
@@ -30,6 +36,9 @@ Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
     Route::delete('salaries/{salarie}/elements/{element}', [ElementPaieSalarieController::class, 'supprimer'])->name('elements.destroy');
     Route::post('salaries/{salarie}/modeles', [ElementPaieSalarieController::class, 'associer'])->name('elements.associer');
     Route::delete('salaries/{salarie}/modeles/{affectation}', [ElementPaieSalarieController::class, 'dissocier'])->name('elements.dissocier');
+    Route::post('salaries/{salarie}/prets', [ElementPaieSalarieController::class, 'enregistrerPret'])->name('elements.prets.store');
+    Route::post('salaries/{salarie}/prets/{pret}/verifier', [ElementPaieSalarieController::class, 'verifierPret'])->name('elements.prets.verifier');
+    Route::post('salaries/{salarie}/saisies', [ElementPaieSalarieController::class, 'enregistrerSaisie'])->name('elements.saisies.store');
 
     // Rubriques
     Route::get('rubriques', [RubriquePaieController::class, 'index'])->name('rubriques.index');
@@ -67,6 +76,7 @@ Route::middleware('auth')->prefix('paie')->name('paie.')->group(function () {
     Route::put('parametres/anciennete/{regle}', [ParametreLegalController::class, 'updateAnciennete'])->name('parametres.anciennete.update');
     Route::post('parametres/irpp', [ParametreLegalController::class, 'storeIrpp'])->name('parametres.irpp.store');
     Route::put('parametres/irpp/{regle}', [ParametreLegalController::class, 'updateIrpp'])->name('parametres.irpp.update');
+    Route::post('parametres/externes', [ParametreLegalController::class, 'storeExterne'])->name('parametres.externes.store');
 
     // ============================================================
     // 2. PÉRIODES

@@ -16,6 +16,7 @@ class AffecterElementFixe
         ?string $debut = null,
         ?string $fin = null,
         bool $exclu = false,
+        ?string $accordLe = null,
     ): ElementPaieSalarie {
         if ($debut && $fin && $fin < $debut) {
             throw new \DomainException('La date de fin de l\'élément doit suivre sa date de début.');
@@ -41,6 +42,7 @@ class AffecterElementFixe
                 'debut' => $debut,
                 'fin' => $fin,
                 'exclu' => $exclu,
+                'accord_le' => $accordLe,
                 'actif' => true,
                 'observations' => $observations,
                 'etat' => 1,

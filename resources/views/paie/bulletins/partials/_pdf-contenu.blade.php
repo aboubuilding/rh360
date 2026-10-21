@@ -21,7 +21,7 @@
     </div>
 
     <h1>BULLETIN DE PAIE</h1>
-    <div class="periode">{{ $bulletin->periode->libelle }}</div>
+    <div class="periode">{{ $bulletin->periode->libelle }}@if($bulletin->periode->date_paiement) — payé le {{ $bulletin->periode->date_paiement->format('d/m/Y') }}@endif</div>
 
     <table>
         <thead>

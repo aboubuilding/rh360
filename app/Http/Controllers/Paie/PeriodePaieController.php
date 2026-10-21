@@ -120,7 +120,7 @@ class PeriodePaieController extends Controller
         $this->authorize('valider', $periode);
 
         try {
-            $action->executer($periode);
+            $action->executer($periode, $request->date_paiement);
         } catch (\DomainException $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 422);

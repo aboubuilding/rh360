@@ -15,6 +15,7 @@ class ValiderPeriodeRequest extends FormRequest
     {
         return [
             'confirmation' => ['accepted'],
+            'date_paiement' => ['required', 'date'],
         ];
     }
 
